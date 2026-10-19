@@ -1,0 +1,30 @@
+{
+  "name": "snagflow",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SnagFlow - collaborative snag / punch-list / defect tracking for construction teams (web + mobile on Supabase)",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:gen-types": "supabase gen types --lang=typescript --local > packages/shared/src/db-types.ts",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:start": "supabase start"
+  },
+  "devDependencies": {
+    "eslint": "^9",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.8",
+    "typescript": "5.8.3",
+    "typescript-eslint": "^8.71.2"
+  }
+}

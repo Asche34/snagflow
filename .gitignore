@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+.next/
+out/
+dist/
+.expo/
+*.tsbuildinfo
+
+# env & secrets
+.env
+.env.local
+.env*.local
+!.env.example
+
+# supabase
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# misc
+.DS_Store
+Thumbs.db
+*.log
+coverage/
+.turbo/
+.vercel
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!/apps/mobile/.easignore
