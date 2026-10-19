@@ -1,0 +1,19 @@
+{
+  "name": "@snagflow/db-tests",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "lint": "eslint tests",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "@snagflow/shared": "workspace:*",
+    "@supabase/supabase-js": "^2.49.4",
+    "@types/node": "^20",
+    "eslint": "^9",
+    "typescript": "^5",
+    "vitest": "^3.1.3"
+  }
+}

@@ -58,3 +58,17 @@ Every non-obvious choice made while building SnagFlow. Format: **Decision** — 
 
 - A GitHub remote to push CI status to, and whether to wire up hosted Supabase credentials now or stay on local-stack only for now.
 - Whether Docker Desktop should be installed on this machine so that DB/RLS tests can run locally.
+
+## Phase 1 notes (implemented as planned above)
+
+- **Workflow authority lives in one place**: RPCs (`assign_snag`, `transition_snag`, `soft_delete_snag`) + a `BEFORE UPDATE` guard trigger on `snags` that rejects *any* direct client write to `status`, `assignee_id`, `number`, `client_id`, `project_id`, `closed_*`, `rejection_count`, `deleted_at`. RPCs set a transaction-local `app.snag_rpc` setting to pass through their own controlled writes. Plain-field detail edits (title, description, priority, due date, category, location, pins) remain direct RLS-gated updates so the UI stays snappy and offline-friendly.
+- **Error contract**: Postgres raises messages prefixed with stable codes — `SNAG_NOT_FOUND`, `SNAG_ILLEGAL_TRANSITION`, `SNAG_ASSIGN_FORBIDDEN`, `SNAG_TRANSITION_FORBIDDEN`, `SNAG_COMMENT_REQUIRED`, `SNAG_FIX_PHOTO_REQUIRED`, `SNAG_DELETED`, `SNAG_PHOTO_LIMIT_REACHED`, `SNAG_PROTECTED_FIELD` — mirrored by `TRANSITION_ERRORS` in `packages/shared`.
+- **`can(role, project_id)` helper** centralizes the minimum-role check ('view' | 'member' | 'manager') + admin short-circuit; every policy reuses it.
+- **Numbers**: `snag_number` counts with `FOR UPDATE` row lock on the project row → concurrency-safe per-project sequences with a unique `(project_id, number)` index; direct inserts with a fabricated number still flow through the trigger counter (numbers are server-owned).
+- **Idempotency**: `snags.client_id` is unique — offline/outbox replays fail softly on conflict and are treated as success by the sync layer (provable in DB tests).
+- **Comments** are immutable (no UPDATE/DELETE policies); activity_log is appender-only (no INSERT policy for clients — writes happen only inside SECURITY DEFINER functions).
+- **Storage**: private buckets `snag-photos`/`reports`/`branding`; policies parse the first path segment as project id and re-check membership; the photo update policy allows the object's own uploader (`owner_id`) or a project manager; report uploads have *no* client policy (route handler writes with the service role).
+- **profiles self-service guard trigger** blocks non-admins from flipping `is_admin`/`is_active`/`email` on their own row.
+- **Seed** creates auth rows + identities directly (local-only; production users come exclusively through the admin invite route). Demo passwords documented in the seed header.
+- **DB tests** (`supabase/tests`, package `@snagflow/db-tests`) cover: non-member isolation, viewer read-only, member cannot assign/close/reject/delete, member cannot start work on a snag assigned to someone else, illegal transitions rejected, reject & reopen require comments, comment/assignment/review notifications fire, activity trail exists, concurrency-safe numbering, client_id replay safety, the 8-photo cap, and comment immutability. They **skip loudly** when `SUPABASE_URL`/`SUPABASE_ANON_KEY`/`SUPABASE_SERVICE_ROLE_KEY` are unset (i.e. no Docker locally) — same env contract runs them in CI.
+- **`supabase/` is a workspace package** (`@snagflow/db-tests`) so Turbo owns its lint/typecheck/test tasks like every other package.
