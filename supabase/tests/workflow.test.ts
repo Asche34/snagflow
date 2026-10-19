@@ -3,6 +3,7 @@ import {
   CREDS,
   LOCATION_THEATRE_A,
   PROJECT_A,
+  UIDS,
   createSnag,
   hasEnv,
   serviceClient,
@@ -129,15 +130,29 @@ describe.skipIf(!hasEnv)("workflow transitions", () => {
   });
 
   it("reopening requires a comment and clears closed metadata", async () => {
-    // reuse seeded closed snag #10
+    // drive a fresh snag to closed first, so the test is repeatable across runs
+    const snag = await createSnag(member1, { projectId: PROJECT_A, title: "reopen flow" });
+    await manager.rpc("assign_snag", { p_snag_id: snag.id, p_assignee_id: UIDS.member1 });
+    await member1.rpc("transition_snag", { p_snag_id: snag.id, p_to_status: "in_progress" });
+    const { error: fixPhoto } = await member1.from("snag_photos").insert({
+      snag_id: snag.id,
+      kind: "fix",
+      storage_path: `${PROJECT_A}/${snag.id}/${crypto.randomUUID()}.jpg`,
+      width: 100,
+      height: 100,
+    });
+    expect(fixPhoto).toBeNull();
+    await member1.rpc("transition_snag", { p_snag_id: snag.id, p_to_status: "ready_for_review" });
+    await manager.rpc("transition_snag", { p_snag_id: snag.id, p_to_status: "closed" });
+
     const noComment = await manager.rpc("transition_snag", {
-      p_snag_id: "12010101-0101-4101-8101-00000000000a",
+      p_snag_id: snag.id,
       p_to_status: "open",
     });
     expect(noComment.error?.message).toContain("SNAG_COMMENT_REQUIRED");
 
     const reopened = await manager.rpc("transition_snag", {
-      p_snag_id: "12010101-0101-4101-8101-00000000000a",
+      p_snag_id: snag.id,
       p_to_status: "open",
       p_comment: "rework: bracket rusted through",
     });

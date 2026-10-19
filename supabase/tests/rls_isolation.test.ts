@@ -34,7 +34,8 @@ describe.skipIf(!hasEnv)("RLS: project isolation", () => {
   });
 
   it("a non-member cannot read another project's comments", async () => {
-    const { data } = await member2.from("comments").select("id").eq("snag_id", "12010101-0101-4101-8101-000000000006");
+    // snag …000e lives in PROJECT_B (seed); member2 is not a member of B.
+    const { data } = await member2.from("comments").select("id").eq("snag_id", "12010101-0101-4101-8101-00000000000e");
     expect(data).not.toBeNull();
     expect(data && data.length).toBe(0);
   });

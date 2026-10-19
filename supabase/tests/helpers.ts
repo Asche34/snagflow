@@ -9,6 +9,22 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 export type { SupabaseClient };
 
+/** Optional local env file (gitignored): tests/test.env with SUPABASE_URL/ANON/SERVICE_ROLE.
+ *  Loaded explicitly so the suite runs offline without extra tooling; process.env still wins. */
+import { existsSync, readFileSync } from "node:fs";
+import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const envPath = join(dirname(fileURLToPath(import.meta.url)), "test.env");
+if (existsSync(envPath)) {
+  for (const line of readFileSync(envPath, "utf8").split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.+)\s*$/);
+    const key = m?.[1];
+    const value = m?.[2];
+    if (key && value !== undefined && !(key in process.env)) process.env[key] = value;
+  }
+}
+
 export const SUPABASE_URL = process.env["SUPABASE_URL"];
 export const SUPABASE_ANON_KEY = process.env["SUPABASE_ANON_KEY"];
 export const SUPABASE_SERVICE_ROLE_KEY = process.env["SUPABASE_SERVICE_ROLE_KEY"];

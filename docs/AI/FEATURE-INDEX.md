@@ -1,0 +1,63 @@
+# FEATURE-INDEX
+
+Machine version: `.ai/index.json::features`. Statuses: **done** = delivered & tested; planned = spec §15, not started.
+
+## DELIVERED
+
+### FEAT-PERM-MATRIX (done)
+Permission matrix + helpers. Impl: `packages/shared/src/permissions.ts::canAct,canEditSnagDetails,canWorkOnSnag,isReviewer`
+DB mirror: `supabase/migrations/20261019000005_security.sql::public.can` — Tests: `packages/shared/tests/permissions.test.ts`
+Business rules: `docs/AI/BUSINESS-RULES.md` (BR-AUTHZ-*). Dependencies: roles.ts.
+
+### FEAT-SNAG-WORKFLOW (done)
+Status state machine. Impl: `packages/shared/src/workflow.ts::SNAG_TRANSITIONS`
+Server side: `supabase/migrations/20261019000007_workflow_rpc.sql::transition_snag` — Tests: `supabase/tests/workflow.test.ts`
+Rules: BR-WORKFLOW-001/002 (reject & reopen comments required). Deps: permissions, guard trigger, activity, notifications.
+
+### FEAT-SNAG-ASSIGN (done)
+Assign member/manager to snag. Impl: `supabase/migrations/20261019000007_workflow_rpc.sql::assign_snag`
+Tests: `supabase/tests/workflow.test.ts`. Feature uniqueness: `snags.client_id`.
+
+### FEAT-SNAG-CRUD (done, DB level)
+Create/read/update/soft-delete snags. Impl: `supabase/migrations/20261019000003_snags_tables.sql` + guard `20261019000005_security.sql::guard_snag_update` + `soft_delete_snag`
+Tests: `supabase/tests/rls_write.test.ts`. UI built in Phase 2.
+
+### FEAT-SNAG-NUMBERING (done)
+Sequential per-project numbers, concurrency-safe. Impl: `20261019000003_snags_tables.sql::assign_snag_number`
+Tests: `supabase/tests/integrity.test.ts`. Rule: BR-SNAG-001.
+
+### FEAT-IDEMPOTENCY-OFFLINE (done, groundwork)
+Unique `client_id` permits replayed offline writes. Impl: `20261019000003_snags_tables.sql`. Tests: `integrity.test.ts`. Groundwork for Phase 6.
+
+### FEAT-PHOTO-CAP (done)
+≤ 8 photos per snag. Impl: `20261019000003_snags_tables.sql::enforce_photo_limit`. Tests: `integrity.test.ts`. Rule: BR-SNAG-002.
+
+### FEAT-RLS-AUTHZ (done)
+RLS on every table. Impl: `20261019000005_security.sql` + `20261019000006_rls_policies.sql`
+Tests: `supabase/tests/rls_isolation.test.ts`, `rls_write.test.ts`. Rule: BR-AUTHZ-001.
+
+### FEAT-STORAGE (done)
+Private buckets `snag-photos`, `report-thumbnails` + path-membership policies. Impl: `20261019000008_storage.sql`. Rule: BR-STORAGE-001.
+
+### FEAT-NOTIFICATIONS-DB (done, DB layer)
+Recipients notified on assign/transition. Impl: `20261019000007_workflow_rpc.sql::snag_notify,notify_managers` → `notifications` (`20261019000004_collab_tables.sql`). Tests: `workflow.test.ts`. UI surfacing: Phase 3.
+
+### FEAT-ACTIVITY-LOG (done)
+Append-only audit per snag. Impl: `20261019000007_workflow_rpc.sql::snag_activity` → `activity_log` (`20261019000004_collab_tables.sql`). Rule: BR-ACTIVITY-001.
+
+### FEAT-ORG-SETTINGS (done, schema)
+Org-wide naming/theme/report config. Impl: `20261019000002_core_tables.sql::org_settings` + UI mirror `packages/shared/src/terminology.ts`. Report generation itself: Phase 4.
+
+### FEAT-UI-PRIMITIVES (done)
+Button/Card/Dialog/Input/Select/Textarea/Tabs/Badge/Skeleton/Avatar/Separator/DropdownMenu:
+`apps/web/src/components/ui/*`. Consumers: Phase 2 screens.
+
+### FEAT-SEED (done)
+Demo org, 5 users (one per role; admin: `admin@snagflow.test`), 2 projects, 15 snags: `supabase/seed.sql` (login password in README). IDs mirrored in `supabase/tests/helpers.ts::UIDS`.
+
+## PLANNED (spec §15 — do not build before prior phases)
+
+- FEAT-WEB-AUTH / FEAT-WEB-DASH / FEAT-WEB-PROJECT / FEAT-WEB-TEAM / FEAT-WEB-SNAG-UI — Phase 2 (`apps/web`)
+- FEAT-WORKFLOW-UI / FEAT-REALTIME / FEAT-NOTIF-UI — Phase 3
+- FEAT-MARKUP / FEAT-REPORTS — Phase 4
+- FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7

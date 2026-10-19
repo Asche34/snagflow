@@ -19,6 +19,7 @@ dist/
 supabase/.branches
 supabase/.temp
 supabase/.env
+supabase/tests/test.env
 
 # misc
 .DS_Store

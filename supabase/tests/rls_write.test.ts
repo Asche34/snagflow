@@ -4,6 +4,7 @@ import {
   CREDS,
   LOCATION_THEATRE_A,
   PROJECT_A,
+  UIDS,
   hasEnv,
   signedInClient,
   type SupabaseClient,
@@ -79,18 +80,18 @@ describe.skipIf(!hasEnv)("RLS: write permissions by role", () => {
       .insert({ project_id: PROJECT_A, title: "member tries to assign", client_id: crypto.randomUUID() })
       .select("id")
       .single();
-    const listedId = snag.data?.id ?? "";
+    const listedId = snag.data?.id ?? crypto.randomUUID();
     const { error } = await member1.rpc("assign_snag", {
       p_snag_id: listedId,
-      p_assignee_id: null,
+      p_assignee_id: UIDS.member2,
     });
     expect(error?.message).toContain("SNAG_ASSIGN_FORBIDDEN");
   });
 
   it("a member cannot approve / reject / soft-delete", async () => {
-    // reuse a seeded in_progress snag assigned to member2
+    // snag #8 is seeded ready_for_review; approve is manager/admin-only.
     const { error: approve } = await member1.rpc("transition_snag", {
-      p_snag_id: "12010101-0101-4101-8101-000000000007",
+      p_snag_id: "12010101-0101-4101-8101-000000000008",
       p_to_status: "closed",
     });
     expect(approve?.message).toContain("SNAG_TRANSITION_FORBIDDEN");
@@ -127,19 +128,26 @@ describe.skipIf(!hasEnv)("RLS: write permissions by role", () => {
     expect(activityError).not.toBeNull();
   });
 
-  it("comments are immutable: authors cannot edit or delete", async () => {
+  it("comments are immutable: no one can edit or delete them", async () => {
     const seeded = "12010101-0101-4101-8101-000000000002";
-    const found = await member2.from("comments").select("id").eq("snag_id", seeded).limit(1);
-    const id = found.data?.[0]?.id;
+    const before = await member2.from("comments").select("id, body").eq("snag_id", seeded).limit(1);
+    const id = before.data?.[0]?.id;
     if (!id) return; // seeded comment is by manager, not member2
-    const { error: upd } = await member2.from("comments").update({ body: "edited" }).eq("id", id);
-    expect(upd).not.toBeNull();
-    const { error: del } = await member2.from("comments").delete().eq("id", id);
-    expect(del).not.toBeNull();
+
+    // PostgREST reports permission-denied UPDATE/DELETE policies as success
+    // with zero affected rows (no error), so verify read-back instead.
+    await member2.from("comments").update({ body: "edited" }).eq("id", id);
+    await member2.from("comments").delete().eq("id", id);
+
+    const after = await member2.from("comments").select("id, body").eq("id", id).single();
+    expect(after.data?.body).toBe(before.data?.[0]?.body);
   });
 
   it("a member cannot write to org_settings", async () => {
-    const { error } = await member1.from("org_settings").update({ company_name: "x" }).eq("id", 1);
-    expect(error).not.toBeNull();
+    // zero-affected-rows success vs. the real value: read back to prove immutability
+    const before = await member1.from("org_settings").select("company_name").eq("id", 1).single();
+    await member1.from("org_settings").update({ company_name: "x" }).eq("id", 1);
+    const after = await member1.from("org_settings").select("company_name").eq("id", 1).single();
+    expect(after.data?.company_name).toBe(before.data?.company_name);
   });
 });

@@ -3,7 +3,9 @@
 Collaborative snagging / punch-list / defect tracking for construction and engineering
 teams. Web app + mobile app on one Supabase backend.
 
-**Status:** Phase 0 (scaffold) — see `docs/DECISIONS.md` for decisions and the plan.
+**Status:** Phases 0–1 complete (scaffold + database/auth/security). Start every task from
+`AGENTS.md` (AI agents) and `docs/AI/PROJECT-STATE.md`; full functional spec in
+`SNAGFLOW_BUILD_PROMPT.md`; decisions in `docs/DECISIONS.md`.
 
 ## Repository layout
 
@@ -12,10 +14,15 @@ snagflow/
   apps/web/            Next.js app (App Router, TypeScript, Tailwind v4)
   apps/mobile/         Expo app (Expo Router, TypeScript)
   packages/shared/     Types, zod schemas, permission matrix, status workflow map
-  supabase/            config.toml, migrations/, seed.sql, functions/, tests/
+  supabase/            config.toml, migrations/, seed.sql, tests/
   docs/DECISIONS.md    Every non-obvious decision, with reasons
+  docs/AI/             AI-oriented indexes: PROJECT-STATE, FEATURE-INDEX, BUSINESS-RULES, …
+  AGENTS.md            Mandatory entry point for AI agents (reading order + rules)
   .github/workflows/   CI: lint, typecheck, tests, migrations, build
 ```
+
+> **AI agents:** read `AGENTS.md` first. Never audit the whole repo when the
+> indexes (`docs/AI/MODULE-INDEX.md`, `docs/AI/FEATURE-INDEX.md`) identify the files.
 
 ## Prerequisites
 
@@ -24,9 +31,9 @@ snagflow/
 - Supabase CLI (`npm install -g supabase` or `winget install supabase.cli`)
 - Docker Desktop — required by `supabase start` (local Postgres/Auth/Storage/Realtime)
 
-> **Current machine note:** Docker is not yet installed locally, so `supabase start`,
-> migrations and DB/RLS tests cannot run here yet. Everything code-side is written
-> and CI runs the full stack, which includes Docker preinstalled.
+> **Windows note:** fresh PowerShell shells may need Docker's bin dir on PATH before
+> `supabase` CLI commands: `$env:Path = "C:\Program Files\Docker\Docker\resources\bin;" + $env:Path`.
+> Use `.cmd` shims (`pnpm.cmd`, `supabase.cmd`) if `.ps1` execution policy blocks shims.
 
 ## Getting started
 
@@ -59,13 +66,16 @@ When `supabase start` runs, it prints the URLs and keys (anon + service role).
 ## Demo data
 
 `supabase/seed.sql` creates a demo org with five users (admin, manager, two members,
-viewer) and a sample project with locations, categories and 15 snags in varied
-states. Passwords are listed in the seed file header for local use only.
+viewer), two projects with locations, categories and 15 snags in varied states.
+Log in locally with any of the five emails from the seed header (e.g. `admin@snagflow.test`)
+and the password `Password123!`. Local/demo credentials only.
 
 ## Typecheck / lint / tests
 
 ```powershell
-pnpm turbo run lint typecheck test
+pnpm turbo run lint typecheck test        # everything; DB suite needs the stack + supabase/tests/test.env
+pnpm --filter @snagflow/shared test       # unit tests only
+pnpm --filter @snagflow/db-tests test     # DB/RLS/workflow tests (run `supabase db reset` first; suites share state)
 ```
 
 ## Deployment

@@ -19,27 +19,27 @@ insert into auth.users (
   created_at, updated_at, email_change, email_change_token_new, confirmation_sent_at
 ) values
   ('00000000-0000-0000-0000-000000000000', '11111111-1111-4111-8111-111111111111',
-   'authenticated', 'authenticated', 'admin@snagflow.test', crypt('Password123!'::text, 'bf'::text),
+   'authenticated', 'authenticated', 'admin@snagflow.test', crypt('Password123!'::text, gen_salt('bf')),
    now(), now(), '', '', now(),
    jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
    jsonb_build_object('full_name', 'Ada Admin'), now(), now(), '', '', now()),
   ('00000000-0000-0000-0000-000000000000', '22222222-2222-4222-8222-222222222222',
-   'authenticated', 'authenticated', 'manager@snagflow.test', crypt('Password123!'::text, 'bf'::text),
+   'authenticated', 'authenticated', 'manager@snagflow.test', crypt('Password123!'::text, gen_salt('bf')),
    now(), now(), '', '', now(),
    jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
    jsonb_build_object('full_name', 'Morgan Manager'), now(), now(), '', '', now()),
   ('00000000-0000-0000-0000-000000000000', '33333333-3333-4333-8333-333333333333',
-   'authenticated', 'authenticated', 'member1@snagflow.test', crypt('Password123!'::text, 'bf'::text),
+   'authenticated', 'authenticated', 'member1@snagflow.test', crypt('Password123!'::text, gen_salt('bf')),
    now(), now(), '', '', now(),
    jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
    jsonb_build_object('full_name', 'Milo Member'), now(), now(), '', '', now()),
   ('00000000-0000-0000-0000-000000000000', '44444444-4444-4444-8444-444444444444',
-   'authenticated', 'authenticated', 'member2@snagflow.test', crypt('Password123!'::text, 'bf'::text),
+   'authenticated', 'authenticated', 'member2@snagflow.test', crypt('Password123!'::text, gen_salt('bf')),
    now(), now(), '', '', now(),
    jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
    jsonb_build_object('full_name', 'Nina Member'), now(), now(), '', '', now()),
   ('00000000-0000-0000-0000-000000000000', '55555555-5555-4555-8555-555555555555',
-   'authenticated', 'authenticated', 'viewer@snagflow.test', crypt('Password123!'::text, 'bf'::text),
+   'authenticated', 'authenticated', 'viewer@snagflow.test', crypt('Password123!'::text, gen_salt('bf')),
    now(), now(), '', '', now(),
    jsonb_build_object('provider', 'email', 'providers', jsonb_build_array('email')),
    jsonb_build_object('full_name', 'Vic Viewer'), now(), now(), '', '', now())
@@ -47,19 +47,19 @@ on conflict (id) do nothing;
 
 insert into auth.identities (id, user_id, provider_id, identity_data, last_sign_in_at, created_at, updated_at, provider)
 values
-  (gen_random_uuid(), '11111111-1111-4111-8111-111111111111', 'email',
+  (gen_random_uuid(), '11111111-1111-4111-8111-111111111111', '11111111-1111-4111-8111-111111111111',
    jsonb_build_object('sub', '11111111-1111-4111-8111-111111111111', 'email', 'admin@snagflow.test', 'email_verified', true),
    now(), now(), now(), 'email'),
-  (gen_random_uuid(), '22222222-2222-4222-8222-222222222222', 'email',
+  (gen_random_uuid(), '22222222-2222-4222-8222-222222222222', '22222222-2222-4222-8222-222222222222',
    jsonb_build_object('sub', '22222222-2222-4222-8222-222222222222', 'email', 'manager@snagflow.test', 'email_verified', true),
    now(), now(), now(), 'email'),
-  (gen_random_uuid(), '33333333-3333-4333-8333-333333333333', 'email',
+  (gen_random_uuid(), '33333333-3333-4333-8333-333333333333', '33333333-3333-4333-8333-333333333333',
    jsonb_build_object('sub', '33333333-3333-4333-8333-333333333333', 'email', 'member1@snagflow.test', 'email_verified', true),
    now(), now(), now(), 'email'),
-  (gen_random_uuid(), '44444444-4444-4444-8444-444444444444', 'email',
+  (gen_random_uuid(), '44444444-4444-4444-8444-444444444444', '44444444-4444-4444-8444-444444444444',
    jsonb_build_object('sub', '44444444-4444-4444-8444-444444444444', 'email', 'member2@snagflow.test', 'email_verified', true),
    now(), now(), now(), 'email'),
-  (gen_random_uuid(), '55555555-5555-4555-8555-555555555555', 'email',
+  (gen_random_uuid(), '55555555-5555-4555-8555-555555555555', '55555555-5555-4555-8555-555555555555',
    jsonb_build_object('sub', '55555555-5555-4555-8555-555555555555', 'email', 'viewer@snagflow.test', 'email_verified', true),
    now(), now(), now(), 'email')
 on conflict (id) do nothing;
@@ -228,14 +228,17 @@ insert into public.snags (
    '0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c04', '0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a06',
    '33333333-3333-4333-8333-333333333333', current_date + 5, 1, null, null, '33333333-3333-4333-8333-333333333333', now() - interval '12 days'),
 
-  -- Level-2 pair
+  -- Level-2 pair — PROJECT_B (Westgate Plant Room): gives the second project real
+  -- content, incl. the RLS "non-member cannot read foreign project" test target.
+  -- NOTE: number is force-assigned by assign_snag_number (counter + 1, insert
+  -- order); the literal below is advisory only.
   ('12010101-0101-4101-8101-00000000000e', '12010101-0101-4101-8101-00000000000e',
-   '10101010-1010-4101-8101-101010101010', 14, 'Level 2 corridor light dimmer miswire',
+   '20202020-2020-4202-8202-202020202020', 14, 'Level 2 corridor light dimmer miswire',
    'Dimmer wired across both phases; flicker on dim.', 'open', 'medium',
    '0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c01', '0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a03',
    null, current_date + 6, 0, null, null, '22222222-2222-4222-8222-222222222222', now() - interval '2 days'),
   ('12010101-0101-4101-8101-00000000000f', '12010101-0101-4101-8101-00000000000f',
-   '10101010-1010-4101-8101-101010101010', 15, 'Westgate-affected panel recall (level 2)',
+   '20202020-2020-4202-8202-202020202020', 15, 'Westgate-affected panel recall (level 2)',
    'Cross-project recall: keep an eye on TPS 201 panel batch.', 'open', 'low',
    '0c0c0c0c-0c0c-4c0c-8c0c-0c0c0c0c0c01', '0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a03',
    null, null, 0, null, null, '22222222-2222-4222-8222-222222222222', now() - interval '1 day')
@@ -247,7 +250,8 @@ insert into public.comments (snag_id, author_id, body, created_at) values
   ('12010101-0101-4101-8101-000000000006', '33333333-3333-4333-8333-333333333333', 'Roofing contractor confirmed for Thursday morning.', now() - interval '2 days'),
   ('12010101-0101-4101-8101-000000000009', '22222222-2222-4222-8222-222222222222', 'Bearing spec looks wrong, resubmit with manufacturer sheet.', now() - interval '7 days'),
   ('12010101-0101-4101-8101-000000000009', '44444444-4444-4444-8444-444444444444', 'Resubmitted with 6205-2RS datasheet attached to fix photos.', now() - interval '1 day'),
-  ('12010101-0101-4101-8101-00000000000d', '22222222-2222-4222-8222-222222222222', 'Reopened: hatch binds after auto-close cycle; please re-shim rails.', now() - interval '2 days')
+  ('12010101-0101-4101-8101-00000000000d', '22222222-2222-4222-8222-222222222222', 'Reopened: hatch binds after auto-close cycle; please re-shim rails.', now() - interval '2 days'),
+  ('12010101-0101-4101-8101-00000000000e', '33333333-3333-4333-8333-333333333333', 'Panel batch on the recall list; swapped breaker TPS 201 and re-torqued lugs.', now() - interval '10 hours')
 on conflict do nothing;
 
 -- Activity trail for a couple of snags so the timeline is not empty on first run

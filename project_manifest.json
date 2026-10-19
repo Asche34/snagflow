@@ -1,0 +1,57 @@
+{
+  "project": "snagflow",
+  "description": "Collaborative snag/punch-list/defect tracking: Next.js web + Expo mobile on Supabase",
+  "version": "0.1.0",
+  "database_schema_version": "20261019000008",
+  "stack": {
+    "web": "Next.js 16 App Router + TS strict + Tailwind v4",
+    "mobile": "Expo SDK 58 + Expo Router",
+    "shared": "packages/shared (TypeScript): permissions, workflow, zod schemas",
+    "backend": "Supabase (Postgres RLS, Auth, Storage, Realtime, Edge Functions)",
+    "testing": "vitest (shared, db) + planned Playwright",
+    "tooling": "pnpm 9 + Turborepo + Supabase CLI"
+  },
+  "entrypoints": {
+    "web": "apps/web/src/app/layout.tsx + apps/web/src/app/page.tsx",
+    "mobile": "apps/mobile/app.json + apps/mobile/src/app",
+    "database": "supabase/config.toml",
+    "migrations": "supabase/migrations",
+    "seed": "supabase/seed.sql",
+    "ci": ".github/workflows/ci.yml"
+  },
+  "modules": {
+    "MOD-SHARED": "packages/shared",
+    "MOD-WEB": "apps/web",
+    "MOD-MOBILE": "apps/mobile",
+    "MOD-DATABASE": "supabase",
+    "MOD-CI": ".github/workflows"
+  },
+  "testing": {
+    "shared": { "cmd": "pnpm --filter @snagflow/shared test", "dir": "packages/shared/tests" },
+    "database": { "cmd": "pnpm --filter @snagflow/db-tests test", "dir": "supabase/tests", "requires": "running Supabase stack + SUPABASE_* env" },
+    "gate": "pnpm turbo run build lint typecheck test"
+  },
+  "documentation": {
+    "essential": ["AGENTS.md", "docs/AI/PROJECT-STATE.md", "docs/AI/FEATURE-INDEX.md", "docs/AI/BUSINESS-RULES.md"],
+    "on_demand": ["docs/AI/DATABASE-INDEX.md", "docs/AI/SECURITY.md", "docs/AI/TESTING.md", "SNAGFLOW_BUILD_PROMPT.md"],
+    "decisions": "docs/DECISIONS.md"
+  },
+  "current_state": {
+    "phase": "2 (web core) next - phases 0-1 complete",
+    "last_work": "Phase 1: db schema, RLS, workflow RPCs, storage, seed, db test suite (commit a7b518f)",
+    "next_recommended": "Phase 2 per SNAGFLOW_BUILD_PROMPT.md s15",
+    "blockers": []
+  },
+  "important_files": [
+    "packages/shared/src/permissions.ts",
+    "packages/shared/src/workflow.ts",
+    "packages/shared/src/schemas.ts",
+    "supabase/migrations/20261019000007_workflow_rpc.sql",
+    "supabase/migrations/20261019000005_security.sql",
+    "supabase/seed.sql",
+    "supabase/tests/helpers.ts",
+    "docs/DECISIONS.md",
+    "SNAGFLOW_BUILD_PROMPT.md",
+    "docs/AI/PROJECT-STATE.md"
+  ]
+}
