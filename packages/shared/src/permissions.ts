@@ -1,5 +1,5 @@
-import type { SnagStatus } from "./workflow.js";
-import { roleAtLeast, type ProjectRole, type RoleLevel } from "./roles.js";
+import type { SnagStatus } from "./workflow";
+import { roleAtLeast, type ProjectRole, type RoleLevel } from "./roles";
 
 /**
  * Single source of truth for the permission matrix (build prompt section 4).

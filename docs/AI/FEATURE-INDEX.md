@@ -55,9 +55,30 @@ Button/Card/Dialog/Input/Select/Textarea/Tabs/Badge/Skeleton/Avatar/Separator/Dr
 ### FEAT-SEED (done)
 Demo org, 5 users (one per role; admin: `admin@snagflow.test`), 2 projects, 15 snags: `supabase/seed.sql` (login password in README). IDs mirrored in `supabase/tests/helpers.ts::UIDS`.
 
+### FEAT-WEB-AUTH (done, web)
+Email + password sign-in, session refresh, sign-out. Impl: `apps/web/src/lib/supabase/server.ts`, `apps/web/src/lib/supabase/cookie-name.ts`, `apps/web/src/proxy.ts` (Next 16 "proxy" — the successor of the old middleware convention), `apps/web/src/app/login/*`
+Server side: GoTrue through `@supabase/ssr`; the session lives in a cookie, RLS decides the data scope, no page renders without a session (the proxy redirects to `/login`).
+
+### FEAT-WEB-DASH (done, web)
+Role-aware dashboard: status counts, review queue (reviewers only), my snags, overdue, project progress.
+Impl: `apps/web/src/components/dashboard-view.tsx`, `apps/web/src/app/(app)/dashboard/page.tsx`
+
+### FEAT-WEB-PROJECT (partial, web)
+Project page with Snags / Locations / Team tabs plus a status filter. Impl: `apps/web/src/components/project-view.tsx`, `apps/web/src/app/(app)/projects/[projectId]/page.tsx`
+Remaining: project create/edit, settings, activity & reports tabs, member management.
+
+### FEAT-WEB-SNAG-UI (partial, web)
+Snag detail: meta grid, description, photo placeholder, comment thread, activity trail and role-gated status transitions through the `transition_snag` RPC.
+Impl: `apps/web/src/components/snag-view.tsx`, `apps/web/src/components/snag-actions.tsx`, `apps/web/src/app/(app)/snags/[snagId]/*`
+Remaining: create/edit forms, photo upload + markup, list filters, assignment UI.
+
+### FEAT-DOCKER-LOCAL (done)
+Container image for the web app (multi-stage, `output: 'standalone'`) plus compose wiring to the local Supabase stack.
+Impl: `apps/web/Dockerfile`, `docker-compose.yml`, `.dockerignore`
+
 ## PLANNED (spec §15 — do not build before prior phases)
 
-- FEAT-WEB-AUTH / FEAT-WEB-DASH / FEAT-WEB-PROJECT / FEAT-WEB-TEAM / FEAT-WEB-SNAG-UI — Phase 2 (`apps/web`)
+- FEAT-WEB-SNAG-CREATE / FEAT-WEB-PHOTOS / FEAT-WEB-TEAM-MGMT / FEAT-WEB-INVITES — Phase 2 remainder (`apps/web`)
 - FEAT-WORKFLOW-UI / FEAT-REALTIME / FEAT-NOTIF-UI — Phase 3
 - FEAT-MARKUP / FEAT-REPORTS — Phase 4
 - FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7

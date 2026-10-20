@@ -1,0 +1,38 @@
+# ---------------------------------------------------------------------------
+# SnagFlow — web app on Docker (WSL2 backend).
+#
+# The Supabase stack itself is managed by the Supabase CLI
+# (`supabase start`), which also runs its containers in Docker. This compose
+# file only adds the Next.js web app, because the CLI stack is not a compose
+# project and the two must not fight over the same ports.
+#
+#   1. supabase start && supabase db reset     # database on 127.0.0.1:54321
+#   2. docker compose up --build                # web app on 127.0.0.1:3000
+#
+# URLs
+#   Web app        http://localhost:3000
+#   Supabase API   http://127.0.0.1:54321
+#   Supabase Studio http://127.0.0.1:54323
+# ---------------------------------------------------------------------------
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Browser-facing: the browser runs on the host and reaches the local
+        # Supabase stack on 127.0.0.1. Inlined into the client bundle.
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:-http://127.0.0.1:54321}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY:?set NEXT_PUBLIC_SUPABASE_ANON_KEY in .env}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_DEMO_ACCOUNTS: ${NEXT_PUBLIC_DEMO_ACCOUNTS:-1}
+    environment:
+      # Server-facing: inside the container the host is host.docker.internal.
+      # Read at runtime, never inlined.
+      SUPABASE_SERVER_URL: ${SUPABASE_SERVER_URL:-http://host.docker.internal:54321}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped

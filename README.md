@@ -3,7 +3,8 @@
 Collaborative snagging / punch-list / defect tracking for construction and engineering
 teams. Web app + mobile app on one Supabase backend.
 
-**Status:** Phases 0–1 complete (scaffold + database/auth/security). Start every task from
+**Status:** Phases 0–1 complete (scaffold + database/auth/security). Phase 2 in progress: web auth,
+dashboard, project page, snag detail. Start every task from
 `AGENTS.md` (AI agents) and `docs/AI/PROJECT-STATE.md`; full functional spec in
 `SNAGFLOW_BUILD_PROMPT.md`; decisions in `docs/DECISIONS.md`.
 
@@ -58,6 +59,39 @@ Copy env examples before running:
 - `apps/web/.env.example` → `apps/web/.env.local`
 - `apps/mobile/.env.example` → `apps/mobile/.env.local`
 
+## Run the whole stack in Docker (Windows + Docker Desktop on WSL2)
+
+The Supabase stack runs in Docker via the CLI; the web app runs as a container next to it.
+Both are reachable from the browser on the host.
+
+```powershell
+supabase.cmd start            # Postgres/Auth/Storage/Realtime/Studio in Docker
+supabase.cmd db reset         # apply migrations + seed demo data
+
+docker compose up --build     # web app image -> http://localhost:3000
+```
+
+| URL                            | What                                        |
+| ------------------------------ | ------------------------------------------- |
+| http://localhost:3000          | SnagFlow web app (container)                |
+| http://127.0.0.1:54323         | Supabase Studio (data browser)              |
+| http://127.0.0.1:54321         | Supabase API / auth (Kong)                  |
+
+Sign in with any seeded account (password `Password123!`) — the login screen lists them when
+`NEXT_PUBLIC_DEMO_ACCOUNTS=1`. Configuration lives in the repo-root `.env` (build args for the
+image, runtime URL for the container).
+
+Stop and clean up:
+
+```powershell
+docker compose down             # stop the web container
+supabase.cmd stop               # stop the Supabase stack
+```
+
+> The container talks to Supabase through `host.docker.internal`, so the local stack must be
+> running. If Docker Desktop is not on the WSL2 backend, switch it in
+> Settings → General → "Use the WSL 2 based engine".
+
 ## Local Supabase credentials
 
 When `supabase start` runs, it prints the URLs and keys (anon + service role).
@@ -81,7 +115,8 @@ pnpm --filter @snagflow/db-tests test     # DB/RLS/workflow tests (run `supabase
 ## Deployment
 
 - **Web:** Vercel. Set env vars from `apps/web/.env.example` (service-role key server-side
-  only). Also supports self-hosting via `output: 'standalone'` (Dockerfile comes in Phase 7).
+  only). Also supports self-hosting via `output: 'standalone'` — see `apps/web/Dockerfile`
+  and `docker-compose.yml`.
 - **Mobile:** EAS Build profiles (`development`, `preview`, `production`); OTA updates via
   EAS Update. See Phase 7 docs.
 - **Supabase:** hosted project; apply schema only with `supabase db push` via migrations.

@@ -10,7 +10,7 @@
     "./db-types": "./src/db-types.ts"
   },
   "scripts": {
-    "build": "tsc --project tsconfig.build.json",
+    "build": "tsc --project tsconfig.build.json --emitDeclarationOnly",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"

@@ -158,7 +158,8 @@
       "supabase/migrations/20261019000006_rls_policies.sql",
       "supabase/migrations/20261019000007_workflow_rpc.sql",
       "supabase/migrations/20261019000008_storage.sql",
-      "supabase/migrations/20261019000009_actor_defaults.sql"
+      "supabase/migrations/20261019000009_actor_defaults.sql",
+      "supabase/migrations/20261019000010_profiles_team_read.sql"
     ],
     "tests_discovered": [
       "packages/shared/tests/permissions.test.ts",
@@ -169,6 +170,10 @@
       "supabase/tests/workflow.test.ts"
     ],
     "app_pages_discovered": [
+      "apps/web/src/app/(app)/dashboard/page.tsx",
+      "apps/web/src/app/(app)/projects/[projectId]/page.tsx",
+      "apps/web/src/app/(app)/snags/[snagId]/page.tsx",
+      "apps/web/src/app/login/page.tsx",
       "apps/web/src/app/page.tsx",
       "apps/mobile/src/app/index.tsx",
       "apps/mobile/src/app/_layout.tsx"

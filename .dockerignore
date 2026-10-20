@@ -1,0 +1,26 @@
+node_modules
+**/node_modules
+.next
+**/.next
+.turbo
+**/.turbo
+dist
+**/dist
+out
+**/out
+
+.git
+.gitignore
+.github
+**/*.tsbuildinfo
+**/*.log
+
+# secrets — the image gets its configuration from build args / env
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+
+docs
+**/*.md

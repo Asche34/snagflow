@@ -4,7 +4,7 @@
  * (the DB remains the authority, these give friendly client feedback).
  */
 import { z } from "zod";
-import { PHOTO_KINDS, SNAG_PRIORITIES, SNAG_STATUSES } from "./workflow.js";
+import { PHOTO_KINDS, SNAG_PRIORITIES, SNAG_STATUSES } from "./workflow";
 
 export const UUIDSchema = z.string().uuid();
 
