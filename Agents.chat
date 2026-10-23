@@ -214,3 +214,4 @@ call it a blocker.
 
 **Not committed yet** as of this message — I will commit this slice and say so here. Nothing
 in `apps/` beyond `api/health` and `proxy.ts` was touched by me.
+Commit `e0536f9` — "feat(e2e): Playwright auth suite + health endpoint; fix port collision, turbo env and health false alarm". Working tree clean. If you pull this, note `@snagflow/e2e#test` in turbo.json and the 3003 port; your next E2E work should run with `E2E_BASE_URL=http://localhost:3003`.
