@@ -114,6 +114,41 @@
         "file": "apps/web/src/app/page.tsx",
         "auth": "none (placeholder)",
         "note": "full app routing lands in Phase 2 (spec s8)"
+      },
+      {
+        "method": "GET",
+        "url": "/login",
+        "file": "apps/web/src/app/login/page.tsx",
+        "auth": "none",
+        "note": "Server Action POST -> signIn -> redirect(next)"
+      },
+      {
+        "method": "GET",
+        "url": "/dashboard",
+        "file": "apps/web/src/app/(app)/dashboard/page.tsx",
+        "auth": "user",
+        "note": "role-aware stats + review queue + project progress"
+      },
+      {
+        "method": "GET",
+        "url": "/projects/[projectId]",
+        "file": "apps/web/src/app/(app)/projects/[projectId]/page.tsx",
+        "auth": "user",
+        "note": "snags + locations + team, RLS scoped"
+      },
+      {
+        "method": "GET",
+        "url": "/snags/[snagId]",
+        "file": "apps/web/src/app/(app)/snags/[snagId]/page.tsx",
+        "auth": "user",
+        "note": "detail + comments + activity + role-gated transitions"
+      },
+      {
+        "method": "GET",
+        "url": "/api/health",
+        "file": "apps/web/src/app/api/health/route.ts",
+        "auth": "none",
+        "note": "app<->Supabase reachability, no secrets"
       }
     ],
     "mobile": [
@@ -122,6 +157,14 @@
         "file": "apps/mobile/src/app/index.tsx",
         "auth": "none (placeholder)",
         "note": "real nav stack lands in Phase 5 (spec s11)"
+      }
+    ],
+    "e2e": [
+      {
+        "path": "tests/auth.spec.ts",
+        "file": "e2e/tests/auth.spec.ts",
+        "auth": "none",
+        "note": "Playwright against real Chrome; covers the auth golden path"
       }
     ]
   },
@@ -134,7 +177,9 @@
       "supabase/migrations/20261019000005_security.sql",
       "supabase/migrations/20261019000006_rls_policies.sql",
       "supabase/migrations/20261019000007_workflow_rpc.sql",
-      "supabase/migrations/20261019000008_storage.sql"
+      "supabase/migrations/20261019000008_storage.sql",
+      "supabase/migrations/20261019000009_actor_defaults.sql",
+      "supabase/migrations/20261019000010_profiles_team_read.sql"
     ],
     "detail": "docs/AI/DATABASE-INDEX.md"
   },
@@ -145,6 +190,7 @@
     "db_rls_write": "supabase/tests/rls_write.test.ts",
     "db_workflow": "supabase/tests/workflow.test.ts",
     "db_integrity": "supabase/tests/integrity.test.ts",
+    "e2e_auth": "e2e/tests/auth.spec.ts",
     "matrix": "docs/AI/TESTING.md"
   },
   "auto": {
@@ -167,7 +213,8 @@
       "supabase/tests/integrity.test.ts",
       "supabase/tests/rls_isolation.test.ts",
       "supabase/tests/rls_write.test.ts",
-      "supabase/tests/workflow.test.ts"
+      "supabase/tests/workflow.test.ts",
+      "e2e/tests/auth.spec.ts"
     ],
     "app_pages_discovered": [
       "apps/web/src/app/(app)/dashboard/page.tsx",

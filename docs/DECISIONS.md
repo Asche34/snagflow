@@ -95,3 +95,49 @@ Every non-obvious choice made while building SnagFlow. Format: **Decision** — 
 - **Docker image builds the standalone bundle** — `output: "standalone"` + `outputFileTracingRoot` (workspace root) yields a minimal runtime image (`node apps/web/server.js`); `public/` and `.next/static` are copied in explicitly, as Next does not include them in the standalone output. Alternative considered: `next start` in the image (bigger, no static-file copying done for us).
 - **CI job gates must not use `hashFiles` at job level** — the `database` job used to be gated with `if: hashFiles('supabase/migrations/*.sql') != ''` so it would only start once migrations existed. On GitHub that expression made the *whole run* fail instantly with zero jobs ("This run likely failed because of a workflow file issue"), while the file itself was valid YAML. The gate was removed (migrations exist for good now); the job runs unconditionally.
 
+## Phase 2.5 notes (E2E suite + the login bug that was actually a stale DB volume)
+
+- **The browser login failure was a stale Supabase volume, not the UI.** The `supabase_db_snagflow` volume carried an `auth` schema years older than the `gotrue:v2.197.0` image the CLI now pulls: `auth.users` had no `banned_until` and `auth.schema_migrations` claimed to be up to date, so GoTrue never repaired itself and answered every `signInWithPassword` with HTTP 500 `Database error querying schema`. `supabase db reset` cannot fix it — it replays only *our* migrations, never the GoTrue-owned `auth` schema. Fix: `supabase stop --no-backup` (drops the volume) then `supabase start` (fresh volume → fresh auth schema). Verified: `banned_until` now present, password grant returns 200, DB suite 28/28.
+- **`supabase start` right after `supabase stop` can fail** with `Conflict. The container name "/supabase_db_snagflow" is already in use` — the removal races the create. Just run `supabase start` again; it succeeds.
+- **The CLI can report "supabase start is already running" while no supabase container exists** (stale state after a Docker Desktop restart). `supabase stop` then `supabase start` forces a clean recreate. `docker ps -a` is the ground truth, not the CLI.
+- **Keys did not change after the volume reset** — the JWT secret is the default static one and the publishable key is still `sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH`. No key churn to propagate into baked images or `.env` files.
+- **E2E package: Playwright against a real browser, not a headless download.** `e2e/` is a workspace package with `channel: "chrome"` (uses the locally installed Google Chrome; no browser download needed) and a `bundled` fallback for CI. `pnpm install` adds it to the lockfile; CI installs Playwright browsers with `--with-deps chromium` on the runner.
+- **E2E tests are written to be robust, because the first 6-test run flaked.** Three non-product bugs were in the test file: `getByRole('heading', { name: 'Sign in' })` matched nothing (the text is plain under an `<h1>SnagFlow</h1>`); `cookie.sameSite` was asserted as `"lax"` but Playwright normalizes to `"Lax"`; and `body.innerText()` returned `""` mid-revalidation. The suite now asserts on the email field, the normalized `sameSite`, and specific sidebar links. A fourth flake — `getByRole("alert")` colliding with Next.js's route-announcer `<div role="alert">` — is fixed by scoping to `p[role="alert"]` inside the page's `<main>`.
+- **`@supabase/ssr` 0.12.7 defaults `httpOnly` to false** — the cookie assertion was dropped to `name` + `path` + `sameSite`, which is what the app actually controls.
+- **CI E2E job reads the local stack's keys at runtime** — the local stack generates its own keys, so the job runs `supabase status -o env`, strips the surrounding quotes, and injects `NEXT_PUBLIC_SUPABASE_*` into the build. A hardcoded placeholder would build but never authenticate. `supabase.env` is gitignored.
+- **`turbo.json` ordering** — `e2e#test` depends on `web#build` (the suite runs against the built app), and `web#typecheck` still depends on `build` (they raced over `.next/types`).
+
+
+## Phase 2.6 notes (verification pass: port collision, health check, turbo task keys)
+
+- **The web app moved to port 3003.** Port 3000 on this machine is served by a *different*
+  project (the `shelf.nu` app the pnpm shim used to point at). Anything that assumed 3000 —
+  the compose mapping, the E2E default base URL, `.env` — silently talked to the wrong
+  application. `WEB_PORT` in `.env` is now `3003`. Alternative considered: stopping the other
+  app (not ours to kill).
+- **`/api/health` reported `unreachable` for anonymous visitors.** The route used
+  `auth.getUser()` as its reachability probe, so a healthy stack with no session cookie
+  returned 503 `{"supabase":"unreachable","detail":"Auth session missing!"}` — a false alarm
+  on the endpoint's most common input. Reachability is now probed against
+  `/auth/v1/settings` (unauthenticated, `cache: "no-store"`, 5s timeout), and session state is
+  reported separately via `getUser()` without downgrading `ok`. A health check that cries
+  wolf on anonymous traffic is worse than none.
+- **Turbo task keys use the package *name*, not the directory.** The E2E task was declared as
+  `e2e#test`, but the package is `@snagflow/e2e`, so the block was dead config: `dependsOn`
+  and `env` never applied. Corrected to `@snagflow/e2e#test` (verified with
+  `turbo run --dry=json`). This is why `web#build` ordering appeared to work in one place and
+  not another.
+- **Turbo's strict env mode silently drops `E2E_BASE_URL`.** Undeclared env vars do not reach
+  the task, so the suite fell back to `http://localhost:3000` — the *other* app — and failed
+  on its login form (`link "Shelf Logo"`, `zaans@huisje.com`). `E2E_BASE_URL`, `E2E_CHANNEL`,
+  `E2E_PASSWORD` and `CI` are now declared under `@snagflow/e2e#test`.
+- **A wrong base URL must fail loudly, not pass quietly.** `getByLabel("Email")` matches on a
+  substring and accepts any page with an email field, which is how the suite could run
+  against a foreign app without complaining. Locators are now scoped to the form that
+  actually contains a "Sign in" button, with `{ exact: true }` on labels.
+- **Playwright artifacts are gitignored** (`e2e/test-results/`, `e2e/playwright-report/`,
+  `e2e/blob-report/`). Traces and failure screenshots are build output, not source.
+- **Verified, not assumed:** full forced gate `pnpm turbo run build lint typecheck test --force`
+  → 15/15 tasks, 60 tests (26 shared + 28 DB + 6 E2E). Three consecutive E2E runs to confirm
+  the flakiness was gone. The `Date.now()` prerender warnings seen earlier did **not** recur
+  on a clean start and did not kill the container (exit 143 was a SIGTERM, not a crash).

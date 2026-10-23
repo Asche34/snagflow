@@ -23,13 +23,17 @@ const list = (dir, filter) => {
 // 1. migrations (append-only list)
 idx.auto.migrations_discovered = list(join(ROOT, "supabase", "migrations"), (n) => n.endsWith(".sql"));
 
-// 2. tests (unit + db)
+// 2. tests (unit + db + e2e)
 const sharedTests = list(join(ROOT, "packages", "shared", "tests"), (n) => n.endsWith(".test.ts")).map(
   (f) => f,
+);
+const e2eTests = list(join(ROOT, "e2e", "tests"), (n) => n.endsWith(".spec.ts")).map((f) =>
+  relative(ROOT, f).split(sep).join("/"),
 );
 idx.auto.tests_discovered = [
   ...sharedTests.map((f) => `packages/shared/tests/${f.split("/").pop()}`),
   ...list(join(ROOT, "supabase", "tests"), (n) => n.endsWith(".test.ts")),
+  ...e2eTests,
 ];
 
 // 3. app pages (Next App Router page/layout files + Expo Router screens)

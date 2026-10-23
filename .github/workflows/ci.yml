@@ -90,3 +90,64 @@ jobs:
 
       - name: DB / RLS / workflow tests
         run: pnpm --filter @snagflow/db-tests test
+
+  e2e:
+    name: Playwright E2E (real browser)
+    needs: database
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Apply migrations + seed
+        run: supabase db reset
+
+      # The local stack generates its own keys, so read them from the running
+      # stack and inject them into the build rather than hardcoding a placeholder.
+      - name: Capture Supabase keys
+        id: keys
+        run: |
+          supabase status -o env > supabase.env
+          echo "NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321" >> "$GITHUB_OUTPUT"
+          # `supabase status -o env` wraps values in double quotes; strip them so the
+          # inlined anon key is a bare string and the build does not bake quotes in.
+          ANON=$(grep '^ANON_KEY=' supabase.env | cut -d= -f2- | sed 's/^"//; s/"$//')
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON" >> "$GITHUB_OUTPUT"
+          echo "NEXT_PUBLIC_APP_URL=http://localhost:3000" >> "$GITHUB_OUTPUT"
+          echo "NEXT_PUBLIC_DEMO_ACCOUNTS=1" >> "$GITHUB_OUTPUT"
+
+      - name: Build web app
+        run: pnpm turbo run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ steps.keys.outputs.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ steps.keys.outputs.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          NEXT_PUBLIC_APP_URL: ${{ steps.keys.outputs.NEXT_PUBLIC_APP_URL }}
+          NEXT_PUBLIC_DEMO_ACCOUNTS: ${{ steps.keys.outputs.NEXT_PUBLIC_DEMO_ACCOUNTS }}
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @snagflow/e2e exec npx playwright install --with-deps chromium
+
+      - name: Start web app
+        run: pnpm --filter web start --port 3000 &
+
+      - name: Wait for the web app
+        run: for i in $(seq 1 30); do curl -sf http://localhost:3000/login && break; sleep 1; done
+
+      - name: Run E2E suite
+        run: pnpm --filter @snagflow/e2e test

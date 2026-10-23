@@ -20,6 +20,10 @@
     },
     "test": {
       "dependsOn": ["^build"]
+    },
+    "@snagflow/e2e#test": {
+      "dependsOn": ["web#build"],
+      "env": ["E2E_BASE_URL", "E2E_CHANNEL", "E2E_PASSWORD", "CI"]
     }
   }
 }

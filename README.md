@@ -68,14 +68,19 @@ Both are reachable from the browser on the host.
 supabase.cmd start            # Postgres/Auth/Storage/Realtime/Studio in Docker
 supabase.cmd db reset         # apply migrations + seed demo data
 
-docker compose up --build     # web app image -> http://localhost:3000
+copy .env.example .env        # once; fill NEXT_PUBLIC_SUPABASE_ANON_KEY from `supabase status`
+docker compose up --build     # web app image -> http://localhost:3003
 ```
 
 | URL                            | What                                        |
 | ------------------------------ | ------------------------------------------- |
-| http://localhost:3000          | SnagFlow web app (container)                |
+| http://localhost:3003          | SnagFlow web app (container)                |
 | http://127.0.0.1:54323         | Supabase Studio (data browser)              |
 | http://127.0.0.1:54321         | Supabase API / auth (Kong)                  |
+
+The container's host port is `WEB_PORT` in `.env` (default `3003`, chosen because another dev
+app may already hold `3000`). Browser tests must be told about it:
+`E2E_BASE_URL=http://localhost:3003 pnpm --filter @snagflow/e2e test`.
 
 Sign in with any seeded account (password `Password123!`) — the login screen lists them when
 `NEXT_PUBLIC_DEMO_ACCOUNTS=1`. Configuration lives in the repo-root `.env` (build args for the

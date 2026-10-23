@@ -2,3 +2,4 @@ packages:
   - "apps/*"
   - "packages/*"
   - "supabase"
+  - "e2e"
