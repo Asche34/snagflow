@@ -54,9 +54,11 @@ unrestricted shell on this workstation. No hosted credentials are involved.
 | workflow map (MOD-SHARED) | `packages/shared/tests/workflow.test.ts` |
 | RLS isolation | `supabase/tests/rls_isolation.test.ts` |
 | RLS writes / guard | `supabase/tests/rls_write.test.ts` |
+| project create/edit authority | `supabase/tests/projects.test.ts` |
 | workflow RPCs | `supabase/tests/workflow.test.ts` |
 | numbering / photo cap / idempotency | `supabase/tests/integrity.test.ts` |
 | web | production build/typecheck plus separate real-auth and UI-only Playwright suites |
+| web project creation/editing | `e2e/tests/projects.spec.ts` (real backend, disposable project fixtures) |
 | mobile | typecheck (Expo scaffold; later phase) |
 
 ## Capture browser fixtures

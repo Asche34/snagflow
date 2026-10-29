@@ -7,7 +7,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261029000012_snag_search.sql` (applied and verified locally; hosted application pending) |
 | Phase (spec §15)     | **2 — web core in progress.** Phases 0–1 complete. |
-| Last delivered | Fieldwork project filters, combined full-text/number search, deterministic sorting, URL persistence, server pagination and uncapped project statistics |
+| Last delivered | Admin project creation and manager/admin project detail editing, fix-photo setting, resilient create retry and refreshed project navigation |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -22,6 +22,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Web dashboard: role-aware stats, review queue, my snags, overdue, project progress (Phase 2)
 - Web project page: snags (status filter), locations tree, team roster (Phase 2)
 - Web project search: status/priority/assignee/location/category/due/creator filters, English full-text across title/description, exact #number search, sorting and 50-row pages; URLs survive sections, refresh and browser history (Phase 2)
+- Web project management: admin New project, manager/admin Edit project, shared-schema validated details and fix-photo setting, stable-create retry, live access checks and layout/navigation refresh (Phase 2)
 - Web snag detail: metadata, comments, workflow activity, role-gated status transitions, manager assignment and real private issue/fix photos (Phase 2)
 - Web capture: project-scoped create/edit forms, Save & add another, stable retry identity, validated active access and 1,000-row-independent edit lookup (Phase 2)
 - Photo capture: eight-photo picker, 1600px JPEG/400px thumbnails, per-photo stages, interrupted-upload/committed-response retry and short-lived signed gallery (Phase 2)
@@ -31,11 +32,11 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 
 ## Features in progress
 
-- Phase 2 remainder: project CRUD, team management, invite flow, and web soft-delete controls
+- Phase 2 remainder: team management, invite flow, project archive controls, and web soft-delete controls
 
 ## Features remaining (order per spec §15)
 
-- Phase 2 remainder: soft-delete UI, comments UI polish, project/team management and invitations (Next.js)
+- Phase 2 remainder: soft-delete UI, comments UI polish, team management and invitations, project archive controls (Next.js)
 - Phase 3: workflow UI gating, review queue, reject/reopen UX, notifications bell, Realtime
 - Phase 4: image markup (react-konva) + PDF/Excel reports (@react-pdf/renderer, exceljs) + revisions
 - Phase 5: mobile app on hosted Supabase (auth, camera flow, review flow)
@@ -44,6 +45,13 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Edge function `push-send` (spec §12) — not yet created
 
 ## Tests current
+
+### Project creation/editing — 2026-10-29
+
+- Added `/projects/new` for active admins and `/projects/[projectId]/edit` for active admins/project managers, using existing shared schemas/permissions and user-session database RLS. No migration, dependency or permission change.
+- Seven real browser cases cover admin create/navigation refresh, manager edit, role-denied routes, invalid/duplicate-code draft retention, revoked access, lost committed create response with revised details, and phone/enlarged-text layout.
+- Three additional real DB checks verify project create/edit/isolation authority. Full evidence and independent review: `docs/AI/PROJECT-DETAILS-2026-10-29.md`.
+- Archive/team/invitations remain separate work. Additional inactive/admin-revoked, changed-code retry, delayed-hydration and capped-lookup assertions are deferred review test-coverage minors; these code paths were inspected.
 
 ### Project filters/search — 2026-10-29
 
@@ -124,4 +132,4 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Next step recommended
 
-Continue Phase 2: project/team management with invitations, then soft-delete controls. See FEATURE-INDEX.md "planned" section. For search delivery evidence, start at `SNAG-SEARCH-2026-10-29.md`.
+Continue Phase 2: team membership/roles and invitations, then project archive and snag soft-delete controls. See FEATURE-INDEX.md "planned" section. Latest handoff: `PROJECT-DETAILS-2026-10-29.md`.

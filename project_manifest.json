@@ -60,8 +60,8 @@
   },
   "current_state": {
     "phase": "2 (web core) next - phases 0-1 complete",
-    "last_work": "Fieldwork project filters, combined full-text and number search, stable sorting, URL persistence, 50-row server pagination and uncapped exact statistics",
-    "next_recommended": "Phase 2: project/team management with invitations and soft-delete controls",
+    "last_work": "Admin project creation, manager/admin project detail and fix-photo setting editing, stable-create retry and navigation refresh",
+    "next_recommended": "Phase 2: team membership/roles and invitations, then project archive and snag soft-delete controls",
     "blockers": []
   },
   "important_files": [

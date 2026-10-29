@@ -19,9 +19,11 @@ type NavigationProject = { id: string; name: string; code: string; roleLabel: st
 export function WorkspaceNavigation({
   projects,
   isAdmin,
+  canCreateProject = false,
 }: {
   projects: NavigationProject[];
   isAdmin: boolean;
+  canCreateProject?: boolean;
 }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -66,6 +68,15 @@ export function WorkspaceNavigation({
         <p className="mb-3 mt-8 px-3 text-xs font-semibold uppercase tracking-[.15em] text-navigation-muted">
           Your projects
         </p>
+        {canCreateProject ? (
+          <Link
+            href="/projects/new"
+            onClick={close}
+            className="mb-3 flex min-h-11 items-center rounded-lg px-3 py-3 text-sm font-medium text-navigation-foreground hover:bg-navigation-active"
+          >
+            New project
+          </Link>
+        ) : null}
         {projects.length ? (
           <ul className="space-y-1">
             {projects.map((project) => (

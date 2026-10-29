@@ -65,7 +65,14 @@ Impl: `apps/web/src/components/dashboard-view.tsx`, `apps/web/src/app/(app)/dash
 
 ### FEAT-WEB-PROJECT (partial, web)
 Project page with Snags / Locations / Team tabs, exact project statistics and URL-backed filters/search. Impl: `apps/web/src/components/project-view.tsx`, `apps/web/src/app/(app)/projects/[projectId]/page.tsx`
-Remaining: project create/edit, settings, activity & reports tabs, member management.
+Create/edit: `/projects/new` (admin), `/projects/[projectId]/edit` (project manager/admin).
+Remaining: project archive, activity & reports tabs, member management.
+
+### FEAT-WEB-PROJECT-DETAILS (done, web)
+Admin creates projects; project managers/admins edit name/code/description/client/address and require-fix-photo setting. Stable-UUID create retry, validation/duplicate errors retain draft, fresh active/access checks on save and layout/navigation refresh.
+Impl: `apps/web/src/components/project-form.tsx`, `apps/web/src/components/project-form-page.tsx`, `apps/web/src/app/(app)/projects/actions.ts`; route files below `projects/new` and `projects/[projectId]/edit`.
+Contracts: `packages/shared/src/schemas.ts::ProjectCreateSchema`, `permissions.ts::canAct`; existing project RLS in migration 5.
+Tests: `e2e/tests/projects.spec.ts`, `supabase/tests/projects.test.ts`. Delivery: `docs/AI/PROJECT-DETAILS-2026-10-29.md`.
 
 ### FEAT-WEB-SNAG-UI (partial, web)
 Snag detail: metadata, description, real signed issue/fix photos, comment thread, activity trail, manager assignment and role-gated status transitions.

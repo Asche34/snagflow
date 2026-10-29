@@ -4,7 +4,7 @@ SnagFlow is a collaborative snag, punch-list, and defect tracker for constructio
 
 Work is organized by project, location, category, priority, and due date. The intended field workflow connects issue evidence, assigned corrective work, review, and an auditable history across a web workspace and a future mobile app.
 
-**Current status:** version 0.1.0, under active development. The web workspace supports snag capture, editing, photos, assignment, and review; project/team management and live updates are still being built. The Expo mobile app is a scaffold.
+**Current status:** version 0.1.0, under active development. The web workspace supports project creation/editing, snag capture, search/filtering, photos, assignment, and review; team management and live updates are still being built. The Expo mobile app is a scaffold.
 
 ## How it works
 
@@ -29,7 +29,8 @@ Permissions are enforced in PostgreSQL through row-level security, triggers, and
 
 - Email/password sign-in, session refresh, protected pages, and sign-out.
 - Role-aware dashboard with status counts, review queue, assigned work, overdue items, and project progress.
-- Project pages with snag lists, status filtering, location trees, and team rosters.
+- Project pages with search, combined filters, sorting, server pagination, location trees, and team rosters.
+- Admin project creation and manager/admin editing of project details and the fix-photo setting.
 - Snag creation and creator/manager editing, with project-local details and “Save & add another.”
 - Manager assignment/reassignment and snag detail pages with comments, activity history, and permitted workflow transitions.
 - Private issue/fix photo uploads, image resizing, thumbnails, per-photo status, and retry without duplicate snags or photo records.
@@ -39,7 +40,7 @@ Permissions are enforced in PostgreSQL through row-level security, triggers, and
 
 ### Still to build
 
-- Project/team management, invitations, and richer filtering.
+- Team management, invitations, project archive and snag soft-delete controls.
 - Live updates and the notifications interface.
 - Photo markup, PDF/Excel reports, and revision handling.
 - Mobile field capture, offline synchronization, and push notifications.

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { loadWorkspace } from '@/lib/data';
 import { PROJECT_ROLE_LABELS } from '@/lib/labels';
 import { WorkspaceNavigation } from '@/components/workspace-navigation';
+import { canAct } from '@snagflow/shared';
 
 export async function AppSidebar() {
   const workspace = await loadWorkspace();
@@ -10,6 +11,10 @@ export async function AppSidebar() {
   return (
     <WorkspaceNavigation
       isAdmin={isAdmin}
+      canCreateProject={
+        !!workspace.profile?.is_active &&
+        canAct({ id: workspace.user.id, isAdmin }, null, 'project:create')
+      }
       projects={workspace.projects.map((project) => ({
         id: project.id,
         name: project.name,

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Building2, ClipboardCheck, Clock3, Flag, UserRound } from "lucide-react";
-import { isReviewer, type ProjectRole } from "@snagflow/shared";
+import { canAct, isReviewer, type ProjectRole } from "@snagflow/shared";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SnagList } from "@/components/snag-list";
 import { loadWorkspace } from "@/lib/data";
@@ -118,6 +119,7 @@ export async function DashboardView() {
           <CardHeader className="pb-3 pt-5">
             <CardTitle>Projects</CardTitle>
             <CardDescription>Progress by closed snags</CardDescription>
+            {profile?.is_active && canAct({ id: user.id, isAdmin }, null, 'project:create') ? <Button asChild className="mt-2 w-fit"><Link href="/projects/new">New project</Link></Button> : null}
           </CardHeader>
           <CardContent className="px-0">
             {projects.length === 0 ? (

@@ -118,12 +118,22 @@ export async function ProjectView({
               {PROJECT_ROLE_LABELS[role]}
             </span>
           ) : null}
+          {workspace.profile?.is_active &&
+          canAct(
+            { id: workspace.user.id, isAdmin: workspace.profile.is_admin },
+            role,
+            'project:edit',
+          ) ? (
+            <Button asChild variant="outline" className="sm:ml-auto">
+              <Link href={`/projects/${project.id}/edit`}>Edit project</Link>
+            </Button>
+          ) : null}
           {canAct(
             { id: workspace.user.id, isAdmin: workspace.profile?.is_admin ?? false },
             role,
             'snag:create',
           ) ? (
-            <Button asChild className="sm:ml-auto">
+            <Button asChild>
               <Link href={`/projects/${project.id}/snags/new`}>New snag</Link>
             </Button>
           ) : null}

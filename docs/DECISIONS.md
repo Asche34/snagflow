@@ -178,3 +178,12 @@ Every non-obvious choice made while building SnagFlow. Format: **Decision** — 
 - Use 50-row pages, number tie-breakers, highest-priority-first enum sorting and null-last due ordering. Clamp stale pages to the last page. Due presets exclude closed work and use the existing server calendar convention; location matching is exact, not recursive.
 - Work directly on main as requested, reusing the installed checkout at `6072b8f`. The sandbox requires escalated Git metadata writes and local Supabase CLI telemetry access; no hosted schema was changed. Direct installed CLIs avoid the current pnpm runner's unsolicited install behavior; RTK wraps supported compact checks.
 - Independent review found no important/critical issue. Deferred minors: capture a single clock value across count/fetch around midnight, and add explicit repeated-UUID/backend-failure UI regressions. Known global metadata caps, completed capture and later phases remain out of scope.
+
+## 2026-10-29 — Project creation and detail editing
+
+- Follow spec §4 and the existing permission matrix/RLS: admins create, project managers/admins edit metadata/settings. §8's admin shorthand does not remove manager edit rights. No authorization/schema/dependency change.
+- Use focused full-page Fieldwork forms and existing dashboard/sidebar discovery. Include name, unique code, description, client, address and require-fix-photo. Archive, membership, invitations, cover images and deletion remain separate slices.
+- Query edit targets directly by UUID with current profile/membership. Re-read active access on every save; apply a strict metadata allowlist through the user's session. RLS remains authoritative. Invalidate the root layout after success to refresh project names/links everywhere.
+- Stable create UUIDs reconcile lost committed responses, applying revised details only to the same creator's project while rechecking admin creation authority. Duplicate codes report field errors and never select/mutate another project by code.
+- Keep forms disabled until hydration and during saves, preserve drafts after errors and focus linked summaries. Native execution reuses the installed main checkout; a fresh independent final review is read-only. RTK compact checks use installed binaries to avoid the existing pnpm auto-install mismatch.
+- ROUTE-INDEX was stale (claimed only a placeholder existed). Updated its known live routes from the machine route index; no re-audit of previous capture/filter functionality.

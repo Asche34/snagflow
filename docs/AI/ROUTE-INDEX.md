@@ -1,22 +1,29 @@
 # ROUTE-INDEX
 
-Currently the web app has no API routes and one page; the DB is the API (PostgREST + RPCs).
-Phase 2+ fills the web column; `node scripts/ai/update-index.mjs` re-scans app dirs.
-Project API/pages planned in Phase 2 come from `SNAGFLOW_BUILD_PROMPT.md` §8 — listed below as PLANNED only.
+Web pages use authenticated Supabase RLS clients and Server Actions; the DB exposes PostgREST/RPCs.
+Machine pointers: `.ai/index.json::routes`; `node scripts/ai/update-index.mjs` re-scans app dirs.
 
 ## Web pages (App Router)
 
 | URL | Handler | Auth | File | Status |
 | --- | ------- | ---- | ---- | ------ |
 | `/` | Home placeholder | public | `apps/web/src/app/page.tsx` | live (placeholder) |
-| `/login` · `/dashboard` · `/projects` · `/projects/[id]` · `/snags/[id]` · `/team` · `/settings` | PLANNED | members | — | Phase 2 |
+| `/login` | Sign in | public | `apps/web/src/app/login/page.tsx` | live |
+| `/dashboard` | Role-aware workspace and project list | user | `apps/web/src/app/(app)/dashboard/page.tsx` | live |
+| `/projects/[projectId]` | Snags/search, locations, team | project access | `apps/web/src/app/(app)/projects/[projectId]/page.tsx` | live |
+| `/projects/new` | Create project | active admin | `apps/web/src/app/(app)/projects/new/page.tsx` | live |
+| `/projects/[projectId]/edit` | Edit project details/settings | active project manager/admin | `apps/web/src/app/(app)/projects/[projectId]/edit/page.tsx` | live |
+| `/projects/[projectId]/snags/new` | Create snag | member/manager/admin | `apps/web/src/app/(app)/projects/[projectId]/snags/new/page.tsx` | live |
+| `/snags/[snagId]` | Snag detail/workflow/photos | project access | `apps/web/src/app/(app)/snags/[snagId]/page.tsx` | live |
+| `/snags/[snagId]/edit` | Edit snag details | creator with edit permission or manager/admin | `apps/web/src/app/(app)/snags/[snagId]/edit/page.tsx` | live |
+| `/projects` · `/team` · `/settings` | PLANNED standalone pages | role dependent | — | Phase 2+ |
 | `/queue` (review queue) · `/reports` | PLANNED | manager/admin | — | Phase 3–4 |
 
 ## Web API routes
 
 | Method | URL | Handler | Auth | File | Status |
 | ------ | --- | ------- | ---- | ---- | ------ |
-| — | — | — | — | — | none yet (Phase 2 starts SSR data via RLS clients) |
+| GET | `/api/health` | reachability | public | `apps/web/src/app/api/health/route.ts` | live |
 | POST `/api/reports/[snagReportId]` | PLANNED | manager/admin | `apps/web/src/app/api/` | Phase 4 (PDF/Excel generation) |
 
 ## Mobile routes (Expo Router)
@@ -30,6 +37,6 @@ Project API/pages planned in Phase 2 come from `SNAGFLOW_BUILD_PROMPT.md` §8 �
 
 | Method | URL | Function | Auth | Source | Status |
 | ------ | --- | -------- | ---- | ------ | ------ |
-| POST | `/rest/v1/rpc/assign_snag` | assign member | member/manager/admin | `supabase/migrations/20261019000007_workflow_rpc.sql` | live |
+| POST | `/rest/v1/rpc/assign_snag` | assign member | manager/admin | `supabase/migrations/20261019000007_workflow_rpc.sql` | live |
 | POST | `/rest/v1/rpc/transition_snag` | status transition | per-transition matrix | same | live |
-| POST | `/rest/v1/rpc/soft_delete_snag` | soft delete | member/manager/admin | same | live |
+| POST | `/rest/v1/rpc/soft_delete_snag` | soft delete | manager/admin | same | live |
