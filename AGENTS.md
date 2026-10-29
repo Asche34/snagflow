@@ -113,3 +113,9 @@ Terminal-stage phase definitions live in `SNAGFLOW_BUILD_PROMPT.md` §15.
 1. executed code 2. migrations/schema 3. tests 4. `project_manifest.json`
 5. `docs/AI/PROJECT-STATE.md` 6. module docs 7. changelog/git history.
 If docs and code disagree: code+tests win; then flag the stale doc.
+
+## Compact command output (RTK)
+
+On this Windows workspace, prefer `powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/rtk.ps1 <rtk arguments>` for supported command output (e.g. `git status`, `test pnpm.cmd --filter @snagflow/shared test`, `err pnpm.cmd --filter web lint`). This wrapper keeps history/recovery files in ignored `.superpowers/rtk/` and preserves exit codes. Use `bypass`/raw output when full diagnostics or exact file contents are needed. The generated Bash hook does not imply that PowerShell calls are automatically rewritten.
+
+@RTK.md
