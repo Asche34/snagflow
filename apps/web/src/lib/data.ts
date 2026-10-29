@@ -8,7 +8,7 @@ export type Project = Tables["projects"]["Row"];
 export type Snag = Tables["snags"]["Row"];
 export type Profile = Tables["profiles"]["Row"];
 /** The subset of a profile the UI needs (colleagues are visible per project). */
-export type Person = Pick<Profile, "id" | "full_name" | "email" | "is_admin" | "avatar_url">;
+export type Person = Pick<Profile, "id" | "full_name" | "email" | "is_admin" | "avatar_url" | "is_active">;
 export type Location = Tables["locations"]["Row"];
 export type Category = Tables["categories"]["Row"];
 export type Comment = Tables["comments"]["Row"];
@@ -59,7 +59,7 @@ export async function loadWorkspace(): Promise<Workspace | null> {
     supabase.from("projects").select("*").order("name"),
     supabase.from("project_members").select("project_id, role").eq("user_id", user.id),
     supabase.from("snags").select("*").order("number"),
-    supabase.from("profiles").select("id, full_name, email, is_admin, avatar_url"),
+    supabase.from("profiles").select("id, full_name, email, is_admin, avatar_url, is_active"),
     supabase.from("locations").select("*").order("sort_order"),
     supabase.from("categories").select("*").order("name"),
     supabase.from("org_settings").select("company_name").maybeSingle(),
@@ -120,7 +120,7 @@ export async function loadSnagDetail(snagId: string): Promise<SnagDetail | null>
       supabase.from("comments").select("*").eq("snag_id", snagId).order("created_at"),
       supabase.from("activity_log").select("*").eq("snag_id", snagId).order("created_at", { ascending: false }),
       supabase.from("snag_photos").select("*").eq("snag_id", snagId).order("sort_order"),
-      supabase.from("profiles").select("id, full_name, email, is_admin, avatar_url"),
+      supabase.from("profiles").select("id, full_name, email, is_admin, avatar_url, is_active"),
       supabase.from("projects").select("*").eq("id", snag.project_id).maybeSingle(),
       supabase
         .from("project_members")

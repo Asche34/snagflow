@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { isReviewer } from "@snagflow/shared";
+import { canAct, isReviewer } from "@snagflow/shared";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SnagList } from "@/components/snag-list";
 import { loadWorkspace, personName, type Location } from "@/lib/data";
@@ -106,6 +107,7 @@ export async function ProjectView({
               {PROJECT_ROLE_LABELS[role]}
             </span>
           ) : null}
+          {canAct({id:workspace.user.id,isAdmin:workspace.profile?.is_admin ?? false},role,"snag:create") ? <Button asChild className="sm:ml-auto"><Link href={`/projects/${project.id}/snags/new`}>New snag</Link></Button> : null}
         </div>
         <p className="text-sm text-muted-foreground">
           {[project.client_name, project.address].filter(Boolean).join(" · ") ||

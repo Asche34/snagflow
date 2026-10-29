@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   canWorkOnSnag,
+  canEditSnagDetails,
   isReviewer,
   transitionsFrom,
   type TransitionRule,
@@ -9,6 +10,9 @@ import {
 import { PriorityBadge, StatusBadge } from "@/components/badges";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { SnagActions } from "@/components/snag-actions";
+import { SnagAssignment } from "@/components/snag-assignment";
+import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/server";
 import { initialsOf, loadSnagDetail, personName } from "@/lib/data";
 import { describeDueDate, formatDate, formatDateTime } from "@/lib/dates";
 import { cn } from "@/lib/utils";
@@ -20,6 +24,10 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
 
   const { snag, project, role, isAdmin, comments, activity, photos, people, userId } = detail;
   const due = describeDueDate(snag.due_date);
+  const canEdit = canEditSnagDetails({actorId:userId,isAdmin,projectRole:role,scope:{createdById:snag.created_by,assigneeId:snag.assignee_id,status:snag.status}});
+  const reviewer = isReviewer({isAdmin,projectRole:role});
+  const members = reviewer ? (await (await createClient()).from("project_members").select("user_id,role").eq("project_id",snag.project_id).neq("role","viewer")).data ?? [] : [];
+  const assignees = members.flatMap(member => { const person=people.find(person=>person.id===member.user_id && person.is_active); return person ? [{id:person.id,name:person.full_name || person.email}] : []; });
 
   const allowed: TransitionRule[] = transitionsFrom(snag.status).filter((rule) => {
     if (rule.actor === "managerOnly") {
@@ -60,6 +68,7 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
             </div>
             <h1 className="mt-3 break-words text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{snag.title}</h1>
           </div>
+          {canEdit ? <Button asChild variant="outline"><Link href={`/snags/${snag.id}/edit`}>Edit snag</Link></Button> : null}
         </div>
       </div>
 
@@ -185,6 +194,7 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
             </CardContent>
           </Card>
 
+          {reviewer ? <Card><CardHeader><CardTitle>Assignment</CardTitle></CardHeader><CardContent><SnagAssignment snagId={snag.id} assigneeId={snag.assignee_id} options={assignees} /></CardContent></Card> : null}
           <Card className="gap-0 py-0">
             <CardHeader className="pb-3 pt-5">
               <CardTitle>Actions</CardTitle>
