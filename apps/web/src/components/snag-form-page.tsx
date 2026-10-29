@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { canAct, canEditSnagDetails } from '@snagflow/shared';
 import { loadWorkspace } from '@/lib/data';
+import { createClient } from '@/lib/supabase/server';
 import { SnagForm } from './snag-form';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 
@@ -14,7 +15,16 @@ export async function SnagFormPage({
   const workspace = await loadWorkspace();
   if (!workspace) redirect('/login');
   const initial = route.snagId
-    ? workspace.snags.find((snag) => snag.id === route.snagId && !snag.deleted_at)
+    ? ((
+        await (
+          await createClient()
+        )
+          .from('snags')
+          .select('*')
+          .eq('id', route.snagId)
+          .is('deleted_at', null)
+          .maybeSingle()
+      ).data ?? undefined)
     : undefined;
   if (route.snagId && !initial) notFound();
   const projectId = initial?.project_id ?? route.projectId;
@@ -62,7 +72,7 @@ export async function SnagFormPage({
         </h1>
       </div>
       <Card>
-        <CardHeader>
+        <CardHeader className="px-4 sm:px-6">
           <CardTitle>{initial ? 'Snag details' : 'What needs fixing?'}</CardTitle>
           <CardDescription>
             {initial
@@ -70,7 +80,7 @@ export async function SnagFormPage({
               : 'Give the issue a clear title and add the details your team needs.'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <SnagForm
             projectId={project.id}
             initial={initial}

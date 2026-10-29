@@ -8,6 +8,9 @@ import type { Snag } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { PhotoPicker } from './photo-picker';
+import { uploadPhotos, type QueuedPhoto } from '@/lib/photos';
+import { useHydrated } from '@/lib/use-hydrated';
 
 export type FormOption = { id: string; name: string };
 export type SnagFormProps = {
@@ -30,6 +33,7 @@ export function SnagForm({
   canAssign,
 }: SnagFormProps) {
   const router = useRouter();
+  const hydrated = useHydrated();
   const prefix = `${useId()}-${projectId}-${initial?.id ?? 'new'}`;
   const fieldId = (name: string) => `${prefix}-${name}`;
   const form = useRef<HTMLFormElement>(null);
@@ -38,12 +42,16 @@ export function SnagForm({
   const [result, setResult] = useState<SaveSnagResult>({});
   const [pending, setPending] = useState(false);
   const [notice, setNotice] = useState('');
+  const [savedId, setSavedId] = useState<string | undefined>(initial?.id);
+  const [photos, setPhotos] = useState<QueuedPhoto[]>([]);
+  const inFlight = useRef(false);
   useEffect(() => {
     if (result.error) summary.current?.focus();
   }, [result]);
   const errorFor = (field: string) => result.fieldErrors?.[field]?.[0];
   async function submit(data: FormData) {
-    if (pending) return;
+    if (inFlight.current) return;
+    inFlight.current = true;
     setPending(true);
     setNotice('');
     setResult({});
@@ -52,7 +60,7 @@ export function SnagForm({
       const saved = await saveSnag({
         projectId,
         clientId,
-        snagId: initial?.id,
+        snagId: savedId,
         title: data.get('title'),
         description: nullable('description'),
         priority: data.get('priority'),
@@ -63,9 +71,23 @@ export function SnagForm({
       });
       setResult(saved);
       if (!saved.snagId) return;
+      setSavedId(saved.snagId);
+      if (photos.some((photo) => photo.status !== 'done')) {
+        const uploaded = await uploadPhotos(projectId, saved.snagId, photos, setPhotos);
+        if (uploaded.some((photo) => photo.status === 'error')) {
+          setResult({
+            snagId: saved.snagId,
+            error:
+              'Snag saved. Some photos need a retry. Your details and completed uploads are safe.',
+          });
+          return;
+        }
+      }
       if (data.get('intent') === 'another') {
         form.current?.reset();
         setClientId(crypto.randomUUID());
+        setSavedId(undefined);
+        setPhotos([]);
         setNotice('Snag saved. Ready to add another.');
         form.current?.querySelector<HTMLInputElement>('input[name="title"]')?.focus();
       } else {
@@ -75,6 +97,7 @@ export function SnagForm({
     } catch {
       setResult({ error: 'Your snag could not be saved. Check your connection and try again.' });
     } finally {
+      inFlight.current = false;
       setPending(false);
     }
   }
@@ -124,7 +147,7 @@ export function SnagForm({
           {notice}
         </p>
       ) : null}
-      <fieldset disabled={pending} className="min-w-0 space-y-5">
+      <fieldset disabled={pending || !hydrated} className="min-w-0 space-y-5">
         <div className="space-y-2">
           <label className="text-sm font-medium" htmlFor={fieldId('title')}>
             Title
@@ -220,6 +243,7 @@ export function SnagForm({
               <select
                 id={fieldId('assigneeId')}
                 name="assigneeId"
+                disabled={!!savedId}
                 className={nativeSelectClass}
                 {...field('assigneeId')}
               >
@@ -235,12 +259,40 @@ export function SnagForm({
           ) : null}
         </div>
       </fieldset>
+      {!initial ? (
+        <PhotoPicker
+          items={photos}
+          onChange={setPhotos}
+          disabled={pending}
+          existingCount={photos.filter((photo) => photo.status === 'done').length}
+        />
+      ) : null}
+      {savedId && !initial && result.error ? (
+        <Link
+          className="inline-flex min-h-11 items-center text-sm text-primary underline"
+          href={`/snags/${savedId}`}
+        >
+          Open saved snag
+        </Link>
+      ) : null}
       <div className="flex flex-wrap gap-3 border-t pt-5">
-        <Button type="submit" name="intent" value="view" disabled={pending}>
-          {pending ? 'Saving…' : initial ? 'Save changes' : 'Save snag'}
+        <Button type="submit" name="intent" value="view" disabled={pending || !hydrated}>
+          {pending
+            ? 'Saving…'
+            : initial
+              ? 'Save changes'
+              : photos.some((photo) => photo.status === 'error')
+                ? 'Retry failed photos'
+                : 'Save snag'}
         </Button>
         {!initial ? (
-          <Button type="submit" variant="outline" name="intent" value="another" disabled={pending}>
+          <Button
+            type="submit"
+            variant="outline"
+            name="intent"
+            value="another"
+            disabled={pending || !hydrated}
+          >
             Save &amp; add another
           </Button>
         ) : null}

@@ -3,8 +3,8 @@
  * Mirrors the Postgres constraints in the migrations; keep both in sync
  * (the DB remains the authority, these give friendly client feedback).
  */
-import { z } from "zod";
-import { PHOTO_KINDS, SNAG_PRIORITIES, SNAG_STATUSES } from "./workflow";
+import { z } from 'zod';
+import { PHOTO_KINDS, SNAG_PRIORITIES, SNAG_STATUSES } from './workflow';
 
 export const UUIDSchema = z.string().uuid();
 
@@ -13,14 +13,14 @@ export const StoragePathSchema = z
   .string()
   .regex(
     /^[0-9a-f-]{36}\/[0-9a-f-]{36}\/[0-9a-f-]{36}\.(jpe?g|png|webp)$/i,
-    "Storage path must follow {project_id}/{snag_id}/{uuid}.(jpg|jpeg|png|webp)",
+    'Storage path must follow {project_id}/{snag_id}/{uuid}.(jpg|jpeg|png|webp)',
   );
 
 export const SnagStatusSchema = z.enum(SNAG_STATUSES);
 export const SnagPrioritySchema = z.enum(SNAG_PRIORITIES);
 export const PhotoKindSchema = z.enum(PHOTO_KINDS);
 
-export const ProjectRoleSchema = z.enum(["manager", "member", "viewer"]);
+export const ProjectRoleSchema = z.enum(['manager', 'member', 'viewer']);
 
 // ---------------------------------------------------------------------------
 // Snags
@@ -32,7 +32,7 @@ export const SnagCreateSchema = z.object({
   projectId: UUIDSchema,
   title: z.string().trim().min(1).max(200),
   description: z.string().trim().max(5000).optional().nullable(),
-  priority: SnagPrioritySchema.default("medium"),
+  priority: SnagPrioritySchema.default('medium'),
   categoryId: UUIDSchema.optional().nullable(),
   locationId: UUIDSchema.optional().nullable(),
   assigneeId: UUIDSchema.optional().nullable(),
@@ -52,8 +52,24 @@ export const SnagUpdateSchema = z
     pinX: z.number().min(0).max(1).optional().nullable(),
     pinY: z.number().min(0).max(1).optional().nullable(),
   })
-  .refine((v) => Object.keys(v).length > 0, { message: "Nothing to update" });
+  .refine((v) => Object.keys(v).length > 0, { message: 'Nothing to update' });
 export type SnagUpdate = z.infer<typeof SnagUpdateSchema>;
+
+/** Paths are derived server-side from these identities, never accepted from a caller. */
+export const SnagPhotoCreateSchema = z
+  .object({
+    id: UUIDSchema,
+    thumbnailId: UUIDSchema,
+    snagId: UUIDSchema,
+    kind: PhotoKindSchema,
+    width: z.number().int().min(1).max(1600),
+    height: z.number().int().min(1).max(1600),
+    takenAt: z.string().datetime({ offset: true }),
+    sortOrder: z.number().int().min(0).max(7),
+  })
+  .refine((value) => value.id !== value.thumbnailId, {
+    message: 'Original and thumbnail must have different identities',
+  });
 
 /** Workflow verbs are the shared map's transition actions. */
 export const SnagAssignSchema = z.object({
@@ -79,7 +95,7 @@ export const ProjectCreateSchema = z.object({
     .trim()
     .min(1)
     .max(12)
-    .regex(/^[A-Za-z0-9_-]+$/, "Letters, numbers, dash and underscore only"),
+    .regex(/^[A-Za-z0-9_-]+$/, 'Letters, numbers, dash and underscore only'),
   description: z.string().trim().max(2000).optional().nullable(),
   clientName: z.string().trim().max(120).optional().nullable(),
   address: z.string().trim().max(300).optional().nullable(),
@@ -114,7 +130,7 @@ export const CommentCreateSchema = z.object({
 export const InviteCreateSchema = z.object({
   email: z.string().trim().email().max(254),
   projectId: UUIDSchema.optional().nullable(),
-  role: ProjectRoleSchema.optional().default("member"),
+  role: ProjectRoleSchema.optional().default('member'),
 });
 export type InviteCreate = z.infer<typeof InviteCreateSchema>;
 
@@ -128,10 +144,10 @@ export const MemberUpsertSchema = z.object({
 // Reports (spec section 10)
 // ---------------------------------------------------------------------------
 
-export const ReportGroupBySchema = z.enum(["location", "assignee", "status", "category"]);
-export const ReportSortBySchema = z.enum(["number", "priority", "due_date"]);
-export const ReportThemeSchema = z.enum(["classic", "compact", "photo_first"]);
-export const ReportPhotoSizeSchema = z.enum(["small", "medium", "large", "one_per_page"]);
+export const ReportGroupBySchema = z.enum(['location', 'assignee', 'status', 'category']);
+export const ReportSortBySchema = z.enum(['number', 'priority', 'due_date']);
+export const ReportThemeSchema = z.enum(['classic', 'compact', 'photo_first']);
+export const ReportPhotoSizeSchema = z.enum(['small', 'medium', 'large', 'one_per_page']);
 
 export const ReportFiltersSchema = z.object({
   status: z.array(SnagStatusSchema).optional(),
@@ -149,19 +165,19 @@ export const ReportOptionsSchema = z.object({
   coverPage: z.boolean().default(true),
   includePhotos: z.boolean().default(true),
   useAnnotated: z.boolean().default(true),
-  photoSize: ReportPhotoSizeSchema.default("medium"),
+  photoSize: ReportPhotoSizeSchema.default('medium'),
   includeComments: z.boolean().default(false),
   includeTimestamps: z.boolean().default(true),
   includeFixPhotos: z.boolean().default(true),
   groupBy: ReportGroupBySchema.optional(),
-  sortBy: ReportSortBySchema.default("number"),
-  theme: ReportThemeSchema.default("classic"),
+  sortBy: ReportSortBySchema.default('number'),
+  theme: ReportThemeSchema.default('classic'),
 });
 export type ReportOptions = z.infer<typeof ReportOptionsSchema>;
 
 export const ReportRequestSchema = z.object({
   projectId: UUIDSchema,
-  format: z.enum(["pdf", "xlsx"]),
+  format: z.enum(['pdf', 'xlsx']),
   filters: ReportFiltersSchema.default({}),
   options: ReportOptionsSchema.default({}),
 });

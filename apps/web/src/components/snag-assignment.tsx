@@ -1,5 +1,5 @@
 'use client';
-import { useActionState } from 'react';
+import { useActionState, useId } from 'react';
 import { assignSnag } from '@/app/(app)/snags/actions';
 import { Button } from './ui/button';
 import { nativeSelectClass, type FormOption } from './snag-form';
@@ -14,14 +14,15 @@ export function SnagAssignment({
   options: FormOption[];
 }) {
   const [state, action, pending] = useActionState(assignSnag, {});
+  const selectId = `${useId()}-${snagId}-assignment`;
   return (
     <form action={action} className="space-y-3">
       <input type="hidden" name="snagId" value={snagId} />
-      <label htmlFor="assignment" className="block text-sm font-medium">
+      <label htmlFor={selectId} className="block text-sm font-medium">
         Assign to
       </label>
       <select
-        id="assignment"
+        id={selectId}
         name="assigneeId"
         className={nativeSelectClass}
         defaultValue={assigneeId ?? ''}

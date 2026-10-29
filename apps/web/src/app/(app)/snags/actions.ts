@@ -69,12 +69,20 @@ export async function saveSnag(input: unknown): Promise<SaveSnagResult> {
     category_id: values.categoryId ?? null,
     due_date: values.dueDate ?? null,
   };
-  let snagId: string;
-  if (values.snagId) {
+  const finish = (snagId: string): SaveSnagResult => {
+    revalidatePath(`/projects/${values.projectId}`);
+    revalidatePath(`/snags/${snagId}`);
+    revalidatePath('/dashboard');
+    return { snagId };
+  };
+  const updateExisting = async (
+    snagId: string,
+    reconcileAssignment = false,
+  ): Promise<SaveSnagResult> => {
     const { data: snag } = await supabase
       .from('snags')
       .select('id,project_id,created_by,assignee_id,status')
-      .eq('id', values.snagId)
+      .eq('id', snagId)
       .is('deleted_at', null)
       .maybeSingle();
     if (
@@ -97,8 +105,25 @@ export async function saveSnag(input: unknown): Promise<SaveSnagResult> {
       .maybeSingle();
     if (error || !data)
       return { error: 'The snag could not be updated. Refresh and check your access.' };
-    snagId = data.id;
-  } else {
+    if (
+      reconcileAssignment &&
+      canAct(actor, membership?.role ?? null, 'snag:assign') &&
+      snag.assignee_id !== (values.assigneeId ?? null)
+    ) {
+      // A lost create response may leave an editable draft. Respect its new assignment too.
+      const { error: assignmentError } = await supabase.rpc('assign_snag', {
+        p_snag_id: snag.id,
+        p_assignee_id: (values.assigneeId ?? null) as string,
+      });
+      if (assignmentError)
+        return {
+          error: 'Snag details were saved, but assignment was not. Retry to finish saving.',
+        };
+    }
+    return finish(data.id);
+  };
+  if (values.snagId) return updateExisting(values.snagId);
+  {
     if (values.assigneeId) {
       if (!canAct(actor, membership?.role ?? null, 'snag:assign'))
         return { error: 'Only a manager can assign a snag.' };
@@ -127,7 +152,7 @@ export async function saveSnag(input: unknown): Promise<SaveSnagResult> {
         .is('deleted_at', null)
         .maybeSingle();
     const { data: existing } = await findExisting();
-    if (existing) return { snagId: existing.id };
+    if (existing) return updateExisting(existing.id, true);
     // The trigger always replaces this placeholder with the locked project counter.
     const { data, error } = await supabase
       .from('snags')
@@ -145,16 +170,12 @@ export async function saveSnag(input: unknown): Promise<SaveSnagResult> {
       // A response can be lost after commit, or a double submit can race the first insert.
       if (error?.code === '23505') {
         const { data: committed } = await findExisting();
-        if (committed) return { snagId: committed.id };
+        if (committed) return updateExisting(committed.id, true);
       }
       return { error: 'The snag could not be saved. Check your connection and try again.' };
     }
-    snagId = data.id;
+    return finish(data.id);
   }
-  revalidatePath(`/projects/${values.projectId}`);
-  revalidatePath(`/snags/${snagId}`);
-  revalidatePath('/dashboard');
-  return { snagId };
 }
 
 export async function assignSnag(_previous: ActionState, formData: FormData): Promise<ActionState> {

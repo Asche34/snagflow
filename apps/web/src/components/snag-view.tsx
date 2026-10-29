@@ -9,6 +9,7 @@ import {
 } from "@snagflow/shared";
 import { PriorityBadge, StatusBadge } from "@/components/badges";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SnagPhotos } from "@/components/snag-photos";
 import { SnagActions } from "@/components/snag-actions";
 import { SnagAssignment } from "@/components/snag-assignment";
 import { Button } from "@/components/ui/button";
@@ -91,22 +92,7 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
               <CardDescription>Issue and fix photos</CardDescription>
             </CardHeader>
             <CardContent className="pb-6">
-              {photos.length === 0 ? (
-                <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                  No photos have been added to this snag.
-                </p>
-              ) : (
-                <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {photos.map((photo) => (
-                    <li
-                      key={photo.id}
-                      className="flex aspect-4/3 items-center justify-center rounded-lg border bg-muted text-xs text-muted-foreground"
-                    >
-                      {photo.kind} photo
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <SnagPhotos photos={photos} projectId={snag.project_id} snagId={snag.id} canUpload={canComment} />
             </CardContent>
           </Card>
 

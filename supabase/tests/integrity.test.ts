@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { CREDS, UIDS, createSnag, hasEnv, serviceClient, signedInClient, type SupabaseClient } from "./helpers.js";
 
 // Snap-data integrity rules of section 14: sequential numbers under concurrency,
@@ -172,5 +172,11 @@ describe.skipIf(!hasEnv)("data integrity", () => {
       .eq('snag_id', snag.id);
     expect(count.error).toBeNull();
     expect(count.count).toBe(8);
+  });
+
+  afterAll(async () => {
+    if (!fixtureProjectId) return;
+    const { error } = await svc.from("projects").delete().eq("id", fixtureProjectId);
+    expect(error).toBeNull();
   });
 });
