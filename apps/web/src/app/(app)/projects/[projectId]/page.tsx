@@ -1,9 +1,10 @@
-import { Suspense } from "react";
-import { ProjectView } from "@/components/project-view";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Suspense } from 'react';
+import { ProjectView } from '@/components/project-view';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { QueryParams } from '@/lib/snag-filters';
 
 export const metadata = {
-  title: "Project",
+  title: 'Project',
 };
 
 export default function ProjectPage({
@@ -11,7 +12,7 @@ export default function ProjectPage({
   searchParams,
 }: {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ tab?: string; status?: string }>;
+  searchParams: Promise<QueryParams>;
 }) {
   return (
     <Suspense fallback={<ProjectSkeleton />}>

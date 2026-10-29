@@ -38,7 +38,7 @@ export type Workspace = {
   members: Membership[];
 };
 
-export async function loadWorkspace(): Promise<Workspace | null> {
+export async function loadWorkspace({ includeSnags = true }: { includeSnags?: boolean } = {}): Promise<Workspace | null> {
   const supabase = await createClient();
   const {
     data: { user },
@@ -58,7 +58,7 @@ export async function loadWorkspace(): Promise<Workspace | null> {
     supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
     supabase.from("projects").select("*").order("name"),
     supabase.from("project_members").select("project_id, role").eq("user_id", user.id),
-    supabase.from("snags").select("*").order("number"),
+    includeSnags ? supabase.from("snags").select("*").order("number") : Promise.resolve({ data: [] as Snag[] }),
     supabase.from("profiles").select("id, full_name, email, is_admin, avatar_url, is_active"),
     supabase.from("locations").select("*").order("sort_order"),
     supabase.from("categories").select("*").order("name"),

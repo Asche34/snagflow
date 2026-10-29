@@ -13,6 +13,9 @@ Migrations (append-only, apply in order — details in-file):
 | `20261019000007_workflow_rpc.sql` | `assign_snag`, `transition_snag`, `soft_delete_snag` + activity/notifications helpers |
 | `20261019000008_storage.sql` | buckets + storage policies |
 | `20261019000009_actor_defaults.sql` | BEFORE INSERT triggers stamping `created_by`/`author_id` with `auth.uid()` when absent (makes member inserts satisfy the RLS WITH CHECK) |
+| `20261019000010_profiles_team_read.sql` | shared-project colleague profile visibility |
+| `20261029000011_authorization_hardening.sql` | active-access guards, authorization/RPC hardening and concurrent photo-cap enforcement |
+| `20261029000012_snag_search.sql` | generated `snags.search_document` English tsvector (title + description), GIN index; RLS remains authoritative |
 
 ## Table cards
 

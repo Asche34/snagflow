@@ -333,14 +333,14 @@ isOneToOne: false
                   ]
                 },"snags": {
                   Row: {
-                    "assignee_id": string | null,"category_id": string | null,"client_id": string,"closed_at": string | null,"closed_by": string | null,"created_at": string,"created_by": string,"deleted_at": string | null,"description": string | null,"due_date": string | null,"id": string,"location_id": string | null,"number": number,"pin_x": number | null,"pin_y": number | null,"priority": Database["public"]['Enums']["snag_priority"],"project_id": string,"rejection_count": number,"status": Database["public"]['Enums']["snag_status"],"title": string,"updated_at": string
+                    "assignee_id": string | null,"category_id": string | null,"client_id": string,"closed_at": string | null,"closed_by": string | null,"created_at": string,"created_by": string,"deleted_at": string | null,"description": string | null,"due_date": string | null,"id": string,"location_id": string | null,"number": number,"pin_x": number | null,"pin_y": number | null,"priority": Database["public"]['Enums']["snag_priority"],"project_id": string,"rejection_count": number,"search_document": unknown,"status": Database["public"]['Enums']["snag_status"],"title": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "assignee_id"?: string | null,"category_id"?: string | null,"client_id"?: string,"closed_at"?: string | null,"closed_by"?: string | null,"created_at"?: string,"created_by": string,"deleted_at"?: string | null,"description"?: string | null,"due_date"?: string | null,"id"?: string,"location_id"?: string | null,"number": number,"pin_x"?: number | null,"pin_y"?: number | null,"priority"?: Database["public"]['Enums']["snag_priority"],"project_id": string,"rejection_count"?: number,"status"?: Database["public"]['Enums']["snag_status"],"title": string,"updated_at"?: string
+                    "assignee_id"?: string | null,"category_id"?: string | null,"client_id"?: string,"closed_at"?: string | null,"closed_by"?: string | null,"created_at"?: string,"created_by": string,"deleted_at"?: string | null,"description"?: string | null,"due_date"?: string | null,"id"?: string,"location_id"?: string | null,"number": number,"pin_x"?: number | null,"pin_y"?: number | null,"priority"?: Database["public"]['Enums']["snag_priority"],"project_id": string,"rejection_count"?: number,"search_document"?: never,"status"?: Database["public"]['Enums']["snag_status"],"title": string,"updated_at"?: string
                   }
                   Update: {
-                    "assignee_id"?: string | null,"category_id"?: string | null,"client_id"?: string,"closed_at"?: string | null,"closed_by"?: string | null,"created_at"?: string,"created_by"?: string,"deleted_at"?: string | null,"description"?: string | null,"due_date"?: string | null,"id"?: string,"location_id"?: string | null,"number"?: number,"pin_x"?: number | null,"pin_y"?: number | null,"priority"?: Database["public"]['Enums']["snag_priority"],"project_id"?: string,"rejection_count"?: number,"status"?: Database["public"]['Enums']["snag_status"],"title"?: string,"updated_at"?: string
+                    "assignee_id"?: string | null,"category_id"?: string | null,"client_id"?: string,"closed_at"?: string | null,"closed_by"?: string | null,"created_at"?: string,"created_by"?: string,"deleted_at"?: string | null,"description"?: string | null,"due_date"?: string | null,"id"?: string,"location_id"?: string | null,"number"?: number,"pin_x"?: number | null,"pin_y"?: number | null,"priority"?: Database["public"]['Enums']["snag_priority"],"project_id"?: string,"rejection_count"?: number,"search_document"?: never,"status"?: Database["public"]['Enums']["snag_status"],"title"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -407,6 +407,9 @@ isOneToOne: false
                            },
 "project_role":
 { Args: { "pid": string }; Returns: Database["public"]['Enums']["project_role"]
+                           },
+"shares_project_with_me":
+{ Args: { "target": string }; Returns: boolean
                            },
 "show_limit":
 { Args: Record<PropertyKey, never>; Returns: number

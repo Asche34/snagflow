@@ -5,9 +5,9 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Field                | Value |
 | -------------------- | ----- |
 | Version              | 0.1.0 |
-| DB schema version    | migration `20261029000011_authorization_hardening.sql` (applied and verified locally; hosted application pending) |
+| DB schema version    | migration `20261029000012_snag_search.sql` (applied and verified locally; hosted application pending) |
 | Phase (spec §15)     | **2 — web core in progress.** Phases 0–1 complete. |
-| Last delivered | Web snag create/edit, Save & add another, manager assignment, private issue/fix photos with resize/thumbnail/retry and real capture/workflow browser coverage |
+| Last delivered | Fieldwork project filters, combined full-text/number search, deterministic sorting, URL persistence, server pagination and uncapped project statistics |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -21,6 +21,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Web auth: sign-in, session refresh (Next 16 proxy), sign-out, protected routes (Phase 2)
 - Web dashboard: role-aware stats, review queue, my snags, overdue, project progress (Phase 2)
 - Web project page: snags (status filter), locations tree, team roster (Phase 2)
+- Web project search: status/priority/assignee/location/category/due/creator filters, English full-text across title/description, exact #number search, sorting and 50-row pages; URLs survive sections, refresh and browser history (Phase 2)
 - Web snag detail: metadata, comments, workflow activity, role-gated status transitions, manager assignment and real private issue/fix photos (Phase 2)
 - Web capture: project-scoped create/edit forms, Save & add another, stable retry identity, validated active access and 1,000-row-independent edit lookup (Phase 2)
 - Photo capture: eight-photo picker, 1600px JPEG/400px thumbnails, per-photo stages, interrupted-upload/committed-response retry and short-lived signed gallery (Phase 2)
@@ -30,11 +31,11 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 
 ## Features in progress
 
-- Phase 2 remainder: richer list filters/search, project CRUD, team management, invite flow, and web soft-delete controls
+- Phase 2 remainder: project CRUD, team management, invite flow, and web soft-delete controls
 
 ## Features remaining (order per spec §15)
 
-- Phase 2 remainder: soft-delete UI, comments UI polish, richer filters/search, project/team management and invitations (Next.js)
+- Phase 2 remainder: soft-delete UI, comments UI polish, project/team management and invitations (Next.js)
 - Phase 3: workflow UI gating, review queue, reject/reopen UX, notifications bell, Realtime
 - Phase 4: image markup (react-konva) + PDF/Excel reports (@react-pdf/renderer, exceljs) + revisions
 - Phase 5: mobile app on hosted Supabase (auth, camera flow, review flow)
@@ -43,6 +44,14 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Edge function `push-send` (spec §12) — not yet created
 
 ## Tests current
+
+### Project filters/search — 2026-10-29
+
+- Migration 12 adds a generated combined English search vector and GIN index. DB types regenerated; existing authorization functions are unchanged. Applied to local Supabase only.
+- Eight real browser cases exercise combined filters, title/description stemming, number lookup, due boundaries, URL/history/section restoration, malformed options, RLS, responsive controls and lookup beyond 1,000 rows with exact independent statistics.
+- Full final verification and independent review: `docs/AI/SNAG-SEARCH-2026-10-29.md`.
+- Next.js retains prior pages hidden: the capture regression now locates visible controls rather than matching hidden filter labels. Capture behavior is unchanged.
+- Limits: search is English full-text rather than substring matching; location matching is exact; due presets use the server calendar. Rare midnight count/fetch boundary drift and additional repeated-UUID/backend-failure UI assertions are deferred review minors.
 
 README refreshed on 2026-10-29 with the construction defect-tracking purpose,
 implemented versus planned capabilities, verified stack, working local web/DB
@@ -115,4 +124,4 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Next step recommended
 
-Continue Phase 2: richer list filters/search and project/team management with invitations. See FEATURE-INDEX.md "planned" section.
+Continue Phase 2: project/team management with invitations, then soft-delete controls. See FEATURE-INDEX.md "planned" section. For search delivery evidence, start at `SNAG-SEARCH-2026-10-29.md`.

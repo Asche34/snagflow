@@ -117,10 +117,11 @@ test('member creates and edits a snag with project-local details', async ({ page
   await page.getByRole('link', { name: 'New snag', exact: true }).click();
   await page.getByLabel('Title', { exact: true }).fill('Loose outlet cover');
   await page.getByLabel('Description', { exact: true }).fill('Cover moves when touched.');
-  await page.getByLabel('Location', { exact: true }).selectOption(locationId);
-  await page.getByLabel('Category', { exact: true }).selectOption(categoryId);
-  await page.getByLabel('Priority', { exact: true }).selectOption('high');
-  await page.getByLabel('Due date', { exact: true }).fill('2026-12-15');
+  // Next retains the project page hidden; use controls in the visible capture page.
+  await page.getByRole('combobox', { name: 'Location', exact: true }).selectOption(locationId);
+  await page.getByRole('combobox', { name: 'Category', exact: true }).selectOption(categoryId);
+  await page.getByRole('combobox', { name: 'Priority', exact: true }).selectOption('high');
+  await page.getByLabel('Due date', { exact: true }).filter({ visible: true }).fill('2026-12-15');
   await page.getByRole('button', { name: 'Save snag', exact: true }).click();
   await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
   await expect(

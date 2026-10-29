@@ -64,7 +64,7 @@ Role-aware dashboard: status counts, review queue (reviewers only), my snags, ov
 Impl: `apps/web/src/components/dashboard-view.tsx`, `apps/web/src/app/(app)/dashboard/page.tsx`
 
 ### FEAT-WEB-PROJECT (partial, web)
-Project page with Snags / Locations / Team tabs plus a status filter. Impl: `apps/web/src/components/project-view.tsx`, `apps/web/src/app/(app)/projects/[projectId]/page.tsx`
+Project page with Snags / Locations / Team tabs, exact project statistics and URL-backed filters/search. Impl: `apps/web/src/components/project-view.tsx`, `apps/web/src/app/(app)/projects/[projectId]/page.tsx`
 Remaining: project create/edit, settings, activity & reports tabs, member management.
 
 ### FEAT-WEB-SNAG-UI (partial, web)
@@ -74,7 +74,13 @@ Create/edit: project-scoped full-page forms with shared validation, retry identi
 Photos: client JPEG resizing/thumbnails, private uploads, retry queue and authenticated metadata registration.
 Impl: `apps/web/src/components/snag-form.tsx`, `snag-form-page.tsx`, `photo-picker.tsx`, `snag-photo-upload.tsx`, `snag-photos.tsx`; `apps/web/src/lib/photos.ts`; `apps/web/src/app/(app)/snags/actions.ts`, `photo-actions.ts`.
 Tests: `e2e/tests/snags.spec.ts`, `packages/shared/tests/photos.test.ts`.
-Remaining: soft-delete UI, photo markup and richer list filters/search.
+Remaining: soft-delete UI and photo markup.
+
+### FEAT-WEB-SNAG-SEARCH (done, web)
+Project status/priority/assignee/location/category/due/creator filters, combined title/description full-text and exact number search, stable sorting, 50-row server pages and exact project-wide counts under RLS.
+Impl: `apps/web/src/lib/snag-filters.ts`, `apps/web/src/lib/project-snags.ts`, `apps/web/src/components/snag-filters.tsx`, `apps/web/src/components/project-view.tsx`.
+DB: `supabase/migrations/20261029000012_snag_search.sql`; generated types: `packages/shared/src/db-types.ts`.
+Tests: `e2e/tests/filters.spec.ts`. Delivery/limits: `docs/AI/SNAG-SEARCH-2026-10-29.md`.
 
 ### FEAT-DOCKER-LOCAL (done)
 Container image for the web app (multi-stage, `output: 'standalone'`) plus compose wiring to the local Supabase stack.
@@ -82,7 +88,7 @@ Impl: `apps/web/Dockerfile`, `docker-compose.yml`, `.dockerignore`
 
 ## PLANNED (spec §15 — do not build before prior phases)
 
-- FEAT-WEB-TEAM-MGMT / FEAT-WEB-INVITES / richer filters / soft-delete UI — Phase 2 remainder (`apps/web`)
+- FEAT-WEB-TEAM-MGMT / FEAT-WEB-INVITES / soft-delete UI — Phase 2 remainder (`apps/web`)
 - FEAT-WORKFLOW-UI / FEAT-REALTIME / FEAT-NOTIF-UI — Phase 3
 - FEAT-MARKUP / FEAT-REPORTS — Phase 4
 - FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7
