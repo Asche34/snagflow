@@ -138,4 +138,39 @@ describe.skipIf(!hasEnv)("data integrity", () => {
     const row = await svc.from("snags").select("deleted_at").eq("id", snag.id).single();
     expect(row?.data?.deleted_at).not.toBeNull();
   });
+
+  it("concurrent assignee photo uploads on another creator's snag cannot exceed eight", async () => {
+    const snag = await createSnag(manager, {
+      projectId: fixtureProjectId,
+      title: 'assignee photo race',
+    });
+    const assigned = await manager.rpc('assign_snag', {
+      p_snag_id: snag.id,
+      p_assignee_id: UIDS.member1,
+    });
+    expect(assigned.error).toBeNull();
+    const photo = () => ({
+      snag_id: snag.id,
+      storage_path: `${fixtureProjectId}/${snag.id}/${crypto.randomUUID()}.jpg`,
+      width: 100,
+      height: 100,
+    });
+    for (let i = 0; i < 7; i++) {
+      expect((await member1.from('snag_photos').insert(photo())).error).toBeNull();
+    }
+    const results = await Promise.all([
+      member1.from('snag_photos').insert(photo()),
+      member1.from('snag_photos').insert(photo()),
+    ]);
+    expect(results.filter((result) => result.error === null)).toHaveLength(1);
+    expect(results.find((result) => result.error)?.error?.message).toContain(
+      'SNAG_PHOTO_LIMIT_REACHED',
+    );
+    const count = await svc
+      .from('snag_photos')
+      .select('id', { count: 'exact' })
+      .eq('snag_id', snag.id);
+    expect(count.error).toBeNull();
+    expect(count.count).toBe(8);
+  });
 });

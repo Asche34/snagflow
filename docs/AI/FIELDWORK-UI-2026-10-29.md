@@ -27,7 +27,7 @@ For a production-build UI check, build with the local fixture URL/anon value and
 
 The UI suite covers 375/768/1024/1440px screenshots, login, keyboard drawer operation/focus return, skip link, reduced motion, long titles, due dates, per-project review gating, viewer controls, clean browser console and 200% text enlargement/focused-control clearance. Text enlargement is not a claim of native browser zoom testing or complete accessibility conformance.
 
-Real Supabase Auth/Storage/workflow end-to-end verification remains pending. No hosted database changes, deployment, or release occurred.
+Subsequent real-stack verification passed: 29 API/RLS/workflow tests, 25 SQL authorization checks, eight ad hoc Storage API checks, a production build against local Supabase and all six real-auth Playwright tests. This extends the UI fixture checks; it does not establish the remaining create/edit/upload UI flows. No hosted database changes, deployment, or release occurred.
 
 ## Local decisions
 
@@ -37,4 +37,4 @@ Real Supabase Auth/Storage/workflow end-to-end verification remains pending. No 
 - Added UI-only fixture coverage because Docker/Supabase was unavailable; it establishes presentation and navigation behavior, not server authorization.
 - Removed oversized fixed skeleton widths and allowed long action labels to wrap following the enlarged-text reproduction.
 
-Final verification: production build passed; web and E2E lint/typechecks passed; 28 shared unit tests and all 8 production-build UI browser tests passed. Documentation validator and git whitespace checks passed. Light/dark text pairs exceed 4.5:1 and input borders exceed 3:1 in the measured palette. Review fixes were rechecked by the enlarged-text test and the whole UI suite. Native browser zoom and real Supabase end-to-end tests were not established by these checks.
+UI verification: production build passed; web and E2E lint/typechecks passed; 28 shared unit tests and all 8 production-build UI browser tests passed. Documentation validator and git whitespace checks passed. Light/dark text pairs exceed 4.5:1 and input borders exceed 3:1 in the measured palette. Review fixes were rechecked by the enlarged-text test and the whole UI suite. Native browser zoom was not established. Real Supabase verification was completed separately as recorded above.

@@ -9,11 +9,13 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@snagflow/shared": "workspace:*",
     "@supabase/supabase-js": "^2.49.4",
     "@types/node": "^20",
     "eslint": "^9",
     "typescript": "^5",
+    "typescript-eslint": "^8.71.2",
     "vitest": "^3.1.3"
   }
 }

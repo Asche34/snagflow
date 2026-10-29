@@ -141,3 +141,21 @@ Every non-obvious choice made while building SnagFlow. Format: **Decision** — 
   → 15/15 tasks, 60 tests (26 shared + 28 DB + 6 E2E). Three consecutive E2E runs to confirm
   the flakiness was gone. The `Date.now()` prerender warnings seen earlier did **not** recur
   on a clean start and did not kill the container (exit 143 was a SIGTERM, not a crash).
+
+## 2026-10-29 — Authorization review hardening
+
+- Missing/inactive project roles fail closed in workflow RPCs. Revoke anonymous RPC access and direct execution of internal audit/notification helpers rather than relying on table RLS inside SECURITY DEFINER functions.
+- Enforce the section 4 matrix at INSERT as well as UPDATE: new snags start open with no closure/rejection/deletion metadata. Members create unassigned snags; managers/admins may optionally assign an active project member/manager. This preserves the fast create form without granting members an assignment bypass.
+- Require an active caller profile in project role, membership and colleague lookup helpers; retain self-profile reads for account-state handling. Photo ownership alone does not preserve writes after membership loss. Auth-session revocation and signed-URL expiry remain separate concerns.
+- Keep creator-only detail editing. The photo-count trigger locks its parent as SECURITY DEFINER with an empty search path so an assignee uploading to another creator's snag still serializes against the eight-photo cap. Photo INSERT RLS remains enforced. Invoker locking was reproduced allowing nine concurrent photos; definer locking held at eight.
+- Add transactional SQL authorization checks to CI alongside API tests. They exercise actual PostgreSQL rules and roll back fixtures. Local isolated PostgreSQL with auth/storage shims provides useful validation when Docker is unavailable; it is not a substitute for full Supabase/browser verification.
+- Separate CI unit and browser runs, provide DB test credentials explicitly, refuse CI security-test skips, select installed bundled Chromium, and allow/hash web public build variables through Turbo. Declare lint imports directly instead of depending on incidental hoisting.
+
+## 2026-10-29 — Fieldwork web UI
+
+- The user selected Fieldwork and approved its design: forest navigation, orange actions, quiet neutral surfaces and existing Geist fonts. Mobile navigation uses existing destinations only; unavailable mockup controls are omitted.
+- Keep loading/data/auth on the server; send serializable project summaries to a small client navigation component. Radix Dialog handles modal focus behavior; explicitly return focus to whichever top/phone trigger opened it.
+- Filter the review queue by project reviewer role, while keeping aggregate status counts over visible projects. Project roles vary; global user chrome says Project team rather than implying one project role.
+- Supabase Auth reads the clock while initializing sessions. An observed Next.js prerender browser error disappeared after `connection()` before server client initialization; a regression checks the browser console.
+- A separate loopback-only HTTP fixture transport drives actual Next screens when Docker/Supabase is unavailable. It is never wired into production code; existing auth/API tests remain distinct. Fixture UI checks are not evidence of server authorization.
+- Text enlargement reproduced a 511px layout at a 375px viewport. Wrapping action labels, explicit grid min-widths, bounded skeletons and an accessible compact sign-out control eliminate overflow; focused-control clearance is covered.

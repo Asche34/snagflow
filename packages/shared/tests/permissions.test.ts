@@ -47,6 +47,11 @@ describe("canAct matrix", () => {
 });
 
 describe("canEditSnagDetails scope rules", () => {
+  it("admin can edit without project membership", () => {
+    expect(canEditSnagDetails({
+      actorId: admin.id, isAdmin: true, projectRole: null, scope: { status: "closed" },
+    })).toBe(true);
+  });
   it("creator can edit own snag while not closed", () => {
     expect(
       canEditSnagDetails({
@@ -101,6 +106,11 @@ describe("canEditSnagDetails scope rules", () => {
 });
 
 describe("canWorkOnSnag scope rules", () => {
+  it("admin can work without project membership", () => {
+    expect(canWorkOnSnag({
+      actorId: admin.id, isAdmin: true, projectRole: null, scope: {},
+    })).toBe(true);
+  });
   it("member can act only when assigned", () => {
     expect(
       canWorkOnSnag({

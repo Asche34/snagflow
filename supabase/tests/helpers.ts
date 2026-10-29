@@ -56,6 +56,11 @@ export const LOCATION_THEATRE_A = "0a0a0a0a-0a0a-4a0a-8a0a-0a0a0a0a0a04";
 
 export function requireEnv(): boolean {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+    if (process.env["CI"]) {
+      throw new Error(
+        "[db-tests] CI requires SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY; refusing to skip security tests.",
+      );
+    }
     console.warn(
       "[db-tests] Missing SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY. " +
         "Start the local stack (`supabase start`, needs Docker), then set these from " +

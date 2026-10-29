@@ -17,6 +17,7 @@ apps/web/
   src/app/layout.tsx          root layout (fonts, providers)
   src/app/page.tsx            home page (placeholder until Phase 2)
   src/components/ui/*         shadcn-style primitives (button, card, dialog, …)
+  src/components/workspace-navigation.tsx  client sidebar, mobile drawer and phone navigation
   src/lib/utils.ts            cn() helper
 
 apps/mobile/
@@ -40,7 +41,14 @@ supabase/
   seed.sql                    demo org/users/projects/snags (Password123!)
   tests/helpers.ts            auth client factory, UIDS constants
   tests/*.test.ts             RLS/workflow/integrity DB tests
+  tests/sql/authorization.sql transactional authorization regressions (psql)
 
 scripts/ai/update-index.mjs   regenerates derivable parts of .ai/index.json
 scripts/ai/check-ai-docs.mjs  validates AI docs, links, JSON
 ```
+
+Latest implementation review: `docs/AI/REVIEW-2026-10-29.md`.
+
+Fieldwork UI: `docs/AI/FIELDWORK-UI-2026-10-29.md`; UI-only tests:
+`e2e/playwright.ui.config.ts`, `e2e/tests/fieldwork.spec.ts`,
+`e2e/fixtures/fieldwork-api.mjs`. Default Playwright config retains real Supabase auth tests.

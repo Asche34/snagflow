@@ -205,7 +205,8 @@
       "supabase/migrations/20261019000007_workflow_rpc.sql",
       "supabase/migrations/20261019000008_storage.sql",
       "supabase/migrations/20261019000009_actor_defaults.sql",
-      "supabase/migrations/20261019000010_profiles_team_read.sql"
+      "supabase/migrations/20261019000010_profiles_team_read.sql",
+      "supabase/migrations/20261029000011_authorization_hardening.sql"
     ],
     "tests_discovered": [
       "packages/shared/tests/permissions.test.ts",
@@ -214,7 +215,8 @@
       "supabase/tests/rls_isolation.test.ts",
       "supabase/tests/rls_write.test.ts",
       "supabase/tests/workflow.test.ts",
-      "e2e/tests/auth.spec.ts"
+      "e2e/tests/auth.spec.ts",
+      "e2e/tests/fieldwork.spec.ts"
     ],
     "app_pages_discovered": [
       "apps/web/src/app/(app)/dashboard/page.tsx",

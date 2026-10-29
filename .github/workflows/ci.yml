@@ -36,7 +36,7 @@ jobs:
         run: pnpm turbo run typecheck
 
       - name: Unit tests
-        run: pnpm turbo run test
+        run: pnpm --filter @snagflow/shared test
 
   web-build:
     name: Web production build
@@ -89,7 +89,13 @@ jobs:
         run: supabase db reset
 
       - name: DB / RLS / workflow tests
-        run: pnpm --filter @snagflow/db-tests test
+        run: |
+          supabase status -o env > "$RUNNER_TEMP/supabase-test.env"
+          source "$RUNNER_TEMP/supabase-test.env"
+          SUPABASE_URL="$API_URL" SUPABASE_ANON_KEY="$ANON_KEY" SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" pnpm --filter @snagflow/db-tests test
+
+      - name: SQL authorization regressions
+        run: psql -X -v ON_ERROR_STOP=1 postgresql://postgres:postgres@127.0.0.1:54322/postgres -f supabase/tests/sql/authorization.sql
 
   e2e:
     name: Playwright E2E (real browser)
@@ -151,3 +157,10 @@ jobs:
 
       - name: Run E2E suite
         run: pnpm --filter @snagflow/e2e test
+        env:
+          E2E_CHANNEL: bundled
+
+      - name: Fieldwork UI regressions (isolated fixture transport)
+        run: pnpm --filter @snagflow/e2e test:ui
+        env:
+          E2E_CHANNEL: bundled

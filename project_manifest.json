@@ -2,13 +2,13 @@
   "project": "snagflow",
   "description": "Collaborative snag/punch-list/defect tracking: Next.js web + Expo mobile on Supabase",
   "version": "0.1.0",
-  "database_schema_version": "20261019000008",
+  "database_schema_version": "20261029000011",
   "stack": {
     "web": "Next.js 16 App Router + TS strict + Tailwind v4",
     "mobile": "Expo SDK 58 + Expo Router",
     "shared": "packages/shared (TypeScript): permissions, workflow, zod schemas",
     "backend": "Supabase (Postgres RLS, Auth, Storage, Realtime, Edge Functions)",
-    "testing": "vitest (shared, db) + planned Playwright",
+    "testing": "vitest (shared, db) + Playwright (real auth and isolated UI suites)",
     "tooling": "pnpm 9 + Turborepo + Supabase CLI"
   },
   "entrypoints": {
@@ -38,7 +38,7 @@
   },
   "current_state": {
     "phase": "2 (web core) next - phases 0-1 complete",
-    "last_work": "Phase 1: db schema, RLS, workflow RPCs, storage, seed, db test suite (commit a7b518f)",
+    "last_work": "Fieldwork web UI redesign, accessible mobile navigation, isolated UI browser checks; authorization hardening in migration 11 (hosted application pending)",
     "next_recommended": "Phase 2 per SNAGFLOW_BUILD_PROMPT.md s15",
     "blockers": []
   },

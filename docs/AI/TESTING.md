@@ -4,12 +4,25 @@ Quality gate: `pnpm turbo run build lint typecheck test` (all packages, cached).
 
 | Suite | Command | Directory | Needs | What it proves |
 | ----- | ------- | --------- | ----- | -------------- |
-| Shared units | `pnpm --filter @snagflow/shared test` | `packages/shared/tests` | node | permission matrix, transition map behavior (26 tests) |
-| DB suites | `pnpm --filter @snagflow/db-tests test` | `supabase/tests` (rls_isolation, rls_write, workflow, integrity) | running stack + env | RLS rules, workflow RPCs, constraints (28 tests) |
+| Shared units | `pnpm --filter @snagflow/shared test` | `packages/shared/tests` | node | permission matrix, transition map behavior (28 tests) |
+| DB suites | `pnpm --filter @snagflow/db-tests test` | `supabase/tests` (rls_isolation, rls_write, workflow, integrity) | running stack + env | RLS rules, workflow RPCs, constraints (29 tests) |
 | Type gen | `pnpm db:gen-types` | → `packages/shared/src/db-types.ts` | running stack | types match schema |
-| E2E (Playwright) | — | — | — | planned Phase 7 |
+| Auth E2E | `pnpm --filter @snagflow/e2e test` | `e2e/tests/auth.spec.ts` | real Supabase + running web app + Chrome/Chromium | 6 auth/visibility checks |
+| UI-only browser checks | `pnpm --filter @snagflow/e2e test:ui` | `e2e/tests/fieldwork.spec.ts` | locked web deps + Chrome (or `E2E_CHANNEL=bundled`) | actual app presentation/navigation using loopback fixture responses; not server authorization |
 
 ## Running DB tests locally
+
+SQL authorization regressions run independently of the API suites against a
+migrated local database. They create their own fixtures and roll them back:
+
+```powershell
+psql.exe '-X' '--set=ON_ERROR_STOP=1' '--dbname=postgresql://postgres:postgres@127.0.0.1:54322/postgres' '--file=supabase/tests/sql/authorization.sql'
+```
+
+CI runs this SQL suite in the database job. The API suite refuses to skip when
+`CI` is set and its required credentials are absent. Local API tests still skip
+when the stack credentials are missing; skipped tests are not verified passes.
+
 
 1. Docker Desktop running; fresh shells need:
    `$env:Path = "C:\Program Files\Docker\Docker\resources\bin;" + $env:Path`
@@ -25,6 +38,14 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 `test.env` is gitignored. Tests `skipIf` env is missing (loud skip ≠ pass).
 CI runs the DB suite automatically with its own local stack.
 
+The verified Windows workspace now has ignored `apps/web/.env.local` and
+`supabase/tests/test.env` configured for the real local backend. The official
+CLI 2.122.0 binary is cached at `.superpowers/tools/supabase/package/bin/supabase.exe`.
+Its local startup used `SUPABASE_INTERNAL_IMAGE_REGISTRY=ghcr.io` and
+`start -x studio,postgres-meta,imgproxy,edge-runtime,logflare,vector,supavisor`
+after ECR rate limits and stalled Docker pulls. Docker access requires an
+unrestricted shell on this workstation. No hosted credentials are involved.
+
 ## Matrix
 
 | Module / area | Tests |
@@ -35,4 +56,5 @@ CI runs the DB suite automatically with its own local stack.
 | RLS writes / guard | `supabase/tests/rls_write.test.ts` |
 | workflow RPCs | `supabase/tests/workflow.test.ts` |
 | numbering / photo cap / idempotency | `supabase/tests/integrity.test.ts` |
-| web/mobile | turbo build/typecheck (apps, current placeholders) — Playwright Phase 7 |
+| web | production build/typecheck plus separate real-auth and UI-only Playwright suites |
+| mobile | typecheck (Expo scaffold; later phase) |

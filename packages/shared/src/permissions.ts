@@ -80,8 +80,8 @@ export function canEditSnagDetails(args: {
   scope: ScopeContext;
 }): boolean {
   const { actorId, isAdmin, projectRole, scope } = args;
-  if (!projectRole) return false;
   if (isAdmin) return true;
+  if (!projectRole) return false;
   if (projectRole === "manager") return true;
   if (projectRole !== "member") return false;
   if (scope.status === "closed") return false;
@@ -95,8 +95,8 @@ export function canWorkOnSnag(args: {
   scope: ScopeContext;
 }): boolean {
   const { actorId, isAdmin, projectRole, scope } = args;
-  if (!projectRole) return false;
   if (isAdmin || projectRole === "manager") return true;
+  if (!projectRole) return false;
   return projectRole === "member" && scope.assigneeId === actorId;
 }
 

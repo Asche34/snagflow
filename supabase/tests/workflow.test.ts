@@ -29,7 +29,6 @@ describe.skipIf(!hasEnv)("workflow transitions", () => {
     const snag = await createSnag(member1, {
       projectId: PROJECT_A,
       title: "workflow happy path",
-      assigneeId: "33333333-3333-4333-8333-333333333333",
       locationId: LOCATION_THEATRE_A,
     });
 
@@ -67,8 +66,9 @@ describe.skipIf(!hasEnv)("workflow transitions", () => {
     const snag = await createSnag(member1, {
       projectId: PROJECT_A,
       title: "reject flow",
-      assigneeId: "33333333-3333-4333-8333-333333333333",
     });
+    const assigned = await manager.rpc("assign_snag", { p_snag_id: snag.id, p_assignee_id: UIDS.member1 });
+    expect(assigned.error).toBeNull();
     await member1.rpc("transition_snag", { p_snag_id: snag.id, p_to_status: "in_progress" });
     const { error: photoErr } = await member1.from("snag_photos").insert({
       snag_id: snag.id,
@@ -165,7 +165,6 @@ describe.skipIf(!hasEnv)("workflow transitions", () => {
     const snag = await createSnag(member1, {
       projectId: PROJECT_A,
       title: "notify flow",
-      assigneeId: "33333333-3333-4333-8333-333333333333",
     });
     await manager.rpc("assign_snag", { p_snag_id: snag.id, p_assignee_id: "33333333-3333-4333-8333-333333333333" });
 
