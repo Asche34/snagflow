@@ -5,9 +5,9 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Field                | Value |
 | -------------------- | ----- |
 | Version              | 0.1.0 |
-| DB schema version    | migration `20261029000012_snag_search.sql` (applied and verified locally; hosted application pending) |
+| DB schema version    | migration `20261029000013_team_invitations.sql` (applied and verified locally; hosted application pending) |
 | Phase (spec §15)     | **2 — web core in progress.** Phases 0–1 complete. |
-| Last delivered | Admin project creation and manager/admin project detail editing, fix-photo setting, resilient create retry and refreshed project navigation |
+| Last delivered | Project team add/role/removal controls; admin email invitations, cancellation, recipient setup/acceptance and consumed-link recovery |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -23,6 +23,8 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Web project page: snags (status filter), locations tree, team roster (Phase 2)
 - Web project search: status/priority/assignee/location/category/due/creator filters, English full-text across title/description, exact #number search, sorting and 50-row pages; URLs survive sections, refresh and browser history (Phase 2)
 - Web project management: admin New project, manager/admin Edit project, shared-schema validated details and fix-photo setting, stable-create retry, live access checks and layout/navigation refresh (Phase 2)
+- Web team: manager/admin exact-email existing-account add, role editing, confirmed removal/self-role changes, read-only member/viewer roster; project-scoped authenticated RPCs (Phase 2)
+- Invitations: active-admin email delivery, pending retry/cancel, public email/session-bound name/password acceptance, expired/canceled/used-token protection and consumed-link/session-loss recovery (Phase 2)
 - Web snag detail: metadata, comments, workflow activity, role-gated status transitions, manager assignment and real private issue/fix photos (Phase 2)
 - Web capture: project-scoped create/edit forms, Save & add another, stable retry identity, validated active access and 1,000-row-independent edit lookup (Phase 2)
 - Photo capture: eight-photo picker, 1600px JPEG/400px thumbnails, per-photo stages, interrupted-upload/committed-response retry and short-lived signed gallery (Phase 2)
@@ -32,11 +34,11 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 
 ## Features in progress
 
-- Phase 2 remainder: team management, invite flow, project archive controls, and web soft-delete controls
+- Phase 2 remainder: project archive, web snag soft-delete controls and location/category editing
 
 ## Features remaining (order per spec §15)
 
-- Phase 2 remainder: soft-delete UI, comments UI polish, team management and invitations, project archive controls (Next.js)
+- Phase 2 remainder: soft-delete UI, comments UI polish, project archive and location/category editing (Next.js)
 - Phase 3: workflow UI gating, review queue, reject/reopen UX, notifications bell, Realtime
 - Phase 4: image markup (react-konva) + PDF/Excel reports (@react-pdf/renderer, exceljs) + revisions
 - Phase 5: mobile app on hosted Supabase (auth, camera flow, review flow)
@@ -45,6 +47,13 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Edge function `push-send` (spec §12) — not yet created
 
 ## Tests current
+
+### Team and invitations — 2026-10-30
+
+- Migration 13 adds narrowly scoped team/invite RPCs. Actor checks fail closed for nullable `can()` results; invite acceptance binds the confirmed canonical Auth email, app token, expiry and active inviter authority. Used tokens never restore removed access or overwrite a changed role.
+- Nine real-browser cases cover membership controls/role gates/revocation, local captured email, password setup, viewer access, cancellation, recovery after consuming a link and losing session, self-role confirmation, public-signup denial and responsive layout.
+- Shared contracts add two unit cases; DB lifecycle adds six cases. Delivery/deployment evidence: `docs/AI/TEAM-INVITES-2026-10-30.md`.
+- Local email/password login remains enabled while public registration is disabled. New runtime settings: server-only service key and canonical APP_URL; hosted redirects/SMTP and migration 13 must be configured before deployment. No hosted backend or real external recipient was changed/contacted.
 
 ### Project creation/editing — 2026-10-29
 
@@ -132,4 +141,4 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Next step recommended
 
-Continue Phase 2: team membership/roles and invitations, then project archive and snag soft-delete controls. See FEATURE-INDEX.md "planned" section. Latest handoff: `PROJECT-DETAILS-2026-10-29.md`.
+Continue Phase 2: project archive and snag soft-delete controls, then location/category editing and remaining comment polish. Latest handoff: `TEAM-INVITES-2026-10-30.md`.

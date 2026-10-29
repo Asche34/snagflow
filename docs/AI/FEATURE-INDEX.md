@@ -66,7 +66,7 @@ Impl: `apps/web/src/components/dashboard-view.tsx`, `apps/web/src/app/(app)/dash
 ### FEAT-WEB-PROJECT (partial, web)
 Project page with Snags / Locations / Team tabs, exact project statistics and URL-backed filters/search. Impl: `apps/web/src/components/project-view.tsx`, `apps/web/src/app/(app)/projects/[projectId]/page.tsx`
 Create/edit: `/projects/new` (admin), `/projects/[projectId]/edit` (project manager/admin).
-Remaining: project archive, activity & reports tabs, member management.
+Remaining: project archive, activity & reports tabs, location/category editing.
 
 ### FEAT-WEB-PROJECT-DETAILS (done, web)
 Admin creates projects; project managers/admins edit name/code/description/client/address and require-fix-photo setting. Stable-UUID create retry, validation/duplicate errors retain draft, fresh active/access checks on save and layout/navigation refresh.
@@ -93,9 +93,21 @@ Tests: `e2e/tests/filters.spec.ts`. Delivery/limits: `docs/AI/SNAG-SEARCH-2026-1
 Container image for the web app (multi-stage, `output: 'standalone'`) plus compose wiring to the local Supabase stack.
 Impl: `apps/web/Dockerfile`, `docker-compose.yml`, `.dockerignore`
 
+### FEAT-WEB-TEAM-MGMT (done, web)
+Manager/admin project team add-by-canonical-email, role editing, confirmed removal/self-role changes; member/viewer read-only roster.
+Impl: `apps/web/src/components/team-view.tsx`, `team-manager.tsx`, `apps/web/src/app/(app)/projects/team-actions.ts`, `apps/web/src/lib/team-errors.ts`.
+DB: migration `20261029000013_team_invitations.sql::add_project_member,set_project_member`. Shared: `ProjectMemberAddSchema`, `ProjectMemberChangeSchema`.
+Tests: `supabase/tests/team.test.ts`, `packages/shared/tests/team.test.ts`, `e2e/tests/team.spec.ts`.
+
+### FEAT-WEB-INVITES (done, web)
+Active admins invite new accounts by email. Pending retry/cancel, recipient setup and atomic project acceptance, confirmed-email binding and consumed-link recovery. Managers may cancel their project invitations; org account creation remains admin-only.
+Impl: `apps/web/src/app/api/invitations/route.ts`, `apps/web/src/lib/supabase/admin.ts`, `apps/web/src/app/invite/actions.ts`, `apps/web/src/app/invite/[token]/page.tsx`, `apps/web/src/components/invitation-form.tsx`.
+DB: migration 13 invitation functions; shared `ProjectInviteSendSchema`, `ProjectInviteAcceptSchema`. Tests: team suites above.
+Deployment/limits: `docs/AI/TEAM-INVITES-2026-10-30.md`.
+
 ## PLANNED (spec §15 — do not build before prior phases)
 
-- FEAT-WEB-TEAM-MGMT / FEAT-WEB-INVITES / soft-delete UI — Phase 2 remainder (`apps/web`)
+- Project archive / soft-delete UI / location-category editing — Phase 2 remainder (`apps/web`)
 - FEAT-WORKFLOW-UI / FEAT-REALTIME / FEAT-NOTIF-UI — Phase 3
 - FEAT-MARKUP / FEAT-REPORTS — Phase 4
 - FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7

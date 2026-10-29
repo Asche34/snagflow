@@ -1,13 +1,14 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
-import { canAct, isReviewer } from '@snagflow/shared';
+import { canAct } from '@snagflow/shared';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { SnagList } from '@/components/snag-list';
 import { SnagFilters } from '@/components/snag-filters';
 import { loadProjectSnags, SNAG_PAGE_SIZE } from '@/lib/project-snags';
 import { parseSnagFilters, snagFiltersHref, type QueryParams } from '@/lib/snag-filters';
-import { loadWorkspace, personName, type Location } from '@/lib/data';
+import { loadWorkspace, type Location } from '@/lib/data';
+import { TeamView } from '@/components/team-view';
 import { PROJECT_ROLE_LABELS } from '@/lib/labels';
 import { cn } from '@/lib/utils';
 
@@ -93,10 +94,6 @@ export async function ProjectView({
   }
   const stats = results?.stats;
   const percent = stats?.total ? Math.round((stats.closed / stats.total) * 100) : 0;
-  const canReview = isReviewer({
-    isAdmin: workspace.profile?.is_admin ?? false,
-    projectRole: role,
-  });
 
   const tabHref = (next: Tab) => snagFiltersHref(project.id, filters, { tab: next });
 
@@ -302,37 +299,10 @@ export async function ProjectView({
         <Card className="gap-0 py-0">
           <CardHeader className="pb-3 pt-5">
             <CardTitle>Team</CardTitle>
-            <CardDescription>
-              {projectMembers.length} people{canReview ? ' · project team' : ''}
-            </CardDescription>
+            <CardDescription>Project access and invitations</CardDescription>
           </CardHeader>
           <CardContent className="px-0">
-            {projectMembers.length === 0 ? (
-              <p className="px-6 py-8 text-center text-sm text-muted-foreground">
-                No members on this project.
-              </p>
-            ) : (
-              <ul className="divide-y">
-                {projectMembers.map((member) => (
-                  <li
-                    key={member.user_id}
-                    className="flex min-w-0 flex-wrap items-center justify-between gap-3 px-6 py-4"
-                  >
-                    <div className="min-w-0">
-                      <p className="break-words text-sm font-medium">
-                        {personName(people, member.user_id)}
-                      </p>
-                      <p className="break-all text-xs text-muted-foreground">
-                        {people.find((person) => person.id === member.user_id)?.email ?? '—'}
-                      </p>
-                    </div>
-                    <span className="shrink-0 rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
-                      {PROJECT_ROLE_LABELS[member.role]}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <TeamView projectId={project.id} />
           </CardContent>
         </Card>
       ) : null}

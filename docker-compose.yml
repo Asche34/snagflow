@@ -31,6 +31,8 @@ services:
       # Server-facing: inside the container the host is host.docker.internal.
       # Read at runtime, never inlined.
       SUPABASE_SERVER_URL: ${SUPABASE_SERVER_URL:-http://host.docker.internal:54321}
+      SUPABASE_SERVICE_ROLE_KEY: ${SUPABASE_SERVICE_ROLE_KEY:-}
+      APP_URL: ${APP_URL:-http://localhost:${WEB_PORT:-3000}}
     ports:
       - "${WEB_PORT:-3000}:3000"
     extra_hosts:

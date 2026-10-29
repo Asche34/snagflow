@@ -2,7 +2,7 @@
   "project": "snagflow",
   "description": "Collaborative snag/punch-list/defect tracking: Next.js web + Expo mobile on Supabase",
   "version": "0.1.0",
-  "database_schema_version": "20261029000012",
+  "database_schema_version": "20261029000013",
   "stack": {
     "web": "Next.js 16 App Router + TS strict + Tailwind v4",
     "mobile": "Expo SDK 58 + Expo Router",
@@ -60,8 +60,8 @@
   },
   "current_state": {
     "phase": "2 (web core) next - phases 0-1 complete",
-    "last_work": "Admin project creation, manager/admin project detail and fix-photo setting editing, stable-create retry and navigation refresh",
-    "next_recommended": "Phase 2: team membership/roles and invitations, then project archive and snag soft-delete controls",
+    "last_work": "Project team add/role/removal controls and admin email invitation lifecycle with recipient setup, cancellation and consumed-link recovery",
+    "next_recommended": "Phase 2: project archive and snag soft-delete controls, then location/category editing",
     "blockers": []
   },
   "important_files": [

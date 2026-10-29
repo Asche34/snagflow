@@ -150,7 +150,9 @@ jobs:
         run: pnpm --filter @snagflow/e2e exec npx playwright install --with-deps chromium
 
       - name: Start web app
-        run: pnpm --filter web start --port 3000 &
+        run: |
+          source supabase.env
+          SUPABASE_SERVICE_ROLE_KEY="$SERVICE_ROLE_KEY" APP_URL=http://localhost:3000 pnpm --filter web start --port 3000 &
 
       - name: Wait for the web app
         run: for i in $(seq 1 30); do curl -sf http://localhost:3000/login && break; sleep 1; done

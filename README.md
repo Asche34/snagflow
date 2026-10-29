@@ -4,7 +4,7 @@ SnagFlow is a collaborative snag, punch-list, and defect tracker for constructio
 
 Work is organized by project, location, category, priority, and due date. The intended field workflow connects issue evidence, assigned corrective work, review, and an auditable history across a web workspace and a future mobile app.
 
-**Current status:** version 0.1.0, under active development. The web workspace supports project creation/editing, snag capture, search/filtering, photos, assignment, and review; team management and live updates are still being built. The Expo mobile app is a scaffold.
+**Current status:** version 0.1.0, under active development. The web workspace supports project creation/editing, team management and invitations, snag capture, search/filtering, photos, assignment, and review. Archive/deletion controls and live updates are still being built. The Expo mobile app is a scaffold.
 
 ## How it works
 
@@ -31,6 +31,7 @@ Permissions are enforced in PostgreSQL through row-level security, triggers, and
 - Role-aware dashboard with status counts, review queue, assigned work, overdue items, and project progress.
 - Project pages with search, combined filters, sorting, server pagination, location trees, and team rosters.
 - Admin project creation and manager/admin editing of project details and the fix-photo setting.
+- Manager/admin team membership and roles; admin email invitations with recipient setup and project acceptance.
 - Snag creation and creator/manager editing, with project-local details and “Save & add another.”
 - Manager assignment/reassignment and snag detail pages with comments, activity history, and permitted workflow transitions.
 - Private issue/fix photo uploads, image resizing, thumbnails, per-photo status, and retry without duplicate snags or photo records.
@@ -40,12 +41,16 @@ Permissions are enforced in PostgreSQL through row-level security, triggers, and
 
 ### Still to build
 
-- Team management, invitations, project archive and snag soft-delete controls.
+- Project archive, snag soft-delete controls, and location/category editing.
 - Live updates and the notifications interface.
 - Photo markup, PDF/Excel reports, and revision handling.
 - Mobile field capture, offline synchronization, and push notifications.
 
 Database support for an operation does not mean its web or mobile interface is complete. See [project state](docs/AI/PROJECT-STATE.md) for delivery details and [the build specification](SNAGFLOW_BUILD_PROMPT.md) for the intended scope.
+
+Email invitations require a server-only `SUPABASE_SERVICE_ROLE_KEY`, canonical `APP_URL`,
+and matching Supabase email/redirect configuration. See the [invitation setup and verification
+record](docs/AI/TEAM-INVITES-2026-10-30.md) before deploying against a hosted backend.
 
 ## Stack and repository
 

@@ -140,6 +140,25 @@ export const MemberUpsertSchema = z.object({
   role: ProjectRoleSchema,
 });
 
+export const ProjectMemberAddSchema = InviteCreateSchema.extend({
+  projectId: UUIDSchema,
+  email: z
+    .string()
+    .trim()
+    .email()
+    .max(254)
+    .transform((email) => email.toLowerCase()),
+});
+export const ProjectMemberChangeSchema = MemberUpsertSchema.extend({
+  role: ProjectRoleSchema.nullable(),
+});
+export const ProjectInviteSendSchema = ProjectMemberAddSchema.extend({ clientId: UUIDSchema });
+export const ProjectInviteAcceptSchema = z.object({
+  token: UUIDSchema,
+  fullName: z.string().trim().min(1).max(120),
+  password: z.string().min(8).max(128),
+});
+
 // ---------------------------------------------------------------------------
 // Reports (spec section 10)
 // ---------------------------------------------------------------------------

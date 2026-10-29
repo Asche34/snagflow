@@ -27,8 +27,12 @@ port = 54323
 
 [auth]
 enabled = true
-site_url = "http://localhost:3000"
+site_url = "http://127.0.0.1:3003"
 additional_redirect_urls = [
+  "http://127.0.0.1:3003/**",
+  "http://localhost:3003/**",
+  "http://localhost:3000/**",
+  "http://127.0.0.1:3000/**",
   "http://localhost:3000/auth/callback",
   "snagflow://auth/callback",
 ]
@@ -40,6 +44,7 @@ refresh_token_reuse_interval = 10
 enable_manual_linking = false
 
 [auth.email]
+# Keep email/password login enabled; auth.enable_signup above blocks public registration.
 enable_signup = true
 double_confirm_changes = true
 enable_confirmations = false

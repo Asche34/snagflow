@@ -1,8 +1,8 @@
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
-import type { Database } from "@snagflow/shared";
-import { getSupabaseAnonKey, getSupabaseServerUrl } from "@/lib/env";
-import { AUTH_COOKIE_NAME } from "@/lib/supabase/cookie-name";
+import { createServerClient } from '@supabase/ssr';
+import { NextResponse, type NextRequest } from 'next/server';
+import type { Database } from '@snagflow/shared';
+import { getSupabaseAnonKey, getSupabaseServerUrl } from '@/lib/env';
+import { AUTH_COOKIE_NAME } from '@/lib/supabase/cookie-name';
 
 /**
  * Session refresh (Next 16 "proxy" — the successor of `middleware.ts`).
@@ -14,7 +14,7 @@ export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(getSupabaseServerUrl(), getSupabaseAnonKey(), {
-    cookieOptions: { name: AUTH_COOKIE_NAME, path: "/" },
+    cookieOptions: { name: AUTH_COOKIE_NAME, path: '/' },
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -38,11 +38,11 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname, search } = request.nextUrl;
-  if (!user && pathname !== "/login") {
+  if (!user && pathname !== '/login' && !pathname.startsWith('/invite/')) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.search = "";
-    url.searchParams.set("next", `${pathname}${search}`);
+    url.pathname = '/login';
+    url.search = '';
+    url.searchParams.set('next', `${pathname}${search}`);
     return NextResponse.redirect(url);
   }
 
@@ -54,6 +54,6 @@ export const config = {
     // Skip static assets, Next internals, and the API surface — the health
     // endpoint must answer without a session cookie, and other routes under
     // /api own their own auth.
-    "/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    '/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
   ],
 };

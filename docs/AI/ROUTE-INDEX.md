@@ -9,6 +9,7 @@ Machine pointers: `.ai/index.json::routes`; `node scripts/ai/update-index.mjs` r
 | --- | ------- | ---- | ---- | ------ |
 | `/` | Home placeholder | public | `apps/web/src/app/page.tsx` | live (placeholder) |
 | `/login` | Sign in | public | `apps/web/src/app/login/page.tsx` | live |
+| `/invite/[token]` | Email-session-bound invite acceptance/setup | public shell; confirmed matching user for acceptance | `apps/web/src/app/invite/[token]/page.tsx` | live |
 | `/dashboard` | Role-aware workspace and project list | user | `apps/web/src/app/(app)/dashboard/page.tsx` | live |
 | `/projects/[projectId]` | Snags/search, locations, team | project access | `apps/web/src/app/(app)/projects/[projectId]/page.tsx` | live |
 | `/projects/new` | Create project | active admin | `apps/web/src/app/(app)/projects/new/page.tsx` | live |
@@ -24,6 +25,7 @@ Machine pointers: `.ai/index.json::routes`; `node scripts/ai/update-index.mjs` r
 | Method | URL | Handler | Auth | File | Status |
 | ------ | --- | ------- | ---- | ---- | ------ |
 | GET | `/api/health` | reachability | public | `apps/web/src/app/api/health/route.ts` | live |
+| POST | `/api/invitations` | prepare/send or retry project invitation | active admin + canonical Origin | `apps/web/src/app/api/invitations/route.ts` | live |
 | POST `/api/reports/[snagReportId]` | PLANNED | manager/admin | `apps/web/src/app/api/` | Phase 4 (PDF/Excel generation) |
 
 ## Mobile routes (Expo Router)

@@ -387,11 +387,25 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "assign_snag":
+            "accept_project_invite":
+{ Args: { "p_full_name": string,"p_token": string }; Returns: string
+                           },
+"add_project_member":
+{ Args: { "p_email": string,"p_project_id": string,"p_role": Database["public"]['Enums']["project_role"] }; Returns: string
+                           },
+"assign_snag":
 { Args: { "p_assignee_id": string,"p_snag_id": string }; Returns: Json
                            },
 "can":
 { Args: { "pid": string,"pname": string }; Returns: boolean
+                           },
+"cancel_project_invite":
+{ Args: { "p_id": string }; Returns: undefined
+                           },
+"get_my_project_invite":
+{ Args: { "p_token": string }; Returns: {
+              "accepted": boolean,"email": string,"project_id": string,"project_name": string,"role": Database["public"]['Enums']["project_role"]
+            }[]
                            },
 "is_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
@@ -405,8 +419,16 @@ isOneToOne: false
 "notify_managers":
 { Args: { "p_payload": Json,"p_project_id": string,"p_snag_id": string,"p_type": string }; Returns: undefined
                            },
+"prepare_project_invite":
+{ Args: { "p_email": string,"p_id": string,"p_project_id": string,"p_role": Database["public"]['Enums']["project_role"] }; Returns: {
+              "id": string,"token": string
+            }[]
+                           },
 "project_role":
 { Args: { "pid": string }; Returns: Database["public"]['Enums']["project_role"]
+                           },
+"set_project_member":
+{ Args: { "p_project_id": string,"p_role": Database["public"]['Enums']["project_role"],"p_user_id": string }; Returns: undefined
                            },
 "shares_project_with_me":
 { Args: { "target": string }; Returns: boolean
