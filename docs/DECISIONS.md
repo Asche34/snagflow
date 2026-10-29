@@ -159,3 +159,13 @@ Every non-obvious choice made while building SnagFlow. Format: **Decision** — 
 - Supabase Auth reads the clock while initializing sessions. An observed Next.js prerender browser error disappeared after `connection()` before server client initialization; a regression checks the browser console.
 - A separate loopback-only HTTP fixture transport drives actual Next screens when Docker/Supabase is unavailable. It is never wired into production code; existing auth/API tests remain distinct. Fixture UI checks are not evidence of server authorization.
 - Text enlargement reproduced a 511px layout at a 375px viewport. Wrapping action labels, explicit grid min-widths, bounded skeletons and an accessible compact sign-out control eliminate overflow; focused-control clearance is covered.
+
+## 2026-10-29 — Web snag capture and evidence
+
+- Extend Fieldwork with full create/edit pages rather than a cramped modal. Use existing shared Zod contracts and user-authenticated Server Actions; query edit targets directly by ID so they do not depend on the workspace's 1,000-row list limit.
+- Keep a stable client UUID across uncertain create responses. Reconcile a committed create through the authorized update path on retry, preserving revised details and a manager's revised assignment. Assignment remains an RPC operation, never a direct protected-column update.
+- Resize JPEG/PNG/WebP in the browser to 1600px longest edge at JPEG quality .8, with a 400px thumbnail. Preserve browser-decoded orientation and aspect ratio; use file modification time as the timestamp rather than claiming EXIF extraction.
+- Upload directly to private Storage with the user's session. Derive original/thumbnail paths from stable UUIDs and the server-read snag project; validate object existence/type before registering metadata. Deterministic identities permit retry after object or metadata responses are lost without duplicate rows. Keep interrupted objects for manual retry; abandoned-object cleanup remains future work.
+- Enforce the existing-plus-pending eight-photo limit in the picker and retain the authoritative concurrent DB limit. Keep per-photo preparation/upload/save states; these are stages, not invented byte percentages.
+- Keep client-only capture inputs disabled until hydration. Retain typed details after validation/network failures and focus the mounted error summary; use route-specific form IDs because Next.js can retain prior pages hidden in the DOM.
+- Native execution on a feature branch reuses the installed workspace. One independent final review identified retry data loss and capped edit lookup; both received real-browser regression coverage. No package dependency or database migration was added.

@@ -27,19 +27,41 @@
     "MOD-CI": ".github/workflows"
   },
   "testing": {
-    "shared": { "cmd": "pnpm --filter @snagflow/shared test", "dir": "packages/shared/tests" },
-    "database": { "cmd": "pnpm --filter @snagflow/db-tests test", "dir": "supabase/tests", "requires": "running Supabase stack + SUPABASE_* env" },
-    "gate": "pnpm turbo run build lint typecheck test"
+    "shared": {
+      "cmd": "pnpm --filter @snagflow/shared test",
+      "dir": "packages/shared/tests"
+    },
+    "database": {
+      "cmd": "pnpm --filter @snagflow/db-tests test",
+      "dir": "supabase/tests",
+      "requires": "running Supabase stack + SUPABASE_* env"
+    },
+    "gate": "pnpm turbo run build lint typecheck test",
+    "e2e": {
+      "cmd": "pnpm --filter @snagflow/e2e test",
+      "dir": "e2e/tests",
+      "requires": "real local Supabase + running web app + Chrome/Chromium"
+    }
   },
   "documentation": {
-    "essential": ["AGENTS.md", "docs/AI/PROJECT-STATE.md", "docs/AI/FEATURE-INDEX.md", "docs/AI/BUSINESS-RULES.md"],
-    "on_demand": ["docs/AI/DATABASE-INDEX.md", "docs/AI/SECURITY.md", "docs/AI/TESTING.md", "SNAGFLOW_BUILD_PROMPT.md"],
+    "essential": [
+      "AGENTS.md",
+      "docs/AI/PROJECT-STATE.md",
+      "docs/AI/FEATURE-INDEX.md",
+      "docs/AI/BUSINESS-RULES.md"
+    ],
+    "on_demand": [
+      "docs/AI/DATABASE-INDEX.md",
+      "docs/AI/SECURITY.md",
+      "docs/AI/TESTING.md",
+      "SNAGFLOW_BUILD_PROMPT.md"
+    ],
     "decisions": "docs/DECISIONS.md"
   },
   "current_state": {
     "phase": "2 (web core) next - phases 0-1 complete",
-    "last_work": "Fieldwork web UI redesign, accessible mobile navigation, isolated UI browser checks; authorization hardening in migration 11 (hosted application pending)",
-    "next_recommended": "Phase 2 per SNAGFLOW_BUILD_PROMPT.md s15",
+    "last_work": "Web snag create/edit, manager assignment, private issue/fix photo queue and gallery; real capture and retry browser coverage",
+    "next_recommended": "Phase 2: richer filters/search and project/team management with invitations",
     "blockers": []
   },
   "important_files": [

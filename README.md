@@ -4,7 +4,7 @@ SnagFlow is a collaborative snag, punch-list, and defect tracker for constructio
 
 Work is organized by project, location, category, priority, and due date. The intended field workflow connects issue evidence, assigned corrective work, review, and an auditable history across a web workspace and a future mobile app.
 
-**Current status:** version 0.1.0, under active development. The web workspace and database foundation are implemented; the full field-capture workflow is still being built. The Expo mobile app is a scaffold.
+**Current status:** version 0.1.0, under active development. The web workspace supports snag capture, editing, photos, assignment, and review; project/team management and live updates are still being built. The Expo mobile app is a scaffold.
 
 ## How it works
 
@@ -30,14 +30,15 @@ Permissions are enforced in PostgreSQL through row-level security, triggers, and
 - Email/password sign-in, session refresh, protected pages, and sign-out.
 - Role-aware dashboard with status counts, review queue, assigned work, overdue items, and project progress.
 - Project pages with snag lists, status filtering, location trees, and team rosters.
-- Snag detail pages with metadata, comments, activity history, and permitted workflow transitions.
+- Snag creation and creator/manager editing, with project-local details and “Save & add another.”
+- Manager assignment/reassignment and snag detail pages with comments, activity history, and permitted workflow transitions.
+- Private issue/fix photo uploads, image resizing, thumbnails, per-photo status, and retry without duplicate snags or photo records.
 - The Fieldwork visual system: forest navigation, orange actions, responsive layouts, mobile project navigation, keyboard focus handling, and readable status indicators.
 - Database support for snag creation, assignment, workflow validation, private file storage, audit events, and notification records.
 - Seeded demo data, automated authorization/workflow tests, and browser regression coverage.
 
 ### Still to build
 
-- Web snag create/edit forms, photo upload, and assignment controls.
 - Project/team management, invitations, and richer filtering.
 - Live updates and the notifications interface.
 - Photo markup, PDF/Excel reports, and revision handling.
@@ -166,7 +167,7 @@ pnpm --filter @snagflow/e2e test
 
 The browser suites use installed Google Chrome by default. For Playwright-managed Chromium, install it with `pnpm --filter @snagflow/e2e exec playwright install chromium` and set `E2E_CHANNEL=bundled`.
 
-Verification recorded on **2026-10-29**: 28 shared unit tests, 29 real Supabase API/RLS/workflow tests, 25 SQL authorization checks, six real-auth browser tests, and eight separate UI fixture tests passed. Eight additional ad hoc real Storage API smoke checks passed. The web production build and relevant lint/type checks passed. This is targeted verification, not a claim that all planned features or the full mobile/monorepo gate are complete.
+Verification recorded on **2026-10-29**: 37 shared unit tests, 29 real Supabase API/RLS/workflow tests, 25 SQL authorization checks, 22 real browser checks (six auth and 16 capture/workflow), and eight separate UI fixture tests passed. Eight additional ad hoc real Storage API smoke checks passed. The web production build and relevant lint/type checks passed. This is targeted verification, not a claim that all planned features or the full mobile/monorepo gate are complete.
 
 See [testing instructions](docs/AI/TESTING.md) for SQL checks and the separate UI fixture suite, and [the security review](docs/AI/REVIEW-2026-10-29.md) for authorization findings and fixes.
 

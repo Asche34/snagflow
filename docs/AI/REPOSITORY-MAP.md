@@ -52,3 +52,13 @@ Latest implementation review: `docs/AI/REVIEW-2026-10-29.md`.
 Fieldwork UI: `docs/AI/FIELDWORK-UI-2026-10-29.md`; UI-only tests:
 `e2e/playwright.ui.config.ts`, `e2e/tests/fieldwork.spec.ts`,
 `e2e/fixtures/fieldwork-api.mjs`. Default Playwright config retains real Supabase auth tests.
+
+Web capture additions: `apps/web/src/components/snag-form.tsx`,
+`snag-form-page.tsx`, `snag-assignment.tsx`, `photo-picker.tsx`,
+`snag-photo-upload.tsx`, `snag-photos.tsx`; mutations in
+`apps/web/src/app/(app)/snags/actions.ts` and `photo-actions.ts`;
+image preparation in `apps/web/src/lib/photos.ts`, user Storage client in
+`apps/web/src/lib/supabase/browser.ts`, and client readiness in `use-hydrated.ts`.
+Create route: `/projects/[projectId]/snags/new`; edit route: `/snags/[snagId]/edit`.
+Real-browser capture coverage is in `e2e/tests/snags.spec.ts`; shared photo metadata
+validation is in `packages/shared/tests/photos.test.ts`.

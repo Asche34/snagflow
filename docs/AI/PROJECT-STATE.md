@@ -7,7 +7,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261029000011_authorization_hardening.sql` (applied and verified locally; hosted application pending) |
 | Phase (spec §15)     | **2 — web core in progress.** Phases 0–1 complete. |
-| Last delivered       | Phase 2 slice + E2E suite: Supabase auth (login/session/sign-out), role-aware dashboard, project page (snags/locations/team), snag detail with role-gated transitions, Docker image + compose wiring, and a **Playwright E2E suite (6 tests, real browser)** covering the auth golden path |
+| Last delivered | Web snag create/edit, Save & add another, manager assignment, private issue/fix photos with resize/thumbnail/retry and real capture/workflow browser coverage |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -17,22 +17,24 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Workflow RPCs `assign_snag` / `transition_snag` / `soft_delete_snag` w/ activity + notifications (Phase 1)
 - Storage buckets + path-membership policies (Phase 1)
 - Seed: 5 role users × 2 projects × 15 snags (Phase 1)
-- Unit tests (shared: 28) + DB test suite (29, verified against local Supabase) (Phase 1)
+- Unit tests (shared: 37) + DB test suite (29, verified against local Supabase) (Phase 1)
 - Web auth: sign-in, session refresh (Next 16 proxy), sign-out, protected routes (Phase 2)
 - Web dashboard: role-aware stats, review queue, my snags, overdue, project progress (Phase 2)
 - Web project page: snags (status filter), locations tree, team roster (Phase 2)
-- Web snag detail: meta, description, comments, activity trail, role-gated status transitions (Phase 2)
+- Web snag detail: metadata, comments, workflow activity, role-gated status transitions, manager assignment and real private issue/fix photos (Phase 2)
+- Web capture: project-scoped create/edit forms, Save & add another, stable retry identity, validated active access and 1,000-row-independent edit lookup (Phase 2)
+- Photo capture: eight-photo picker, 1600px JPEG/400px thumbnails, per-photo stages, interrupted-upload/committed-response retry and short-lived signed gallery (Phase 2)
 - Docker: `apps/web/Dockerfile` (standalone bundle) + `docker-compose.yml` against the local Supabase stack (Phase 2)
 - DB: colleagues' profiles are readable inside shared projects (migration 10) — needed for names in every list
 - **E2E: `e2e/` workspace package** — Playwright driven against a **real Chrome**, 6 tests: anonymous redirect, manager sign-in, session cookie, wrong password, sign-out, viewer RLS scoping (Phase 2)
 
 ## Features in progress
 
-- Phase 2 remainder: snag create/edit forms, photo upload, list filters, assignment UI, project CRUD, team management, invite flow
+- Phase 2 remainder: richer list filters/search, project CRUD, team management, invite flow, and web soft-delete controls
 
 ## Features remaining (order per spec §15)
 
-- Phase 2 remainder: snag CRUD + photos, comments UI polish, filters, team management (Next.js)
+- Phase 2 remainder: soft-delete UI, comments UI polish, richer filters/search, project/team management and invitations (Next.js)
 - Phase 3: workflow UI gating, review queue, reject/reopen UX, notifications bell, Realtime
 - Phase 4: image markup (react-konva) + PDF/Excel reports (@react-pdf/renderer, exceljs) + revisions
 - Phase 5: mobile app on hosted Supabase (auth, camera flow, review flow)
@@ -46,6 +48,16 @@ README refreshed on 2026-10-29 with the construction defect-tracking purpose,
 implemented versus planned capabilities, verified stack, working local web/DB
 configuration, demo roles, and separate test-suite requirements. Removed missing
 environment-template references and misleading mobile/deployment completion claims.
+
+### Web capture verification — 2026-10-29
+
+- Production build passed against real local Supabase. All 22 real browser checks passed (six auth and 16 capture/workflow cases), including creator editing, manager assignment, issue/fix uploads, image dimensions, partial failure, lost committed responses, revoked access and direct edit beyond the 1,000-row workspace cap.
+- The production input-hydration race was reproduced with delayed JavaScript, then fixed and verified. Typed details survive validation/network errors; error focus and route-specific form labels are covered.
+- Shared: 37 tests passed; real database API suite: 29 passed; transactional SQL authorization suite: 25 passed. No new migration or dependency was required.
+- Independent review identified lost-response edit loss and capped edit lookup. Both were reproduced with failing real-browser tests and fixed; manager retry also reconciles revised assignment through the existing RPC.
+- Existing Fieldwork fixture browser suite: all eight passed. Detailed capture report: `docs/AI/SNAG-CAPTURE-2026-10-29.md`.
+- Capture forms were checked at 375px and enlarged text. Upload progress describes stages rather than byte percentages. Photo timestamps use file modification time; this is not EXIF timestamp extraction.
+- Limits: abandoned private upload cleanup remains future work; a thumbnail transport failure after successful signing currently relies on browser refresh. Non-workflow create/edit/photo audit events still need implementation. Mobile/offline, markup, rich filters and project/team management remain separate work.
 
 ### Real backend verification — 2026-10-29
 
@@ -103,5 +115,4 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Next step recommended
 
-Continue Phase 2: snag create/edit forms with photo upload, list filters, assignment UI and
-project/team management. See FEATURE-INDEX.md "planned" section.
+Continue Phase 2: richer list filters/search and project/team management with invitations. See FEATURE-INDEX.md "planned" section.

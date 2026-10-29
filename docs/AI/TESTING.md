@@ -4,10 +4,10 @@ Quality gate: `pnpm turbo run build lint typecheck test` (all packages, cached).
 
 | Suite | Command | Directory | Needs | What it proves |
 | ----- | ------- | --------- | ----- | -------------- |
-| Shared units | `pnpm --filter @snagflow/shared test` | `packages/shared/tests` | node | permission matrix, transition map behavior (28 tests) |
+| Shared units | `pnpm --filter @snagflow/shared test` | `packages/shared/tests` | node | permission matrix, transition map behavior (37 tests) |
 | DB suites | `pnpm --filter @snagflow/db-tests test` | `supabase/tests` (rls_isolation, rls_write, workflow, integrity) | running stack + env | RLS rules, workflow RPCs, constraints (29 tests) |
 | Type gen | `pnpm db:gen-types` | → `packages/shared/src/db-types.ts` | running stack | types match schema |
-| Auth E2E | `pnpm --filter @snagflow/e2e test` | `e2e/tests/auth.spec.ts` | real Supabase + running web app + Chrome/Chromium | 6 auth/visibility checks |
+| Web E2E | `pnpm --filter @snagflow/e2e test` | `e2e/tests/auth.spec.ts`, `e2e/tests/snags.spec.ts` | real Supabase + running web app + Chrome/Chromium | auth/visibility plus real capture, edit, assignment, private image, workflow, retry, permission and hydration checks |
 | UI-only browser checks | `pnpm --filter @snagflow/e2e test:ui` | `e2e/tests/fieldwork.spec.ts` | locked web deps + Chrome (or `E2E_CHANNEL=bundled`) | actual app presentation/navigation using loopback fixture responses; not server authorization |
 
 ## Running DB tests locally
@@ -58,3 +58,19 @@ unrestricted shell on this workstation. No hosted credentials are involved.
 | numbering / photo cap / idempotency | `supabase/tests/integrity.test.ts` |
 | web | production build/typecheck plus separate real-auth and UI-only Playwright suites |
 | mobile | typecheck (Expo scaffold; later phase) |
+
+## Capture browser fixtures
+
+`e2e/tests/snags.spec.ts` uses the real app and backend. Fixture setup reads local
+`supabase/tests/test.env` (or the CI-generated root `supabase.env`) and creates its
+own project with seeded role users. Cleanup removes its Storage objects and
+cascades its relational fixtures; service credentials are confined to the test
+process. Browser mutations use the signed-in user's cookies and RLS.
+
+The suite exercises private image bytes/dimensions, upload and committed-response
+failures, membership loss, foreign-project references, delayed-JavaScript input
+readiness, and an edit target beyond 1,000 visible snags. Its large-list fixture
+is isolated and deleted at the end. Do not run two Playwright commands using the
+same output directory concurrently. Run the real web suite before the separate
+UI fixture suite. Stop a running standalone server before rebuilding on Windows
+if it holds the standalone output directory open.

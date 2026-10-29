@@ -68,9 +68,13 @@ Project page with Snags / Locations / Team tabs plus a status filter. Impl: `app
 Remaining: project create/edit, settings, activity & reports tabs, member management.
 
 ### FEAT-WEB-SNAG-UI (partial, web)
-Snag detail: meta grid, description, photo placeholder, comment thread, activity trail and role-gated status transitions through the `transition_snag` RPC.
+Snag detail: metadata, description, real signed issue/fix photos, comment thread, activity trail, manager assignment and role-gated status transitions.
 Impl: `apps/web/src/components/snag-view.tsx`, `apps/web/src/components/snag-actions.tsx`, `apps/web/src/app/(app)/snags/[snagId]/*`
-Remaining: create/edit forms, photo upload + markup, list filters, assignment UI.
+Create/edit: project-scoped full-page forms with shared validation, retry identity and Save & add another.
+Photos: client JPEG resizing/thumbnails, private uploads, retry queue and authenticated metadata registration.
+Impl: `apps/web/src/components/snag-form.tsx`, `snag-form-page.tsx`, `photo-picker.tsx`, `snag-photo-upload.tsx`, `snag-photos.tsx`; `apps/web/src/lib/photos.ts`; `apps/web/src/app/(app)/snags/actions.ts`, `photo-actions.ts`.
+Tests: `e2e/tests/snags.spec.ts`, `packages/shared/tests/photos.test.ts`.
+Remaining: soft-delete UI, photo markup and richer list filters/search.
 
 ### FEAT-DOCKER-LOCAL (done)
 Container image for the web app (multi-stage, `output: 'standalone'`) plus compose wiring to the local Supabase stack.
@@ -78,7 +82,7 @@ Impl: `apps/web/Dockerfile`, `docker-compose.yml`, `.dockerignore`
 
 ## PLANNED (spec §15 — do not build before prior phases)
 
-- FEAT-WEB-SNAG-CREATE / FEAT-WEB-PHOTOS / FEAT-WEB-TEAM-MGMT / FEAT-WEB-INVITES — Phase 2 remainder (`apps/web`)
+- FEAT-WEB-TEAM-MGMT / FEAT-WEB-INVITES / richer filters / soft-delete UI — Phase 2 remainder (`apps/web`)
 - FEAT-WORKFLOW-UI / FEAT-REALTIME / FEAT-NOTIF-UI — Phase 3
 - FEAT-MARKUP / FEAT-REPORTS — Phase 4
 - FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7
