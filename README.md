@@ -1,136 +1,181 @@
 # SnagFlow
 
-Collaborative snagging / punch-list / defect tracking for construction and engineering
-teams. Web app + mobile app on one Supabase backend.
+SnagFlow is a collaborative snag, punch-list, and defect tracker for construction and engineering teams. It gives site teams, contractors, and project managers a shared record of what needs fixing, who is responsible, and what has been reviewed and closed.
 
-**Status:** Phases 0–1 complete (scaffold + database/auth/security). Phase 2 in progress: web auth,
-dashboard, project page, snag detail. Start every task from
-`AGENTS.md` (AI agents) and `docs/AI/PROJECT-STATE.md`; full functional spec in
-`SNAGFLOW_BUILD_PROMPT.md`; decisions in `docs/DECISIONS.md`.
+Work is organized by project, location, category, priority, and due date. The intended field workflow connects issue evidence, assigned corrective work, review, and an auditable history across a web workspace and a future mobile app.
 
-## Repository layout
+**Current status:** version 0.1.0, under active development. The web workspace and database foundation are implemented; the full field-capture workflow is still being built. The Expo mobile app is a scaffold.
 
-```
-snagflow/
-  apps/web/            Next.js app (App Router, TypeScript, Tailwind v4)
-  apps/mobile/         Expo app (Expo Router, TypeScript)
-  packages/shared/     Types, zod schemas, permission matrix, status workflow map
-  supabase/            config.toml, migrations/, seed.sql, tests/
-  docs/DECISIONS.md    Every non-obvious decision, with reasons
-  docs/AI/             AI-oriented indexes: PROJECT-STATE, FEATURE-INDEX, BUSINESS-RULES, …
-  AGENTS.md            Mandatory entry point for AI agents (reading order + rules)
-  .github/workflows/   CI: lint, typecheck, tests, migrations, build
+## How it works
+
+The snag lifecycle is:
+
+```text
+Open → In progress → Ready for review → Closed
 ```
 
-> **AI agents:** read `AGENTS.md` first. Never audit the whole repo when the
-> indexes (`docs/AI/MODULE-INDEX.md`, `docs/AI/FEATURE-INDEX.md`) identify the files.
+Assignment is separate from status. Managers can reject work back to the assignee or reopen a closed snag, with a required comment. Project settings can require a fix photo before review.
 
-## Prerequisites
+| Role    | Responsibility                                                        |
+| ------- | --------------------------------------------------------------------- |
+| Admin   | Organization-wide access and administration                           |
+| Manager | Manage work and review submissions within their projects              |
+| Member  | Create snags, edit their own snag details, and work on assigned snags |
+| Viewer  | Read the projects and records they are allowed to see                 |
 
-- Node.js >= 20 (developed on 24)
-- pnpm 9 (`corepack enable` first if missing)
-- Supabase CLI (`npm install -g supabase` or `winget install supabase.cli`)
-- Docker Desktop — required by `supabase start` (local Postgres/Auth/Storage/Realtime)
+Permissions are enforced in PostgreSQL through row-level security, triggers, and workflow functions. Hiding a UI action is not the authorization boundary.
 
-> **Windows note:** fresh PowerShell shells may need Docker's bin dir on PATH before
-> `supabase` CLI commands: `$env:Path = "C:\Program Files\Docker\Docker\resources\bin;" + $env:Path`.
-> Use `.cmd` shims (`pnpm.cmd`, `supabase.cmd`) if `.ps1` execution policy blocks shims.
+## Available today
 
-## Getting started
+- Email/password sign-in, session refresh, protected pages, and sign-out.
+- Role-aware dashboard with status counts, review queue, assigned work, overdue items, and project progress.
+- Project pages with snag lists, status filtering, location trees, and team rosters.
+- Snag detail pages with metadata, comments, activity history, and permitted workflow transitions.
+- The Fieldwork visual system: forest navigation, orange actions, responsive layouts, mobile project navigation, keyboard focus handling, and readable status indicators.
+- Database support for snag creation, assignment, workflow validation, private file storage, audit events, and notification records.
+- Seeded demo data, automated authorization/workflow tests, and browser regression coverage.
 
-```powershell
-corepack enable
+### Still to build
+
+- Web snag create/edit forms, photo upload, and assignment controls.
+- Project/team management, invitations, and richer filtering.
+- Live updates and the notifications interface.
+- Photo markup, PDF/Excel reports, and revision handling.
+- Mobile field capture, offline synchronization, and push notifications.
+
+Database support for an operation does not mean its web or mobile interface is complete. See [project state](docs/AI/PROJECT-STATE.md) for delivery details and [the build specification](SNAGFLOW_BUILD_PROMPT.md) for the intended scope.
+
+## Stack and repository
+
+| Area             | Technology / location                                                              |
+| ---------------- | ---------------------------------------------------------------------------------- |
+| Web              | Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Radix UI — `apps/web` |
+| Mobile scaffold  | Expo SDK 58, Expo Router, React Native — `apps/mobile`                             |
+| Shared contracts | Types, Zod schemas, permissions, and workflow rules — `packages/shared`            |
+| Backend          | Supabase PostgreSQL 17, Auth, Storage, and Realtime — `supabase`                   |
+| Tests            | Vitest and SQL authorization checks; Playwright in `e2e`                           |
+| Tooling          | pnpm workspaces, Turborepo, GitHub Actions                                         |
+
+Schema changes live in `supabase/migrations`. Client contracts live in `packages/shared`; database authorization remains authoritative.
+
+## Run locally
+
+### Prerequisites
+
+- Node.js 24 is the verified development version.
+- pnpm 9.15.9, as declared in `package.json`.
+- Docker Desktop or a compatible running Docker engine.
+- A working `supabase` CLI command. Local integration checks used CLI 2.122.0; follow the [official installation instructions](https://supabase.com/docs/guides/local-development/cli/getting-started).
+
+The commands below assume the CLI is available on PATH. With a project-scoped CLI installation, use its package runner instead. On Windows, use `pnpm.cmd` when PowerShell blocks the `.ps1` shim.
+
+### 1. Install and start the backend
+
+```sh
+git clone https://github.com/Asche34/snagflow.git
+cd snagflow
 pnpm install
-
-# Web
-pnpm --filter web dev          # http://localhost:3000
-
-# Mobile (needs a physical device or emulator)
-pnpm --filter mobile start
-
-# Database (after installing Docker Desktop)
-supabase start                 # API on 54321, Studio on 54323
-pnpm db:reset                  # apply migrations + seed demo data
-pnpm db:gen-types              # regenerate packages/shared/src/db-types.ts
+supabase start
+supabase status -o env
 ```
 
-Copy env examples before running:
+The first start downloads service images and initializes the local database from the migrations and seed. The repository already contains Supabase configuration; no `supabase init` is needed.
 
-- `apps/web/.env.example` → `apps/web/.env.local`
-- `apps/mobile/.env.example` → `apps/mobile/.env.local`
+For an existing local database, apply newer migrations with `supabase migration up --local`. To recreate a disposable demo database, `supabase db reset --local` reapplies migrations and seed, replacing its local data.
 
-## Run the whole stack in Docker (Windows + Docker Desktop on WSL2)
+### 2. Configure the web app
 
-The Supabase stack runs in Docker via the CLI; the web app runs as a container next to it.
-Both are reachable from the browser on the host.
+Create `apps/web/.env.local` with the local API URL and `ANON_KEY` from `supabase status -o env`:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
+NEXT_PUBLIC_SUPABASE_ANON_KEY=replace-with-local-anon-key
+NEXT_PUBLIC_APP_URL=http://localhost:3003
+NEXT_PUBLIC_DEMO_ACCOUNTS=1
+```
+
+The demo flag displays the seeded accounts on the login page. Use it for local development. Service-role credentials belong only in trusted server/test environments, never in `NEXT_PUBLIC_*` variables. Local environment files are gitignored.
+
+### 3. Start the web app
+
+```sh
+pnpm --filter web dev --port 3003
+```
+
+Open [SnagFlow on port 3003](http://localhost:3003). This README uses port 3003 consistently; Next.js otherwise defaults to 3000.
+
+| Local service                 | Address                                                   |
+| ----------------------------- | --------------------------------------------------------- |
+| Web app                       | http://localhost:3003                                     |
+| Supabase API/Auth/Storage     | http://127.0.0.1:54321                                    |
+| PostgreSQL                    | `postgresql://postgres:postgres@127.0.0.1:54322/postgres` |
+| Supabase Studio, when started | http://127.0.0.1:54323                                    |
+
+Stop the web process with Ctrl+C and the backend with `supabase stop`.
+
+### Demo accounts
+
+The seed creates two projects, locations, categories, and 15 snags. All five local accounts use **`Password123!`**:
+
+| Email                   | Role    |
+| ----------------------- | ------- |
+| `admin@snagflow.test`   | Admin   |
+| `manager@snagflow.test` | Manager |
+| `member1@snagflow.test` | Member  |
+| `member2@snagflow.test` | Member  |
+| `viewer@snagflow.test`  | Viewer  |
+
+These credentials are for the local seeded demo.
+
+### Optional: containerized web app
+
+Start Supabase first, copy `.env.example` to `.env` at the repository root, and fill in the local anon key. Then run:
+
+```sh
+docker compose up --build
+```
+
+With the supplied `.env.example` values, the web app is on port 3003. `WEB_PORT` controls the host port. The container reaches Supabase through `host.docker.internal`; the browser uses `127.0.0.1`. Stop the web container with `docker compose down`.
+
+## Verification
+
+Run checks from the repository root:
+
+```sh
+pnpm --filter web lint
+pnpm --filter web typecheck
+pnpm --filter web build
+pnpm --filter @snagflow/shared test
+pnpm --filter @snagflow/db-tests test
+```
+
+Database tests require a running local stack and the following values in the ignored `supabase/tests/test.env` file:
+
+```dotenv
+SUPABASE_URL=http://127.0.0.1:54321
+SUPABASE_ANON_KEY=replace-with-local-anon-key
+SUPABASE_SERVICE_ROLE_KEY=replace-with-local-service-role-key
+```
+
+Run real-auth browser tests against the running app. In PowerShell:
 
 ```powershell
-supabase.cmd start            # Postgres/Auth/Storage/Realtime/Studio in Docker
-supabase.cmd db reset         # apply migrations + seed demo data
-
-copy .env.example .env        # once; fill NEXT_PUBLIC_SUPABASE_ANON_KEY from `supabase status`
-docker compose up --build     # web app image -> http://localhost:3003
+$env:E2E_BASE_URL = 'http://localhost:3003'
+pnpm --filter @snagflow/e2e test
 ```
 
-| URL                            | What                                        |
-| ------------------------------ | ------------------------------------------- |
-| http://localhost:3003          | SnagFlow web app (container)                |
-| http://127.0.0.1:54323         | Supabase Studio (data browser)              |
-| http://127.0.0.1:54321         | Supabase API / auth (Kong)                  |
+The browser suites use installed Google Chrome by default. For Playwright-managed Chromium, install it with `pnpm --filter @snagflow/e2e exec playwright install chromium` and set `E2E_CHANNEL=bundled`.
 
-The container's host port is `WEB_PORT` in `.env` (default `3003`, chosen because another dev
-app may already hold `3000`). Browser tests must be told about it:
-`E2E_BASE_URL=http://localhost:3003 pnpm --filter @snagflow/e2e test`.
+Verification recorded on **2026-10-29**: 28 shared unit tests, 29 real Supabase API/RLS/workflow tests, 25 SQL authorization checks, six real-auth browser tests, and eight separate UI fixture tests passed. Eight additional ad hoc real Storage API smoke checks passed. The web production build and relevant lint/type checks passed. This is targeted verification, not a claim that all planned features or the full mobile/monorepo gate are complete.
 
-Sign in with any seeded account (password `Password123!`) — the login screen lists them when
-`NEXT_PUBLIC_DEMO_ACCOUNTS=1`. Configuration lives in the repo-root `.env` (build args for the
-image, runtime URL for the container).
+See [testing instructions](docs/AI/TESTING.md) for SQL checks and the separate UI fixture suite, and [the security review](docs/AI/REVIEW-2026-10-29.md) for authorization findings and fixes.
 
-Stop and clean up:
+## Contributing and project documentation
 
-```powershell
-docker compose down             # stop the web container
-supabase.cmd stop               # stop the Supabase stack
-```
+- [Project state](docs/AI/PROJECT-STATE.md): implemented work, remaining scope, and verification evidence.
+- [Build specification](SNAGFLOW_BUILD_PROMPT.md): intended product requirements.
+- [Design and implementation decisions](docs/DECISIONS.md).
+- [Fieldwork UI report](docs/AI/FIELDWORK-UI-2026-10-29.md).
+- [Agent instructions](AGENTS.md): start here when working on the repository with an AI coding agent.
 
-> The container talks to Supabase through `host.docker.internal`, so the local stack must be
-> running. If Docker Desktop is not on the WSL2 backend, switch it in
-> Settings → General → "Use the WSL 2 based engine".
-
-## Local Supabase credentials
-
-When `supabase start` runs, it prints the URLs and keys (anon + service role).
-`supabase status` shows them again. Use those values in the `.env.local` files.
-
-## Demo data
-
-`supabase/seed.sql` creates a demo org with five users (admin, manager, two members,
-viewer), two projects with locations, categories and 15 snags in varied states.
-Log in locally with any of the five emails from the seed header (e.g. `admin@snagflow.test`)
-and the password `Password123!`. Local/demo credentials only.
-
-## Typecheck / lint / tests
-
-```powershell
-pnpm turbo run lint typecheck test        # everything; DB suite needs the stack + supabase/tests/test.env
-pnpm --filter @snagflow/shared test       # unit tests only
-pnpm --filter @snagflow/db-tests test     # DB/RLS/workflow tests (run `supabase db reset` first; suites share state)
-```
-
-## Deployment
-
-- **Web:** Vercel. Set env vars from `apps/web/.env.example` (service-role key server-side
-  only). Also supports self-hosting via `output: 'standalone'` — see `apps/web/Dockerfile`
-  and `docker-compose.yml`.
-- **Mobile:** EAS Build profiles (`development`, `preview`, `production`); OTA updates via
-  EAS Update. See Phase 7 docs.
-- **Supabase:** hosted project; apply schema only with `supabase db push` via migrations.
-  Disable public signup in Auth settings for production (the local `config.toml` already
-  disables it).
-
-## Conventions
-
-- TypeScript strict everywhere; `any` requires a justification comment.
-- Authorization is enforced in Postgres (RLS, triggers, RPCs) — the UI only gates actions.
-- The permission matrix and status workflow live in `packages/shared`; the database is
-  the source of truth and mirrors them.
+The web app emits a standalone build and includes a Dockerfile for self-hosting. Hosted Supabase configuration, production rollout, and mobile distribution remain separate deployment work; the local verification above did not deploy a release.

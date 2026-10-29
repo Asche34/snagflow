@@ -42,6 +42,11 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 
 ## Tests current
 
+README refreshed on 2026-10-29 with the construction defect-tracking purpose,
+implemented versus planned capabilities, verified stack, working local web/DB
+configuration, demo roles, and separate test-suite requirements. Removed missing
+environment-template references and misleading mobile/deployment completion claims.
+
 ### Real backend verification — 2026-10-29
 
 - Fresh local Supabase stack started with CLI 2.122.0 and PostgreSQL 17; all 11 migrations and demo seed applied successfully. No hosted database was changed.
