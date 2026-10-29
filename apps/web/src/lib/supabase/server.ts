@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 import type { Database } from "@snagflow/shared";
 import { getSupabaseAnonKey, getSupabaseServerUrl } from "@/lib/env";
 import { AUTH_COOKIE_NAME } from "./cookie-name";
@@ -13,6 +14,9 @@ import { AUTH_COOKIE_NAME } from "./cookie-name";
  * server-side jobs (report generation).
  */
 export async function createClient() {
+  // Auth initialization reads the clock. Keep it behind an actual request,
+  // including during Next's speculative shell rendering/partial prefetching.
+  await connection();
   const cookieStore = await cookies();
 
   return createServerClient<Database>(getSupabaseServerUrl(), getSupabaseAnonKey(), {

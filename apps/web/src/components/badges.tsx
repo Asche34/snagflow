@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 
 export function StatusBadge({ status, className }: { status: SnagStatus; className?: string }) {
   return (
-    <Badge variant="outline" className={cn("ring-1 ring-inset", STATUS_CLASSES[status], className)}>
+    <Badge variant="outline" className={cn("border-transparent", STATUS_CLASSES[status], className)}>
       {STATUS_LABELS[status]}
     </Badge>
   );
@@ -13,7 +13,7 @@ export function StatusBadge({ status, className }: { status: SnagStatus; classNa
 
 export function PriorityBadge({ priority, className }: { priority: SnagPriority; className?: string }) {
   return (
-    <Badge variant="outline" className={cn("ring-1 ring-inset", PRIORITY_CLASSES[priority], className)}>
+    <Badge variant="outline" className={cn("border-transparent", PRIORITY_CLASSES[priority], className)}>
       {PRIORITY_LABELS[priority]}
     </Badge>
   );

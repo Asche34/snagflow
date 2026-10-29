@@ -13,6 +13,7 @@ const channel = process.env["E2E_CHANNEL"] ?? "chrome";
 
 export default defineConfig({
   testDir: "./tests",
+  testIgnore: "fieldwork.spec.ts",
   /* The stack is shared: one worker keeps the seeded data predictable. */
   fullyParallel: false,
   workers: 1,

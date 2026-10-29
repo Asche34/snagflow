@@ -24,6 +24,7 @@ supabase/tests/test.env
 supabase.env
 
 # misc
+.superpowers/
 .DS_Store
 Thumbs.db
 *.log

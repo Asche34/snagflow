@@ -13,26 +13,26 @@ export async function AppTopbar() {
   const displayName = profile?.full_name ?? user.email ?? "Signed in";
 
   return (
-    <div className="flex h-14 items-center justify-between gap-4 px-6">
-      <p className="truncate text-sm text-muted-foreground">
+    <div className="flex min-h-[4.5rem] items-center justify-between gap-3 py-3 pl-16 pr-4 sm:pr-6 lg:px-8">
+      <p className="min-w-0 break-words text-xs text-muted-foreground sm:text-sm">
         <span className="font-medium text-foreground">{companyName}</span>
-        <span className="hidden sm:inline"> · Snagging workspace</span>
+        <span className="mt-0.5 hidden text-xs sm:block">Project workspace</span>
       </p>
 
-      <div className="flex items-center gap-3">
+      <div className="flex shrink-0 items-center gap-2 sm:gap-4">
         <div className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground">
+          <span className="hidden size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground sm:flex" aria-hidden>
             {initialsOf(displayName)}
           </span>
-          <div className="hidden leading-tight sm:block">
-            <p className="text-sm font-medium">{displayName}</p>
-            <p className="text-xs text-muted-foreground">{profile?.is_admin ? "Admin" : "Member"}</p>
+          <div className="hidden max-w-48 leading-tight md:block">
+            <p className="break-words text-sm font-medium">{displayName}</p>
+            <p className="text-xs text-muted-foreground">{profile?.is_admin ? "Admin" : "Project team"}</p>
           </div>
         </div>
         <form action={signOut}>
-          <Button type="submit" variant="ghost" size="sm" className={cn("gap-1.5")}>
+          <Button type="submit" variant="ghost" size="sm" aria-label="Sign out" className={cn("gap-1.5")}>
             <LogOut className="size-4" aria-hidden />
-            Sign out
+            <span className="hidden sm:inline">Sign out</span>
           </Button>
         </form>
       </div>

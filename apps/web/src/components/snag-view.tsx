@@ -40,12 +40,12 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
   const canComment = role === "member" || role === "manager" || isAdmin;
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-7">
       <div className="space-y-3">
         {project ? (
           <Link
             href={`/projects/${project.id}`}
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="inline-flex min-h-11 items-center break-words text-sm text-muted-foreground hover:text-primary"
           >
             ← {project.name}
           </Link>
@@ -53,23 +53,23 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
 
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="font-mono text-sm text-muted-foreground">#{snag.number}</span>
               <StatusBadge status={snag.status} />
               <PriorityBadge priority={snag.priority} />
             </div>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">{snag.title}</h1>
+            <h1 className="mt-3 break-words text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{snag.title}</h1>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-6 lg:col-span-2">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="min-w-0 space-y-6 lg:col-span-2">
           <Card className="gap-0 py-0">
             <CardHeader className="pb-3 pt-5">
               <CardTitle>Description</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               <p className="whitespace-pre-line text-sm text-foreground/90">
                 {snag.description?.trim() || "No description was added."}
               </p>
@@ -81,10 +81,10 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
               <CardTitle>Photos</CardTitle>
               <CardDescription>Issue and fix photos</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               {photos.length === 0 ? (
                 <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-                  No photos yet. Photo capture lands with the Phase 2 upload work.
+                  No photos have been added to this snag.
                 </p>
               ) : (
                 <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -106,7 +106,7 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
               <CardTitle>Comments</CardTitle>
               <CardDescription>{comments.length} in the thread</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 pb-6">
               {comments.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No comments yet.</p>
               ) : (
@@ -143,7 +143,7 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
               <CardTitle>Activity</CardTitle>
               <CardDescription>Audit trail</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               {activity.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
               ) : (
@@ -166,12 +166,12 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
           </Card>
         </div>
 
-        <div className="space-y-6">
+        <div className="min-w-0 space-y-6">
           <Card className="gap-0 py-0">
             <CardHeader className="pb-3 pt-5">
               <CardTitle>Details</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="space-y-3 pb-6 text-sm">
               <DetailRow label="Assignee" value={personName(people, snag.assignee_id)} />
               <DetailRow label="Created by" value={personName(people, snag.created_by)} />
               <DetailRow label="Due" value={due.label} tone={due.overdue ? "danger" : undefined} />
@@ -188,9 +188,9 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
           <Card className="gap-0 py-0">
             <CardHeader className="pb-3 pt-5">
               <CardTitle>Actions</CardTitle>
-              <CardDescription>Enforced by the database</CardDescription>
+              <CardDescription>Available actions for your role</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pb-6">
               <SnagActions snagId={snag.id} transitions={allowed} canComment={canComment} />
             </CardContent>
           </Card>
@@ -212,7 +212,7 @@ function DetailRow({
   return (
     <div className="flex items-baseline justify-between gap-3">
       <span className="text-muted-foreground">{label}</span>
-      <span className={cn("text-right font-medium", tone === "danger" && "text-destructive")}>
+      <span className={cn("min-w-0 break-words text-right font-medium", tone === "danger" && "text-destructive")}>
         {value}
       </span>
     </div>

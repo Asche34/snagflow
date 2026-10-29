@@ -18,7 +18,7 @@ export function SnagList({ snags, people, projects, emptyLabel = "Nothing here y
   }
 
   return (
-    <ul className="divide-y">
+    <ul className="divide-y" aria-label="Snag list">
       {snags.map((snag) => {
         const due = describeDueDate(snag.due_date);
         const project = projects?.get(snag.project_id);
@@ -27,24 +27,22 @@ export function SnagList({ snags, people, projects, emptyLabel = "Nothing here y
           <li key={snag.id}>
             <Link
               href={`/snags/${snag.id}`}
-              className="flex flex-wrap items-center gap-x-3 gap-y-2 px-6 py-3 transition-colors hover:bg-muted/50"
+              className="group grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-3 px-5 py-5 transition-colors hover:bg-muted/50 sm:flex sm:flex-wrap sm:items-center sm:px-6"
             >
-              <span className="w-9 shrink-0 font-mono text-xs text-muted-foreground">#{snag.number}</span>
-
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-medium">{snag.title}</span>
-                <span className="block truncate text-xs text-muted-foreground">
+              <span className="col-span-2 min-w-0 flex-1">
+                <span className="mb-1.5 block font-mono text-xs text-muted-foreground">#{snag.number}</span>
+                <span className="block break-words text-sm font-semibold leading-relaxed group-hover:text-primary">{snag.title}</span>
+                <span className="mt-1 block break-words text-xs leading-relaxed text-muted-foreground">
                   {project ? `${project.code} · ` : ""}
                   {personName(people, snag.assignee_id)}
                 </span>
               </span>
 
-              <StatusBadge status={snag.status} />
-              <PriorityBadge priority={snag.priority} />
+              <span className="flex min-w-0 flex-wrap items-center gap-2 sm:max-w-48"><StatusBadge status={snag.status} /><PriorityBadge priority={snag.priority} /></span>
 
               <span
                 className={cn(
-                  "hidden w-28 shrink-0 text-right text-xs sm:block",
+                  "self-center break-words text-right text-xs sm:w-28 sm:shrink-0",
                   due.overdue ? "font-medium text-destructive" : "text-muted-foreground",
                 )}
               >

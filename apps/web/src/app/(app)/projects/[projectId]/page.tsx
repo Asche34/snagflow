@@ -24,8 +24,8 @@ function ProjectSkeleton() {
   return (
     <div className="mx-auto max-w-6xl space-y-6">
       <div className="space-y-2">
-        <Skeleton className="h-7 w-72" />
-        <Skeleton className="h-4 w-56" />
+        <Skeleton className="h-7 w-full max-w-72" />
+        <Skeleton className="h-4 w-full max-w-56" />
       </div>
       <div className="grid gap-3 sm:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (

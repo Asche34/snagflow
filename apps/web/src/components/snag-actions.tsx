@@ -42,12 +42,13 @@ function TransitionForm({ snagId, rule }: { snagId: string; rule: TransitionRule
       <input type="hidden" name="toStatus" value={rule.to} />
 
       {rule.commentRequired ? (
-        <Textarea
+        <div className="space-y-2"><label htmlFor={`comment-${snagId}-${rule.to}`} className="text-sm font-medium">Reason <span className="text-muted-foreground">(required)</span></label><Textarea
+          id={`comment-${snagId}-${rule.to}`}
           name="comment"
           required
           placeholder="Comment (required)"
-          className="min-h-20 text-sm"
-        />
+          className="min-h-24 text-base"
+        /></div>
       ) : null}
 
       {state.error ? <ActionError message={state.error} /> : null}
@@ -63,8 +64,10 @@ function CommentForm({ snagId }: { snagId: string }) {
   return (
     <form action={formAction} className="space-y-2 border-t pt-4">
       <input type="hidden" name="snagId" value={snagId} />
-      <Textarea name="body" required placeholder="Add a comment…" className="min-h-20 text-sm" />
+      <label htmlFor={`body-${snagId}`} className="block text-sm font-medium">Add a comment</label>
+      <Textarea id={`body-${snagId}`} name="body" required placeholder="Share an update with the team…" className="min-h-24 text-base" />
       {state.error ? <ActionError message={state.error} /> : null}
+      {state.ok ? <p role="status" className="text-sm text-success">Comment posted.</p> : null}
       <SubmitButton label="Post comment" variant="secondary" />
     </form>
   );

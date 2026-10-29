@@ -16,26 +16,27 @@ export async function LoginPanel({ searchParams }: { searchParams: Promise<{ nex
   const { next } = await searchParams;
 
   return (
-    <div className="w-full max-w-sm space-y-6">
+    <div className="w-full max-w-md space-y-7">
       <div className="flex items-center gap-3">
         <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
           <HardHat className="size-5" aria-hidden />
         </span>
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">SnagFlow</h1>
-          <p className="text-sm text-muted-foreground">Snag &amp; punch-list tracking</p>
+          <h1 className="text-2xl font-semibold tracking-tight">SnagFlow</h1>
+          <p className="text-sm text-muted-foreground">Your project workspace</p>
         </div>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Sign in</CardTitle>
+          <CardTitle className="text-2xl">Welcome back.</CardTitle>
           <CardDescription>Use your work email to access your projects.</CardDescription>
         </CardHeader>
         <CardContent>
           <LoginForm next={next ?? "/dashboard"} />
         </CardContent>
       </Card>
+      <p className="text-center text-xs text-muted-foreground">Invite-only access · Use the account provided by your team.</p>
 
       {showDemoAccounts ? (
         <Card className="gap-3 bg-muted/40 py-4">

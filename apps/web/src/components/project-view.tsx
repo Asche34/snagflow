@@ -35,10 +35,10 @@ function buildTree(locations: Location[]): LocationNode[] {
 function LocationBranch({ node, depth }: { node: LocationNode; depth: number }) {
   return (
     <li>
-      <div className="flex items-center gap-2 py-1.5" style={{ paddingLeft: `${depth * 1.25}rem` }}>
-        <span className="text-sm">{node.name}</span>
+      <div className="flex min-w-0 items-center gap-2 py-2" style={{ paddingLeft: `${Math.min(depth, 4) * 0.75}rem` }}>
+        <span className="min-w-0 break-words text-sm">{node.name}</span>
         {node.plan_path ? (
-          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+          <span className="rounded bg-muted px-1.5 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
             plan
           </span>
         ) : null}
@@ -93,10 +93,11 @@ export async function ProjectView({
   };
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
+    <div className="mx-auto max-w-7xl space-y-7">
       <div className="space-y-2">
+        <p className="text-xs font-semibold uppercase tracking-[.16em] text-muted-foreground">Project workspace</p>
         <div className="flex flex-wrap items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight">{project.name}</h1>
+          <h1 className="min-w-0 break-words text-3xl font-semibold tracking-tight sm:text-4xl">{project.name}</h1>
           <span className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs text-muted-foreground">
             {project.code}
           </span>
@@ -112,7 +113,7 @@ export async function ProjectView({
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card className="gap-1 py-4">
           <CardContent className="px-4">
             <p className="text-2xl font-semibold tabular-nums">{projectSnags.length}</p>
@@ -148,22 +149,23 @@ export async function ProjectView({
         </Card>
       </div>
 
-      <div className="flex gap-1 border-b">
+      <nav aria-label="Project sections" className="flex flex-wrap gap-2 border-b">
         {TABS.map((entry) => (
           <Link
             key={entry.id}
             href={tabHref(entry.id)}
+            aria-current={activeTab === entry.id ? "page" : undefined}
             className={cn(
-              "-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors",
+              "-mb-px flex min-h-11 items-center border-b-2 px-4 py-3 text-sm font-medium transition-colors",
               activeTab === entry.id
-                ? "border-primary text-foreground"
+                ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             {entry.label}
           </Link>
         ))}
-      </div>
+      </nav>
 
       {activeTab === "snags" ? (
         <Card className="gap-0 py-0">
@@ -227,7 +229,7 @@ export async function ProjectView({
           <CardHeader className="pb-3 pt-5">
             <CardTitle>Team</CardTitle>
             <CardDescription>
-              {projectMembers.length} people{canReview ? " · you can manage this team" : ""}
+                {projectMembers.length} people{canReview ? " · project team" : ""}
             </CardDescription>
           </CardHeader>
           <CardContent className="px-0">
@@ -238,12 +240,12 @@ export async function ProjectView({
             ) : (
               <ul className="divide-y">
                 {projectMembers.map((member) => (
-                  <li key={member.user_id} className="flex items-center justify-between gap-3 px-6 py-3">
+                  <li key={member.user_id} className="flex min-w-0 flex-wrap items-center justify-between gap-3 px-6 py-4">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">
+                      <p className="break-words text-sm font-medium">
                         {personName(people, member.user_id)}
                       </p>
-                      <p className="truncate text-xs text-muted-foreground">
+                      <p className="break-all text-xs text-muted-foreground">
                         {people.find((person) => person.id === member.user_id)?.email ?? "—"}
                       </p>
                     </div>
@@ -265,8 +267,9 @@ function FilterChip({ href, label, active }: { href: string; label: string; acti
   return (
     <Link
       href={href}
+      aria-current={active ? "true" : undefined}
       className={cn(
-        "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+        "inline-flex min-h-11 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium transition-colors",
         active
           ? "bg-primary text-primary-foreground"
           : "bg-muted text-muted-foreground hover:text-foreground",

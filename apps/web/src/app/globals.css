@@ -1,56 +1,96 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f8fafc;
-  --foreground: #1e293b;
+  color-scheme: light;
+  --background: #f6f7f4;
+  --foreground: #202b26;
   --card: #ffffff;
-  --card-foreground: #1e293b;
+  --card-foreground: #202b26;
   --popover: #ffffff;
-  --popover-foreground: #1e293b;
-  --primary: #433dce;
+  --popover-foreground: #202b26;
+  --primary: #c2410c;
   --primary-foreground: #ffffff;
-  --secondary: #eef2ff;
-  --secondary-foreground: #4338ca;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #eef2ff;
-  --accent-foreground: #4338ca;
-  --destructive: #ef4444;
+  --secondary: #eaf0e7;
+  --secondary-foreground: #304d38;
+  --muted: #edf0e9;
+  --muted-foreground: #58675e;
+  --accent: #fff1e8;
+  --accent-foreground: #9a3412;
+  --destructive: #b42318;
   --destructive-foreground: #ffffff;
-  --success: #16a34a;
-  --warning: #f59e0b;
-  --border-color: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #a5b4fc;
-  --radius: 0.5rem;
+  --success: #316a3f;
+  --success-foreground: #255431;
+  --warning: #815400;
+  --warning-foreground: #815400;
+  --border-color: #d4dcd2;
+  --input: #7b8c7e;
+  --ring: #1d4ed8;
+  --radius: 0.625rem;
+  --navigation: #192d25;
+  --navigation-foreground: #e9f0e7;
+  --navigation-muted: #b5c6b9;
+  --navigation-active: #30463a;
+  --navigation-ring: #facc15;
+  --status-open: #edf0ed;
+  --status-open-text: #46584d;
+  --status-progress: #eaf2ff;
+  --status-progress-text: #245ca6;
+  --status-review: #fff3d6;
+  --status-review-text: #815400;
+  --status-closed: #eaf4eb;
+  --status-closed-text: #316a3f;
+  --status-critical: #fff0ec;
+  --status-critical-text: #9a3412;
 }
 
 .dark {
-  --background: #0f172a;
-  --foreground: #e2e8f0;
-  --card: #1e293b;
-  --card-foreground: #e2e8f0;
-  --popover: #1e293b;
-  --popover-foreground: #e2e8f0;
-  --primary: #818cf8;
-  --primary-foreground: #0f172a;
-  --secondary: #312e81;
-  --secondary-foreground: #e0e7ff;
-  --muted: #334155;
-  --muted-foreground: #94a3b8;
-  --accent: #312e81;
-  --accent-foreground: #e0e7ff;
-  --destructive: #dc2626;
-  --destructive-foreground: #ffffff;
-  --success: #22c55e;
-  --warning: #fbbf24;
-  --border-color: #334155;
-  --input: #334155;
-  --ring: #6366f1;
+  color-scheme: dark;
+  --background: #111d17;
+  --foreground: #e9f0e7;
+  --card: #1b2b22;
+  --card-foreground: #e9f0e7;
+  --popover: #1b2b22;
+  --popover-foreground: #e9f0e7;
+  --primary: #ffb68a;
+  --primary-foreground: #44200d;
+  --secondary: #2b4233;
+  --secondary-foreground: #d4e8d4;
+  --muted: #263a2e;
+  --muted-foreground: #b5c6b9;
+  --accent: #482b1c;
+  --accent-foreground: #ffc6a4;
+  --destructive: #ffb4a9;
+  --destructive-foreground: #60120d;
+  --success: #9ed4a7;
+  --success-foreground: #c3eaca;
+  --warning: #f6d481;
+  --warning-foreground: #f6d481;
+  --border-color: #42594a;
+  --input: #6c8373;
+  --ring: #9bc2ff;
+  --status-open: #2b4033;
+  --status-open-text: #d4e1d6;
+  --status-progress: #203956;
+  --status-progress-text: #b6d5ff;
+  --status-review: #45391d;
+  --status-review-text: #f6d481;
+  --status-closed: #213f2a;
+  --status-closed-text: #b1e1ba;
+  --status-critical: #4c251d;
+  --status-critical-text: #ffc4b5;
 }
 
 @theme inline {
+  --font-sans: var(--font-geist-sans), Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --color-navigation: var(--navigation);
+  --color-navigation-foreground: var(--navigation-foreground);
+  --color-navigation-muted: var(--navigation-muted);
+  --color-navigation-active: var(--navigation-active);
+  --color-navigation-ring: var(--navigation-ring);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning-foreground: var(--warning-foreground);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -80,9 +120,67 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background font-sans text-base text-foreground;
+    line-height: 1.6;
+  }
+}
+
+html {
+  scroll-padding-block: 6rem;
+}
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+p {
+  overflow-wrap: anywhere;
+}
+::selection {
+  background: var(--secondary);
+  color: var(--foreground);
+}
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 3px;
+}
+.fieldwork-navigation :where(a, button):focus-visible {
+  outline-color: var(--navigation-ring);
+}
+:target {
+  scroll-margin-block: 6rem;
+}
+.status-open {
+  background: var(--status-open);
+  color: var(--status-open-text);
+}
+.status-progress {
+  background: var(--status-progress);
+  color: var(--status-progress-text);
+}
+.status-review {
+  background: var(--status-review);
+  color: var(--status-review-text);
+}
+.status-closed {
+  background: var(--status-closed);
+  color: var(--status-closed-text);
+}
+.status-critical {
+  background: var(--status-critical);
+  color: var(--status-critical-text);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
