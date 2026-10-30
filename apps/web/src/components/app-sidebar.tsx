@@ -15,7 +15,7 @@ export async function AppSidebar() {
         !!workspace.profile?.is_active &&
         canAct({ id: workspace.user.id, isAdmin }, null, 'project:create')
       }
-      projects={workspace.projects.map((project) => ({
+      projects={workspace.projects.filter(project => project.status === 'active').map((project) => ({
         id: project.id,
         name: project.name,
         code: project.code,

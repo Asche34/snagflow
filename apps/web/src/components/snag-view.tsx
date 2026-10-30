@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   canWorkOnSnag,
+  canAct,
   canEditSnagDetails,
   isReviewer,
   transitionsFrom,
@@ -12,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { SnagPhotos } from "@/components/snag-photos";
 import { SnagActions } from "@/components/snag-actions";
 import { SnagAssignment } from "@/components/snag-assignment";
+import { LifecycleControl } from "@/components/lifecycle-control";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/server";
 import { initialsOf, loadSnagDetail, personName } from "@/lib/data";
@@ -188,6 +190,7 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
             </CardHeader>
             <CardContent className="pb-6">
               <SnagActions snagId={snag.id} transitions={allowed} canComment={canComment} />
+              {canAct({ id: userId, isAdmin }, role, 'snag:soft-delete') ? <div className="mt-5 border-t pt-4"><LifecycleControl kind="snag" id={snag.id} name={`#${snag.number} · ${snag.title}`} projectId={snag.project_id} /></div> : null}
             </CardContent>
           </Card>
         </div>

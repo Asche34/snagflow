@@ -9,6 +9,7 @@ import { loadProjectSnags, SNAG_PAGE_SIZE } from '@/lib/project-snags';
 import { parseSnagFilters, snagFiltersHref, type QueryParams } from '@/lib/snag-filters';
 import { loadWorkspace, type Location } from '@/lib/data';
 import { TeamView } from '@/components/team-view';
+import { LifecycleControl } from '@/components/lifecycle-control';
 import { PROJECT_ROLE_LABELS } from '@/lib/labels';
 import { cn } from '@/lib/utils';
 
@@ -100,6 +101,7 @@ export async function ProjectView({
   return (
     <div className="mx-auto max-w-7xl space-y-7">
       <div className="space-y-2">
+        {project.status === 'archived' ? <p role="status" className="rounded-lg border bg-muted p-3 text-sm">Archived project · Records and team access are retained.</p> : null}
         <p className="text-xs font-semibold uppercase tracking-[.16em] text-muted-foreground">
           Project workspace
         </p>
@@ -141,6 +143,9 @@ export async function ProjectView({
         </p>
       </div>
 
+      {workspace.profile?.is_active && canAct({ id: workspace.user.id, isAdmin: workspace.profile.is_admin }, role, 'project:archive') ? (
+        <div className="flex justify-end border-t pt-3"><LifecycleControl kind="project" id={project.id} name={project.name} archived={project.status === 'archived'} /></div>
+      ) : null}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card className="gap-1 py-4">
           <CardContent className="px-4">

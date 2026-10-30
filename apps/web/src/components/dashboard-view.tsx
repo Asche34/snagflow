@@ -14,7 +14,11 @@ export async function DashboardView() {
   const workspace = await loadWorkspace();
   if (!workspace) redirect("/login");
 
-  const { user, profile, projects, snags, people } = workspace;
+  const { user, profile, people } = workspace;
+  const projects = workspace.projects.filter(project => project.status === 'active');
+  const archivedProjects = workspace.projects.filter(project => project.status === 'archived');
+  const activeProjectIds = new Set(projects.map(project => project.id));
+  const snags = workspace.snags.filter(snag => activeProjectIds.has(snag.project_id));
   const isAdmin = profile?.is_admin ?? false;
 
   const roleOf = (projectId: string): ProjectRole | null =>
@@ -124,7 +128,7 @@ export async function DashboardView() {
           <CardContent className="px-0">
             {projects.length === 0 ? (
               <p className="px-6 py-8 text-center text-sm text-muted-foreground">
-                You are not a member of any project yet.
+                No active projects available.
               </p>
             ) : (
               <ul className="divide-y">
@@ -161,6 +165,10 @@ export async function DashboardView() {
                 })}
               </ul>
             )}
+            {archivedProjects.length ? <details className="border-t px-6 py-4">
+              <summary className="min-h-11 cursor-pointer py-3 text-sm font-medium focus-visible:ring-2 focus-visible:ring-ring">Archived projects</summary>
+              <ul>{archivedProjects.map(project => <li key={project.id}><Link href={`/projects/${project.id}`} className="inline-flex min-h-11 items-center break-words py-2 text-sm text-muted-foreground hover:text-primary">{project.name}</Link></li>)}</ul>
+            </details> : null}
           </CardContent>
         </Card>
       </div>

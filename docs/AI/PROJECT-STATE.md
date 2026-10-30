@@ -7,7 +7,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261029000013_team_invitations.sql` (applied and verified locally; hosted application pending) |
 | Phase (spec §15)     | **2 — web core in progress.** Phases 0–1 complete. |
-| Last delivered | Project team add/role/removal controls; admin email invitations, cancellation, recipient setup/acceptance and consumed-link recovery |
+| Last delivered | Confirmed project archive/restore and snag soft-delete controls; active navigation/dashboard refresh and lost-response recovery |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -23,6 +23,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Web project page: snags (status filter), locations tree, team roster (Phase 2)
 - Web project search: status/priority/assignee/location/category/due/creator filters, English full-text across title/description, exact #number search, sorting and 50-row pages; URLs survive sections, refresh and browser history (Phase 2)
 - Web project management: admin New project, manager/admin Edit project, shared-schema validated details and fix-photo setting, stable-create retry, live access checks and layout/navigation refresh (Phase 2)
+- Web lifecycle: manager/admin project archive/restore, archived-project discovery, active dashboard/navigation refresh, confirmed audited snag soft-delete and fresh-document recovery after an ambiguous response (Phase 2)
 - Web team: manager/admin exact-email existing-account add, role editing, confirmed removal/self-role changes, read-only member/viewer roster; project-scoped authenticated RPCs (Phase 2)
 - Invitations: active-admin email delivery, pending retry/cancel, public email/session-bound name/password acceptance, expired/canceled/used-token protection and consumed-link/session-loss recovery (Phase 2)
 - Web snag detail: metadata, comments, workflow activity, role-gated status transitions, manager assignment and real private issue/fix photos (Phase 2)
@@ -34,11 +35,11 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 
 ## Features in progress
 
-- Phase 2 remainder: project archive, web snag soft-delete controls and location/category editing
+- Phase 2 remainder: location/category editing and comment polish
 
 ## Features remaining (order per spec §15)
 
-- Phase 2 remainder: soft-delete UI, comments UI polish, project archive and location/category editing (Next.js)
+- Phase 2 remainder: location/category editing and comments UI polish (Next.js)
 - Phase 3: workflow UI gating, review queue, reject/reopen UX, notifications bell, Realtime
 - Phase 4: image markup (react-konva) + PDF/Excel reports (@react-pdf/renderer, exceljs) + revisions
 - Phase 5: mobile app on hosted Supabase (auth, camera flow, review flow)
@@ -47,6 +48,14 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Edge function `push-send` (spec §12) — not yet created
 
 ## Tests current
+
+### Project archive and snag soft-delete — 2026-10-30
+
+- Reuses existing project UPDATE RLS and migration 11's fail-closed `soft_delete_snag`; no migration, permission or dependency change. Archive preserves records and access, removes work from active dashboard/navigation, and is reversible through Archived projects.
+- Six real-browser cases cover confirmation/cancel, restore, role gating, live role revocation, refreshed project lists/queues, unavailable deleted routes, phone/enlarged text, pre-commit network failure and post-commit response-loss recovery. Four additional real DB cases cover archive/restore/isolation, revoked authority and retained deletion history with a single audit event.
+- Final targeted verification: 166 checks passed (52 real-browser, eight fixture UI, 42 real DB, 39 shared and 25 transactional SQL); production build, web/shared/DB-test/E2E lint/typecheck, shared declarations and AI docs/index checks passed. Full mobile/monorepo gate was not run.
+- One independent review identified the need to discard client route caches after an ambiguous delete response. Recovery uses fresh document navigation; the regression verifies a new document, refreshed list, browser Back and one deletion audit. Dedicated inactive-actor archive/delete coverage is a deferred review minor; existing SQL checks and backend active-profile helpers were inspected.
+- Detailed verification and deployment limits: `docs/AI/ARCHIVE-DELETE-2026-10-30.md`. Migration 13 and invitation runtime/SMTP/redirect configuration remain pending on hosted Supabase.
 
 ### Team and invitations — 2026-10-30
 
@@ -141,4 +150,4 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Next step recommended
 
-Continue Phase 2: project archive and snag soft-delete controls, then location/category editing and remaining comment polish. Latest handoff: `TEAM-INVITES-2026-10-30.md`.
+Continue Phase 2: location/category editing, then remaining comment polish. Latest handoff: `ARCHIVE-DELETE-2026-10-30.md`; invitation deployment requirements remain in `TEAM-INVITES-2026-10-30.md`.

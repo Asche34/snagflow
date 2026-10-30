@@ -155,6 +155,21 @@
       "db_mirror": "supabase/migrations/20261029000013_team_invitations.sql",
       "test": "e2e/tests/team.spec.ts",
       "doc": "docs/AI/TEAM-INVITES-2026-10-30.md"
+    },
+    "FEAT-WEB-LIFECYCLE": {
+      "module": "MOD-WEB",
+      "impl": [
+        "apps/web/src/app/(app)/lifecycle-actions.ts",
+        "apps/web/src/components/lifecycle-control.tsx",
+        "apps/web/src/components/project-view.tsx",
+        "apps/web/src/components/snag-view.tsx",
+        "apps/web/src/components/dashboard-view.tsx",
+        "apps/web/src/components/app-sidebar.tsx"
+      ],
+      "db_mirror": "supabase/migrations/20261029000011_authorization_hardening.sql::soft_delete_snag + projects UPDATE RLS",
+      "test": "supabase/tests/lifecycle.test.ts + e2e/tests/lifecycle.spec.ts",
+      "doc": "docs/AI/ARCHIVE-DELETE-2026-10-30.md",
+      "status": "done"
     }
   },
   "modules": {
@@ -348,6 +363,7 @@
       "packages/shared/tests/team.test.ts",
       "packages/shared/tests/workflow.test.ts",
       "supabase/tests/integrity.test.ts",
+      "supabase/tests/lifecycle.test.ts",
       "supabase/tests/projects.test.ts",
       "supabase/tests/rls_isolation.test.ts",
       "supabase/tests/rls_write.test.ts",
@@ -356,6 +372,7 @@
       "e2e/tests/auth.spec.ts",
       "e2e/tests/fieldwork.spec.ts",
       "e2e/tests/filters.spec.ts",
+      "e2e/tests/lifecycle.spec.ts",
       "e2e/tests/projects.spec.ts",
       "e2e/tests/snags.spec.ts",
       "e2e/tests/team.spec.ts"

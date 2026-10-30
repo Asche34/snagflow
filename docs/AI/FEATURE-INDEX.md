@@ -66,7 +66,7 @@ Impl: `apps/web/src/components/dashboard-view.tsx`, `apps/web/src/app/(app)/dash
 ### FEAT-WEB-PROJECT (partial, web)
 Project page with Snags / Locations / Team tabs, exact project statistics and URL-backed filters/search. Impl: `apps/web/src/components/project-view.tsx`, `apps/web/src/app/(app)/projects/[projectId]/page.tsx`
 Create/edit: `/projects/new` (admin), `/projects/[projectId]/edit` (project manager/admin).
-Remaining: project archive, activity & reports tabs, location/category editing.
+Remaining: activity & reports tabs, location/category editing.
 
 ### FEAT-WEB-PROJECT-DETAILS (done, web)
 Admin creates projects; project managers/admins edit name/code/description/client/address and require-fix-photo setting. Stable-UUID create retry, validation/duplicate errors retain draft, fresh active/access checks on save and layout/navigation refresh.
@@ -81,7 +81,13 @@ Create/edit: project-scoped full-page forms with shared validation, retry identi
 Photos: client JPEG resizing/thumbnails, private uploads, retry queue and authenticated metadata registration.
 Impl: `apps/web/src/components/snag-form.tsx`, `snag-form-page.tsx`, `photo-picker.tsx`, `snag-photo-upload.tsx`, `snag-photos.tsx`; `apps/web/src/lib/photos.ts`; `apps/web/src/app/(app)/snags/actions.ts`, `photo-actions.ts`.
 Tests: `e2e/tests/snags.spec.ts`, `packages/shared/tests/photos.test.ts`.
-Remaining: soft-delete UI and photo markup.
+Remaining: photo markup.
+
+### FEAT-WEB-LIFECYCLE (done, web)
+Confirmed manager/admin project archive/restore and snag soft-delete. Archived projects leave active navigation/dashboard work but retain data and access through the dashboard archived list. Soft deletion retains history, removes list/count/detail visibility under RLS, and returns to the refreshed project. Ambiguous deletion recovery loads a fresh document to discard missed client invalidation.
+Impl: `apps/web/src/app/(app)/lifecycle-actions.ts`, `apps/web/src/components/lifecycle-control.tsx`, `project-view.tsx`, `snag-view.tsx`, `dashboard-view.tsx`, `app-sidebar.tsx`.
+Contracts: existing `permissions.ts::canAct`, project UPDATE RLS (migration 5), `soft_delete_snag` (hardened in migration 11). No new migration.
+Tests: `supabase/tests/lifecycle.test.ts`, `e2e/tests/lifecycle.spec.ts`. Delivery: `docs/AI/ARCHIVE-DELETE-2026-10-30.md`.
 
 ### FEAT-WEB-SNAG-SEARCH (done, web)
 Project status/priority/assignee/location/category/due/creator filters, combined title/description full-text and exact number search, stable sorting, 50-row server pages and exact project-wide counts under RLS.
@@ -107,7 +113,7 @@ Deployment/limits: `docs/AI/TEAM-INVITES-2026-10-30.md`.
 
 ## PLANNED (spec §15 — do not build before prior phases)
 
-- Project archive / soft-delete UI / location-category editing — Phase 2 remainder (`apps/web`)
+- Location/category editing and comments polish — Phase 2 remainder (`apps/web`)
 - FEAT-WORKFLOW-UI / FEAT-REALTIME / FEAT-NOTIF-UI — Phase 3
 - FEAT-MARKUP / FEAT-REPORTS — Phase 4
 - FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7
