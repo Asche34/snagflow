@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { canAct, canEditSnagDetails } from '@snagflow/shared';
 import { loadWorkspace } from '@/lib/data';
 import { createClient } from '@/lib/supabase/server';
+import { loadProjectMetadata } from '@/lib/project-metadata';
 import { SnagForm } from './snag-form';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/card';
 
@@ -31,6 +32,7 @@ export async function SnagFormPage({
   const project = workspace.projects.find((project) => project.id === projectId);
   if (!project) notFound();
   const role = workspace.roles.get(project.id) ?? null;
+  const metadata = await loadProjectMetadata(project.id);
   const actor = { id: workspace.user.id, isAdmin: workspace.profile?.is_admin ?? false };
   if (!workspace.profile?.is_active || !canAct(actor, role, 'snag:create')) notFound();
   if (
@@ -84,12 +86,8 @@ export async function SnagFormPage({
           <SnagForm
             projectId={project.id}
             initial={initial}
-            locations={workspace.locations
-              .filter((item) => item.project_id === project.id)
-              .map((item) => ({ id: item.id, name: item.name }))}
-            categories={workspace.categories
-              .filter((item) => item.project_id === project.id)
-              .map((item) => ({ id: item.id, name: item.name }))}
+            locations={metadata.locations.map((item) => ({ id: item.id, name: item.name }))}
+            categories={metadata.categories.map((item) => ({ id: item.id, name: item.name }))}
             assignees={assignees}
             canAssign={canAct(actor, role, 'snag:assign')}
           />

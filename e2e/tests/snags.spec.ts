@@ -158,7 +158,7 @@ test('manager assigns and reassigns without changing status', async ({ page }) =
   await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
   await page.getByLabel('Assign to', { exact: true }).selectOption(ids.member2);
   await page.getByRole('button', { name: 'Update assignment', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Assignment updated');
+  await expect(page.getByRole('status').filter({ hasText: 'Assignment updated' })).toBeVisible();
   const snagId = page.url().split('/').pop();
   const response = await fixture(`snags?id=eq.${snagId}&select=status,assignee_id`);
   expect(await response.json()).toEqual([{ status: 'open', assignee_id: ids.member2 }]);

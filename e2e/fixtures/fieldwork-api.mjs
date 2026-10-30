@@ -132,6 +132,7 @@ function session(profile) {
     user: user(profile),
   };
 }
+let commentsUnavailable = false;
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://127.0.0.1');
   res.setHeader('Content-Type', 'application/json');
@@ -139,6 +140,12 @@ const server = createServer(async (req, res) => {
     res.statusCode = code;
     res.end(JSON.stringify(body));
   };
+  if (url.pathname === '/_test/comments-failure' && req.method === 'PUT') {
+    commentsUnavailable = url.searchParams.get('enabled') === 'true';
+    return send({ ok: true });
+  }
+  if (commentsUnavailable && url.pathname === '/rest/v1/comments')
+    return send({ message: 'Comments temporarily unavailable' }, 503);
   const profile = identity((req.headers.authorization ?? '').replace(/^Bearer /i, ''));
   if (url.pathname === '/auth/v1/settings') return send({ external: { email: true } });
   if (url.pathname === '/auth/v1/token') {

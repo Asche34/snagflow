@@ -5,9 +5,9 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Field                | Value |
 | -------------------- | ----- |
 | Version              | 0.1.0 |
-| DB schema version    | migration `20261029000013_team_invitations.sql` (applied and verified locally; hosted application pending) |
-| Phase (spec §15)     | **2 — web core in progress.** Phases 0–1 complete. |
-| Last delivered | Confirmed project archive/restore and snag soft-delete controls; active navigation/dashboard refresh and lost-response recovery |
+| DB schema version    | migration `20261030000014_project_metadata.sql` (applied and verified locally; hosted application pending) |
+| Phase (spec §15)     | **2 — web core complete locally.** Phase 3 next; phases 0–1 complete. |
+| Last delivered | Project location/category management with historical references preserved; resilient thread-local comments and two-browser collaboration |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -24,6 +24,8 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Web project search: status/priority/assignee/location/category/due/creator filters, English full-text across title/description, exact #number search, sorting and 50-row pages; URLs survive sections, refresh and browser history (Phase 2)
 - Web project management: admin New project, manager/admin Edit project, shared-schema validated details and fix-photo setting, stable-create retry, live access checks and layout/navigation refresh (Phase 2)
 - Web lifecycle: manager/admin project archive/restore, archived-project discovery, active dashboard/navigation refresh, confirmed audited snag soft-delete and fresh-document recovery after an ambiguous response (Phase 2)
+- Web metadata: manager/admin location create/rename/reparent/order and category create/rename, confirmed unused-record deletion, protected historical references and child branches, paginated project-scoped lists/selectors (Phase 2)
+- Web comments: thread-local composer, shared validation, character count, pending/error focus, preserved drafts and exact stable-UUID retry; complete paginated thread reads and explicit unavailable/retry state (Phase 2)
 - Web team: manager/admin exact-email existing-account add, role editing, confirmed removal/self-role changes, read-only member/viewer roster; project-scoped authenticated RPCs (Phase 2)
 - Invitations: active-admin email delivery, pending retry/cancel, public email/session-bound name/password acceptance, expired/canceled/used-token protection and consumed-link/session-loss recovery (Phase 2)
 - Web snag detail: metadata, comments, workflow activity, role-gated status transitions, manager assignment and real private issue/fix photos (Phase 2)
@@ -35,11 +37,10 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 
 ## Features in progress
 
-- Phase 2 remainder: location/category editing and comment polish
+- Phase 2 delivered locally; realtime/notifications and remaining workflow UX are Phase 3.
 
 ## Features remaining (order per spec §15)
 
-- Phase 2 remainder: location/category editing and comments UI polish (Next.js)
 - Phase 3: workflow UI gating, review queue, reject/reopen UX, notifications bell, Realtime
 - Phase 4: image markup (react-konva) + PDF/Excel reports (@react-pdf/renderer, exceljs) + revisions
 - Phase 5: mobile app on hosted Supabase (auth, camera flow, review flow)
@@ -48,6 +49,14 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Edge function `push-send` (spec §12) — not yet created
 
 ## Tests current
+
+### Phase 2 metadata and comments — 2026-10-30
+
+- Migration 14 is applied locally and recorded in the local ledger. Historical snag references (including soft-deleted rows) and child locations prevent deletion; metadata identity/project and same-project acyclic hierarchy are database-enforced. Existing manager/admin RLS is unchanged. Five real concurrent opposite-move trials each reject one move and leave no cycle.
+- Nine new real-browser cases cover metadata management/confirmations, duplicate-category validation, role revocation, exact/changed lost-response retry, phone/landscape/enlarged-text layout, project metadata and comment reads beyond 1,000 rows, and member/manager collaboration in two independent browser sessions. One new fixture UI case verifies unavailable-comment reads and retry.
+- Final targeted verification: **180 checks passed** (61 real-browser, nine fixture UI, 46 real DB, 39 shared and 25 transactional SQL). Production build, configured lint/typechecks, shared declarations, generated-type refresh and AI docs/index validation passed. Full mobile/monorepo gate was not run.
+- Independent review findings about capture/comment caps, read-error ambiguity and post-success focus were fixed with failing-first regressions; follow-up review has no remaining findings. Earlier inactive-user archive/delete regression coverage remains a documented minor. An extra broader shared-test lint scan found three existing import-style errors outside the configured `eslint src` scope; configured lint and all shared tests pass.
+- Delivery, evidence and limits: `docs/AI/PHASE2-COMPLETE-2026-10-30.md`. Local data is preserved, hosted services are unchanged, and pending hosted migrations through 14 plus invitation runtime/SMTP/redirect setup remain a separate deployment task.
 
 ### Project archive and snag soft-delete — 2026-10-30
 
@@ -150,4 +159,4 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Next step recommended
 
-Continue Phase 2: location/category editing, then remaining comment polish. Latest handoff: `ARCHIVE-DELETE-2026-10-30.md`; invitation deployment requirements remain in `TEAM-INVITES-2026-10-30.md`.
+Start Phase 3: realtime snag/comment/photo updates with reconnect handling, notifications bell, then remaining review/reject/reopen UX from spec §6/§8. Latest handoff: `PHASE2-COMPLETE-2026-10-30.md`. Local schema is migration 14; hosted migrations/invitation settings remain a separate deployment step under `TEAM-INVITES-2026-10-30.md` plus migration 14. Preserve local data; do not reset an existing stack.

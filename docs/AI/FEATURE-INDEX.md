@@ -66,7 +66,7 @@ Impl: `apps/web/src/components/dashboard-view.tsx`, `apps/web/src/app/(app)/dash
 ### FEAT-WEB-PROJECT (partial, web)
 Project page with Snags / Locations / Team tabs, exact project statistics and URL-backed filters/search. Impl: `apps/web/src/components/project-view.tsx`, `apps/web/src/app/(app)/projects/[projectId]/page.tsx`
 Create/edit: `/projects/new` (admin), `/projects/[projectId]/edit` (project manager/admin).
-Remaining: activity & reports tabs, location/category editing.
+Location/category management is delivered below. Activity/reports tabs remain later-phase work.
 
 ### FEAT-WEB-PROJECT-DETAILS (done, web)
 Admin creates projects; project managers/admins edit name/code/description/client/address and require-fix-photo setting. Stable-UUID create retry, validation/duplicate errors retain draft, fresh active/access checks on save and layout/navigation refresh.
@@ -111,9 +111,19 @@ Impl: `apps/web/src/app/api/invitations/route.ts`, `apps/web/src/lib/supabase/ad
 DB: migration 13 invitation functions; shared `ProjectInviteSendSchema`, `ProjectInviteAcceptSchema`. Tests: team suites above.
 Deployment/limits: `docs/AI/TEAM-INVITES-2026-10-30.md`.
 
+### FEAT-WEB-METADATA (done, web)
+Manager/admin project location create/rename/reparent/order and category create/rename; confirmed unused-record deletion. Read-only member/viewer lists, stable create retry, draft-preserving failures and refreshed selectors/navigation.
+Impl: `apps/web/src/components/project-metadata.tsx`, `apps/web/src/app/(app)/projects/metadata-actions.ts`, `apps/web/src/lib/project-metadata.ts`; consumed by project view and snag form page.
+DB: migration `20261030000014_project_metadata.sql` protects historical references, immutable identity/project and acyclic same-project hierarchy. Existing migration 11 manager/admin RLS is unchanged.
+Tests: `supabase/tests/metadata.test.ts`, `e2e/tests/metadata.spec.ts`. Delivery: `docs/AI/PHASE2-COMPLETE-2026-10-30.md`.
+
+### FEAT-WEB-COMMENTS (done, web)
+Thread-local member/manager composer, shared validation, character count, focused feedback, draft retention and stable-UUID response-loss recovery. Project RLS remains authoritative; thread reads paginate beyond the backend cap and distinguish unavailable reads from empty threads.
+Impl: `apps/web/src/components/comment-form.tsx`, `snag-view.tsx`, `apps/web/src/app/(app)/snags/[snagId]/actions.ts`, `apps/web/src/lib/data.ts`.
+Tests: `e2e/tests/metadata.spec.ts`, `e2e/tests/fieldwork.spec.ts`. Cross-session collaboration uses explicit refresh; realtime remains Phase 3.
+
 ## PLANNED (spec §15 — do not build before prior phases)
 
-- Location/category editing and comments polish — Phase 2 remainder (`apps/web`)
 - FEAT-WORKFLOW-UI / FEAT-REALTIME / FEAT-NOTIF-UI — Phase 3
 - FEAT-MARKUP / FEAT-REPORTS — Phase 4
 - FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7

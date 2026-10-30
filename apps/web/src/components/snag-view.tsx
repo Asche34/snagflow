@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import {
   canWorkOnSnag,
   canAct,
@@ -7,33 +7,63 @@ import {
   isReviewer,
   transitionsFrom,
   type TransitionRule,
-} from "@snagflow/shared";
-import { PriorityBadge, StatusBadge } from "@/components/badges";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { SnagPhotos } from "@/components/snag-photos";
-import { SnagActions } from "@/components/snag-actions";
-import { SnagAssignment } from "@/components/snag-assignment";
-import { LifecycleControl } from "@/components/lifecycle-control";
-import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/server";
-import { initialsOf, loadSnagDetail, personName } from "@/lib/data";
-import { describeDueDate, formatDate, formatDateTime } from "@/lib/dates";
-import { cn } from "@/lib/utils";
+} from '@snagflow/shared';
+import { PriorityBadge, StatusBadge } from '@/components/badges';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { SnagPhotos } from '@/components/snag-photos';
+import { SnagActions } from '@/components/snag-actions';
+import { CommentForm } from '@/components/comment-form';
+import { SnagAssignment } from '@/components/snag-assignment';
+import { LifecycleControl } from '@/components/lifecycle-control';
+import { Button } from '@/components/ui/button';
+import { createClient } from '@/lib/supabase/server';
+import { initialsOf, loadSnagDetail, personName } from '@/lib/data';
+import { describeDueDate, formatDate, formatDateTime } from '@/lib/dates';
+import { cn } from '@/lib/utils';
 
 export async function SnagView({ params }: { params: Promise<{ snagId: string }> }) {
   const { snagId } = await params;
   const detail = await loadSnagDetail(snagId);
   if (!detail) notFound();
 
-  const { snag, project, role, isAdmin, comments, activity, photos, people, userId } = detail;
+  const {
+    snag,
+    project,
+    role,
+    isAdmin,
+    comments,
+    commentsUnavailable,
+    activity,
+    photos,
+    people,
+    userId,
+  } = detail;
   const due = describeDueDate(snag.due_date);
-  const canEdit = canEditSnagDetails({actorId:userId,isAdmin,projectRole:role,scope:{createdById:snag.created_by,assigneeId:snag.assignee_id,status:snag.status}});
-  const reviewer = isReviewer({isAdmin,projectRole:role});
-  const members = reviewer ? (await (await createClient()).from("project_members").select("user_id,role").eq("project_id",snag.project_id).neq("role","viewer")).data ?? [] : [];
-  const assignees = members.flatMap(member => { const person=people.find(person=>person.id===member.user_id && person.is_active); return person ? [{id:person.id,name:person.full_name || person.email}] : []; });
+  const canEdit = canEditSnagDetails({
+    actorId: userId,
+    isAdmin,
+    projectRole: role,
+    scope: { createdById: snag.created_by, assigneeId: snag.assignee_id, status: snag.status },
+  });
+  const reviewer = isReviewer({ isAdmin, projectRole: role });
+  const members = reviewer
+    ? ((
+        await (
+          await createClient()
+        )
+          .from('project_members')
+          .select('user_id,role')
+          .eq('project_id', snag.project_id)
+          .neq('role', 'viewer')
+      ).data ?? [])
+    : [];
+  const assignees = members.flatMap((member) => {
+    const person = people.find((person) => person.id === member.user_id && person.is_active);
+    return person ? [{ id: person.id, name: person.full_name || person.email }] : [];
+  });
 
   const allowed: TransitionRule[] = transitionsFrom(snag.status).filter((rule) => {
-    if (rule.actor === "managerOnly") {
+    if (rule.actor === 'managerOnly') {
       return isReviewer({ isAdmin, projectRole: role });
     }
     return canWorkOnSnag({
@@ -48,7 +78,7 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
     });
   });
 
-  const canComment = role === "member" || role === "manager" || isAdmin;
+  const canComment = canAct({ id: userId, isAdmin }, role, 'snag:comment');
 
   return (
     <div className="mx-auto max-w-7xl space-y-7">
@@ -69,9 +99,15 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
               <StatusBadge status={snag.status} />
               <PriorityBadge priority={snag.priority} />
             </div>
-            <h1 className="mt-3 break-words text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">{snag.title}</h1>
+            <h1 className="mt-3 break-words text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+              {snag.title}
+            </h1>
           </div>
-          {canEdit ? <Button asChild variant="outline"><Link href={`/snags/${snag.id}/edit`}>Edit snag</Link></Button> : null}
+          {canEdit ? (
+            <Button asChild variant="outline">
+              <Link href={`/snags/${snag.id}/edit`}>Edit snag</Link>
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -83,7 +119,7 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
             </CardHeader>
             <CardContent className="pb-6">
               <p className="whitespace-pre-line text-sm text-foreground/90">
-                {snag.description?.trim() || "No description was added."}
+                {snag.description?.trim() || 'No description was added.'}
               </p>
             </CardContent>
           </Card>
@@ -94,23 +130,44 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
               <CardDescription>Issue and fix photos</CardDescription>
             </CardHeader>
             <CardContent className="pb-6">
-              <SnagPhotos photos={photos} projectId={snag.project_id} snagId={snag.id} canUpload={canComment} />
+              <SnagPhotos
+                photos={photos}
+                projectId={snag.project_id}
+                snagId={snag.id}
+                canUpload={canComment}
+              />
             </CardContent>
           </Card>
 
-          <Card className="gap-0 py-0">
+          <Card role="region" aria-labelledby="comments-heading" className="gap-0 py-0">
             <CardHeader className="pb-3 pt-5">
-              <CardTitle>Comments</CardTitle>
-              <CardDescription>{comments.length} in the thread</CardDescription>
+              <CardTitle id="comments-heading">Comments</CardTitle>
+              <CardDescription>
+                {commentsUnavailable
+                  ? 'Thread temporarily unavailable'
+                  : `${comments.length} in the thread`}
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 pb-6">
-              {comments.length === 0 ? (
+              {commentsUnavailable ? (
+                <div className="space-y-2">
+                  <p role="alert" className="text-sm text-destructive">
+                    Comments could not be loaded. Refresh to try again.
+                  </p>
+                  <a
+                    className="inline-flex min-h-11 items-center text-sm underline"
+                    href={`/snags/${snag.id}`}
+                  >
+                    Refresh comments
+                  </a>
+                </div>
+              ) : comments.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No comments yet.</p>
               ) : (
                 <ul className="space-y-4">
                   {comments.map((comment) => {
                     const author = people.find((person) => person.id === comment.author_id);
-                    const name = author?.full_name ?? "Unknown";
+                    const name = author?.full_name ?? 'Unknown';
                     return (
                       <li key={comment.id} className="flex gap-3">
                         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground">
@@ -118,12 +175,12 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
                         </span>
                         <div className="min-w-0">
                           <p className="text-sm">
-                            <span className="font-medium">{name}</span>{" "}
+                            <span className="font-medium">{name}</span>{' '}
                             <span className="text-xs text-muted-foreground">
                               {formatDateTime(comment.created_at)}
                             </span>
                           </p>
-                          <p className="mt-0.5 whitespace-pre-line text-sm text-foreground/90">
+                          <p className="mt-0.5 whitespace-pre-wrap break-words text-sm text-foreground/90 [overflow-wrap:anywhere]">
                             {comment.body}
                           </p>
                         </div>
@@ -131,6 +188,13 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
                     );
                   })}
                 </ul>
+              )}
+              {canComment ? (
+                <CommentForm snagId={snag.id} />
+              ) : (
+                <p className="border-t pt-4 text-sm text-muted-foreground">
+                  Your role can read comments. A project member or manager can post updates.
+                </p>
               )}
             </CardContent>
           </Card>
@@ -147,13 +211,20 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
                 <ol className="space-y-3">
                   {activity.map((entry) => (
                     <li key={entry.id} className="flex gap-3 text-sm">
-                      <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
+                      <span
+                        className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary"
+                        aria-hidden
+                      />
                       <div>
                         <p>
-                          <span className="font-medium">{personName(people, entry.actor_id)}</span>{" "}
-                          <span className="text-muted-foreground">{describeAction(entry.action)}</span>
+                          <span className="font-medium">{personName(people, entry.actor_id)}</span>{' '}
+                          <span className="text-muted-foreground">
+                            {describeAction(entry.action)}
+                          </span>
                         </p>
-                        <p className="text-xs text-muted-foreground">{formatDateTime(entry.created_at)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDateTime(entry.created_at)}
+                        </p>
                       </div>
                     </li>
                   ))}
@@ -171,7 +242,7 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
             <CardContent className="space-y-3 pb-6 text-sm">
               <DetailRow label="Assignee" value={personName(people, snag.assignee_id)} />
               <DetailRow label="Created by" value={personName(people, snag.created_by)} />
-              <DetailRow label="Due" value={due.label} tone={due.overdue ? "danger" : undefined} />
+              <DetailRow label="Due" value={due.label} tone={due.overdue ? 'danger' : undefined} />
               <DetailRow label="Created" value={formatDate(snag.created_at)} />
               {snag.closed_at ? (
                 <DetailRow label="Closed" value={formatDate(snag.closed_at)} />
@@ -182,15 +253,37 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
             </CardContent>
           </Card>
 
-          {reviewer ? <Card><CardHeader><CardTitle>Assignment</CardTitle></CardHeader><CardContent><SnagAssignment snagId={snag.id} assigneeId={snag.assignee_id} options={assignees} /></CardContent></Card> : null}
+          {reviewer ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Assignment</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SnagAssignment
+                  snagId={snag.id}
+                  assigneeId={snag.assignee_id}
+                  options={assignees}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
           <Card className="gap-0 py-0">
             <CardHeader className="pb-3 pt-5">
               <CardTitle>Actions</CardTitle>
               <CardDescription>Available actions for your role</CardDescription>
             </CardHeader>
             <CardContent className="pb-6">
-              <SnagActions snagId={snag.id} transitions={allowed} canComment={canComment} />
-              {canAct({ id: userId, isAdmin }, role, 'snag:soft-delete') ? <div className="mt-5 border-t pt-4"><LifecycleControl kind="snag" id={snag.id} name={`#${snag.number} · ${snag.title}`} projectId={snag.project_id} /></div> : null}
+              <SnagActions snagId={snag.id} transitions={allowed} />
+              {canAct({ id: userId, isAdmin }, role, 'snag:soft-delete') ? (
+                <div className="mt-5 border-t pt-4">
+                  <LifecycleControl
+                    kind="snag"
+                    id={snag.id}
+                    name={`#${snag.number} · ${snag.title}`}
+                    projectId={snag.project_id}
+                  />
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </div>
@@ -199,19 +292,16 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
   );
 }
 
-function DetailRow({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "danger";
-}) {
+function DetailRow({ label, value, tone }: { label: string; value: string; tone?: 'danger' }) {
   return (
     <div className="flex items-baseline justify-between gap-3">
       <span className="text-muted-foreground">{label}</span>
-      <span className={cn("min-w-0 break-words text-right font-medium", tone === "danger" && "text-destructive")}>
+      <span
+        className={cn(
+          'min-w-0 break-words text-right font-medium',
+          tone === 'danger' && 'text-destructive',
+        )}
+      >
         {value}
       </span>
     </div>
@@ -219,15 +309,15 @@ function DetailRow({
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  assigned: "assigned this snag",
-  status_changed: "changed the status",
-  rejected: "sent it back",
-  approved: "approved it",
-  reopened: "reopened it",
-  created: "created this snag",
-  commented: "commented",
+  assigned: 'assigned this snag',
+  status_changed: 'changed the status',
+  rejected: 'sent it back',
+  approved: 'approved it',
+  reopened: 'reopened it',
+  created: 'created this snag',
+  commented: 'commented',
 };
 
 function describeAction(action: string): string {
-  return ACTION_LABELS[action] ?? action.replace(/_/g, " ");
+  return ACTION_LABELS[action] ?? action.replace(/_/g, ' ');
 }

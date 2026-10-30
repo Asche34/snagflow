@@ -99,6 +99,7 @@ export type SnagDetail = {
   role: ProjectRole | null;
   isAdmin: boolean;
   comments: Comment[];
+  commentsUnavailable: boolean;
   activity: Activity[];
   photos: SnagPhoto[];
   people: Person[];
@@ -115,9 +116,20 @@ export async function loadSnagDetail(snagId: string): Promise<SnagDetail | null>
   const snag = snagResult.data;
   if (!snag) return null;
 
+  async function readComments(): Promise<{ data: Comment[]; error: boolean }> {
+    const rows: Comment[] = [];
+    for (let offset = 0; ; offset += 500) {
+      const result = await supabase.from('comments').select('*').eq('snag_id', snagId)
+        .order('created_at').order('id').range(offset, offset + 499);
+      if (result.error || !result.data) return { data: [], error: true };
+      rows.push(...result.data);
+      if (result.data.length < 500) return { data: rows, error: false };
+    }
+  }
+
   const [commentsResult, activityResult, photosResult, peopleResult, projectResult, membershipResult, selfResult] =
     await Promise.all([
-      supabase.from("comments").select("*").eq("snag_id", snagId).order("created_at"),
+      readComments(),
       supabase.from("activity_log").select("*").eq("snag_id", snagId).order("created_at", { ascending: false }),
       supabase.from("snag_photos").select("*").eq("snag_id", snagId).order("sort_order"),
       supabase.from("profiles").select("id, full_name, email, is_admin, avatar_url, is_active"),
@@ -140,6 +152,7 @@ export async function loadSnagDetail(snagId: string): Promise<SnagDetail | null>
     role: membershipResult.data?.role ?? null,
     isAdmin: selfResult.data?.is_admin ?? false,
     comments: commentsResult.data ?? [],
+    commentsUnavailable: commentsResult.error,
     activity: activityResult.data ?? [],
     photos: photosResult.data ?? [],
     people,

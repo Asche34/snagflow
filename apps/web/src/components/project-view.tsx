@@ -7,7 +7,9 @@ import { SnagList } from '@/components/snag-list';
 import { SnagFilters } from '@/components/snag-filters';
 import { loadProjectSnags, SNAG_PAGE_SIZE } from '@/lib/project-snags';
 import { parseSnagFilters, snagFiltersHref, type QueryParams } from '@/lib/snag-filters';
-import { loadWorkspace, type Location } from '@/lib/data';
+import { loadWorkspace } from '@/lib/data';
+import { loadProjectMetadata } from '@/lib/project-metadata';
+import { ProjectMetadata } from '@/components/project-metadata';
 import { TeamView } from '@/components/team-view';
 import { LifecycleControl } from '@/components/lifecycle-control';
 import { PROJECT_ROLE_LABELS } from '@/lib/labels';
@@ -20,48 +22,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: 'locations', label: 'Locations' },
   { id: 'team', label: 'Team' },
 ];
-
-type LocationNode = Location & { children: LocationNode[] };
-
-function buildTree(locations: Location[]): LocationNode[] {
-  const byParent = new Map<string | null, Location[]>();
-  for (const location of locations) {
-    const key = location.parent_id;
-    byParent.set(key, [...(byParent.get(key) ?? []), location]);
-  }
-
-  const toNode = (location: Location): LocationNode => ({
-    ...location,
-    children: (byParent.get(location.id) ?? []).map(toNode),
-  });
-
-  return (byParent.get(null) ?? []).map(toNode);
-}
-
-function LocationBranch({ node, depth }: { node: LocationNode; depth: number }) {
-  return (
-    <li>
-      <div
-        className="flex min-w-0 items-center gap-2 py-2"
-        style={{ paddingLeft: `${Math.min(depth, 4) * 0.75}rem` }}
-      >
-        <span className="min-w-0 break-words text-sm">{node.name}</span>
-        {node.plan_path ? (
-          <span className="rounded bg-muted px-1.5 py-0.5 text-xs uppercase tracking-wide text-muted-foreground">
-            plan
-          </span>
-        ) : null}
-      </div>
-      {node.children.length > 0 ? (
-        <ul>
-          {node.children.map((child) => (
-            <LocationBranch key={child.id} node={child} depth={depth + 1} />
-          ))}
-        </ul>
-      ) : null}
-    </li>
-  );
-}
 
 export async function ProjectView({
   params,
@@ -79,7 +39,8 @@ export async function ProjectView({
   const project = workspace.projects.find((candidate) => candidate.id === projectId);
   if (!project) notFound();
 
-  const { people, locations, categories, members, roles } = workspace;
+  const { people, members, roles } = workspace;
+  const { locations, categories } = await loadProjectMetadata(project.id);
   const role = roles.get(project.id) ?? (workspace.profile?.is_admin ? 'manager' : null);
   const activeTab: Tab = tab === 'locations' || tab === 'team' ? tab : 'snags';
 
@@ -101,7 +62,11 @@ export async function ProjectView({
   return (
     <div className="mx-auto max-w-7xl space-y-7">
       <div className="space-y-2">
-        {project.status === 'archived' ? <p role="status" className="rounded-lg border bg-muted p-3 text-sm">Archived project · Records and team access are retained.</p> : null}
+        {project.status === 'archived' ? (
+          <p role="status" className="rounded-lg border bg-muted p-3 text-sm">
+            Archived project · Records and team access are retained.
+          </p>
+        ) : null}
         <p className="text-xs font-semibold uppercase tracking-[.16em] text-muted-foreground">
           Project workspace
         </p>
@@ -143,8 +108,20 @@ export async function ProjectView({
         </p>
       </div>
 
-      {workspace.profile?.is_active && canAct({ id: workspace.user.id, isAdmin: workspace.profile.is_admin }, role, 'project:archive') ? (
-        <div className="flex justify-end border-t pt-3"><LifecycleControl kind="project" id={project.id} name={project.name} archived={project.status === 'archived'} /></div>
+      {workspace.profile?.is_active &&
+      canAct(
+        { id: workspace.user.id, isAdmin: workspace.profile.is_admin },
+        role,
+        'project:archive',
+      ) ? (
+        <div className="flex justify-end border-t pt-3">
+          <LifecycleControl
+            kind="project"
+            id={project.id}
+            name={project.name}
+            archived={project.status === 'archived'}
+          />
+        </div>
       ) : null}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card className="gap-1 py-4">
@@ -287,15 +264,16 @@ export async function ProjectView({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {projectLocations.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No locations recorded yet.</p>
-            ) : (
-              <ul>
-                {buildTree(projectLocations).map((node) => (
-                  <LocationBranch key={node.id} node={node} depth={0} />
-                ))}
-              </ul>
-            )}
+            <ProjectMetadata
+              projectId={project.id}
+              locations={projectLocations}
+              categories={categories}
+              editable={canAct(
+                { id: workspace.user.id, isAdmin: workspace.profile?.is_admin ?? false },
+                role,
+                'project:edit',
+              )}
+            />
           </CardContent>
         </Card>
       ) : null}

@@ -156,6 +156,31 @@
       "test": "e2e/tests/team.spec.ts",
       "doc": "docs/AI/TEAM-INVITES-2026-10-30.md"
     },
+    "FEAT-WEB-METADATA": {
+      "module": "MOD-WEB",
+      "impl": [
+        "apps/web/src/components/project-metadata.tsx",
+        "apps/web/src/app/(app)/projects/metadata-actions.ts",
+        "apps/web/src/lib/project-metadata.ts",
+        "apps/web/src/components/snag-form-page.tsx"
+      ],
+      "db_mirror": "supabase/migrations/20261030000014_project_metadata.sql",
+      "test": "supabase/tests/metadata.test.ts + e2e/tests/metadata.spec.ts",
+      "doc": "docs/AI/PHASE2-COMPLETE-2026-10-30.md",
+      "status": "done"
+    },
+    "FEAT-WEB-COMMENTS": {
+      "module": "MOD-WEB",
+      "impl": [
+        "apps/web/src/components/comment-form.tsx",
+        "apps/web/src/components/snag-view.tsx",
+        "apps/web/src/app/(app)/snags/[snagId]/actions.ts",
+        "apps/web/src/lib/data.ts"
+      ],
+      "test": "e2e/tests/metadata.spec.ts + e2e/tests/fieldwork.spec.ts",
+      "doc": "docs/AI/PHASE2-COMPLETE-2026-10-30.md",
+      "status": "done"
+    },
     "FEAT-WEB-LIFECYCLE": {
       "module": "MOD-WEB",
       "impl": [
@@ -355,7 +380,8 @@
       "supabase/migrations/20261019000010_profiles_team_read.sql",
       "supabase/migrations/20261029000011_authorization_hardening.sql",
       "supabase/migrations/20261029000012_snag_search.sql",
-      "supabase/migrations/20261029000013_team_invitations.sql"
+      "supabase/migrations/20261029000013_team_invitations.sql",
+      "supabase/migrations/20261030000014_project_metadata.sql"
     ],
     "tests_discovered": [
       "packages/shared/tests/permissions.test.ts",
@@ -364,6 +390,7 @@
       "packages/shared/tests/workflow.test.ts",
       "supabase/tests/integrity.test.ts",
       "supabase/tests/lifecycle.test.ts",
+      "supabase/tests/metadata.test.ts",
       "supabase/tests/projects.test.ts",
       "supabase/tests/rls_isolation.test.ts",
       "supabase/tests/rls_write.test.ts",
@@ -373,6 +400,7 @@
       "e2e/tests/fieldwork.spec.ts",
       "e2e/tests/filters.spec.ts",
       "e2e/tests/lifecycle.spec.ts",
+      "e2e/tests/metadata.spec.ts",
       "e2e/tests/projects.spec.ts",
       "e2e/tests/snags.spec.ts",
       "e2e/tests/team.spec.ts"

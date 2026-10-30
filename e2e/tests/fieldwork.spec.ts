@@ -144,6 +144,7 @@ test('enlarged phone text keeps controls clear of fixed navigation', async ({ pa
   }));
   expect(layout.width <= layout.viewport, JSON.stringify(layout)).toBe(true);
   const submit = page.getByRole('button', { name: 'Post comment' });
+  await page.getByLabel('Add a comment', { exact: true }).fill('Phone keyboard update');
   await submit.focus();
   await submit.scrollIntoViewIfNeeded();
   const bounds = await submit.boundingBox();
@@ -151,4 +152,25 @@ test('enlarged phone text keeps controls clear of fixed navigation', async ({ pa
   expect(bounds).not.toBeNull();
   expect(navigation).not.toBeNull();
   expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(navigation!.y);
+});
+
+test('unavailable comment reads show a retry state while composition remains available', async ({
+  page,
+  request,
+}) => {
+  await login(page);
+  await request.put('http://127.0.0.1:55440/_test/comments-failure?enabled=true');
+  try {
+    await page.goto('/snags/12010101-0101-4101-8101-000000000001');
+    const thread = page.getByRole('region', { name: 'Comments' });
+    await expect(thread.getByRole('alert')).toContainText('Comments could not be loaded');
+    await expect(thread.getByText('No comments yet.', { exact: true })).toHaveCount(0);
+    await expect(thread.getByLabel('Add a comment', { exact: true })).toBeVisible();
+    await request.put('http://127.0.0.1:55440/_test/comments-failure?enabled=false');
+    await thread.getByRole('link', { name: 'Refresh comments' }).click();
+    await expect(thread).toContainText('Adjustment complete.');
+    await expect(thread.getByRole('alert')).toHaveCount(0);
+  } finally {
+    await request.put('http://127.0.0.1:55440/_test/comments-failure?enabled=false');
+  }
 });

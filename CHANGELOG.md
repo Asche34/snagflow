@@ -2,6 +2,12 @@
 
 History lives here + git log; current state lives in `docs/AI/PROJECT-STATE.md`; future in `SNAGFLOW_BUILD_PROMPT.md` §15.
 
+## 2026-10-30 — Phase 2 web core complete locally
+
+- Project location/category management with confirmed unused deletion, preserved historical snag references, database hierarchy safeguards and complete project-scoped selectors (migration 14, local only).
+- Thread-local comment composition with validation, draft retention, safe lost-response retry, complete paginated reads and explicit unavailable/retry feedback.
+- 180 targeted checks passed; independent review findings resolved. Two-session member/manager collaboration verified with manual refresh. Hosted deployment remains pending; next is Phase 3 realtime/notifications/workflow polish. Handoff: `docs/AI/PHASE2-COMPLETE-2026-10-30.md`.
+
 ## Unreleased — AI-readiness restructure + local-stack bring-up
 
 - AGENTS.md entry point, `docs/AI/` index set, `project_manifest.json`, `.ai/index.json`,

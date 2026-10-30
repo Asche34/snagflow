@@ -22,7 +22,7 @@ Full functional spec: `SNAGFLOW_BUILD_PROMPT.md` (authoritative for intended sco
 ## Where things live (short map — full map: docs/AI/REPOSITORY-MAP.md)
 
 ```
-apps/web/src/app/          web pages (currently: placeholder home)
+apps/web/src/app/          web auth, dashboard, projects, snag and invitation routes
 apps/mobile/src/app/       mobile screens (currently: placeholder home)
 packages/shared/src/       permissions.ts | workflow.ts | schemas.ts | roles.ts | terminology.ts
 supabase/migrations/       numbered SQL only — schema changes NEVER elsewhere
@@ -103,9 +103,10 @@ They apply IN ADDITION to this file when working in those apps.
 
 ## Current state (summary — truth: docs/AI/PROJECT-STATE.md)
 
-Phases 0 (scaffold) and 1 (database/auth/security) are complete: schema, RLS, workflow RPCs,
-storage, seed, DB test suite, full quality gate green. Phase 2 (web core: auth, dashboard,
-projects, snag CRUD, team, realtime basics) is the recommended next step.
+Phases 0–2 are complete locally: scaffold, database/auth/security and web core including
+project/team/location/category management, snag capture and comments. Phase 3 (realtime,
+notifications and remaining workflow UX) is the recommended next step. Hosted migrations
+and invitation runtime configuration remain separate deployment work; consult the latest handoff.
 Terminal-stage phase definitions live in `SNAGFLOW_BUILD_PROMPT.md` §15.
 
 ## Trust hierarchy

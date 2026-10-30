@@ -62,6 +62,9 @@ unrestricted shell on this workstation. No hosted credentials are involved.
 | web | production build/typecheck plus separate real-auth and UI-only Playwright suites |
 | web project creation/editing | `e2e/tests/projects.spec.ts` (real backend, disposable project fixtures) |
 | web team/invitations | `e2e/tests/team.spec.ts` (real backend and local Mailpit on 54324; server service key + APP_URL required) |
+| web project metadata/comments | `e2e/tests/metadata.spec.ts` (real backend, historical references, hierarchy, retries, caps, role revocation, responsive forms, two-session collaboration) |
+| metadata DB integrity/concurrency | `supabase/tests/metadata.test.ts` (real backend, including five opposite-parent-move races) |
+| comment read failures / Fieldwork UI | `e2e/tests/fieldwork.spec.ts` with isolated `e2e/fixtures/fieldwork-api.mjs` transport |
 | mobile | typecheck (Expo scaffold; later phase) |
 
 ## Capture browser fixtures
