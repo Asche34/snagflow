@@ -1,5 +1,5 @@
 'use client';
-import { useActionState, useId } from 'react';
+import { useActionState, useId, useState } from 'react';
 import { assignSnag } from '@/app/(app)/snags/actions';
 import { Button } from './ui/button';
 import { nativeSelectClass, type FormOption } from './snag-form';
@@ -13,7 +13,15 @@ export function SnagAssignment({
   assigneeId: string | null;
   options: FormOption[];
 }) {
-  const [state, action, pending] = useActionState(assignSnag, {});
+  const [draft, setDraft] = useState<{ value: string; base: string | null } | null>(null);
+  const [state, action, pending] = useActionState(
+    async (previous: Awaited<ReturnType<typeof assignSnag>>, data: FormData) => {
+      const result = await assignSnag(previous, data);
+      if (result.ok) setDraft(null);
+      return result;
+    },
+    {},
+  );
   const selectId = `${useId()}-${snagId}-assignment`;
   return (
     <form action={action} className="space-y-3">
@@ -25,7 +33,14 @@ export function SnagAssignment({
         id={selectId}
         name="assigneeId"
         className={nativeSelectClass}
-        defaultValue={assigneeId ?? ''}
+        value={draft?.value ?? assigneeId ?? ''}
+        onChange={(event) =>
+          setDraft(
+            event.target.value === (assigneeId ?? '')
+              ? null
+              : { value: event.target.value, base: assigneeId },
+          )
+        }
         disabled={pending}
       >
         <option value="">Unassigned</option>
@@ -35,6 +50,12 @@ export function SnagAssignment({
           </option>
         ))}
       </select>
+      {draft && draft.base !== assigneeId ? (
+        <p role="status" className="text-sm text-muted-foreground">
+          Assignment changed remotely. Your selection has been kept; saving will replace the current
+          assignment.
+        </p>
+      ) : null}
       {state.error ? (
         <p role="alert" className="text-sm text-destructive">
           {state.error}

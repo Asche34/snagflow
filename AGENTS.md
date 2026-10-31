@@ -103,9 +103,9 @@ They apply IN ADDITION to this file when working in those apps.
 
 ## Current state (summary — truth: docs/AI/PROJECT-STATE.md)
 
-Phases 0–2 are complete locally: scaffold, database/auth/security and web core including
-project/team/location/category management, snag capture and comments. Phase 3 (realtime,
-notifications and remaining workflow UX) is the recommended next step. Hosted migrations
+Phases 0–3 are complete locally: scaffold, database/auth/security, web core, realtime,
+notifications and manager workflows. Phase 4 (image markup, reports and revisions) is
+the recommended next step. Hosted migrations
 and invitation runtime configuration remain separate deployment work; consult the latest handoff.
 Terminal-stage phase definitions live in `SNAGFLOW_BUILD_PROMPT.md` §15.
 

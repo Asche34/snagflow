@@ -4,7 +4,7 @@ SnagFlow is a collaborative snag, punch-list, and defect tracker for constructio
 
 Work is organized by project, location, category, priority, and due date. The intended field workflow connects issue evidence, assigned corrective work, review, and an auditable history across a web workspace and a future mobile app.
 
-**Current status:** version 0.1.0, under active development. The web workspace supports project creation/editing, team management and invitations, snag capture, search/filtering, photos, assignment, and review. Archive/deletion controls and live updates are still being built. The Expo mobile app is a scaffold.
+**Current status:** version 0.1.0, phases 0–3 complete locally. The web workspace supports project/team/location/category management, invitations, capture/search/photos, archive/deletion, manager workflows, realtime collaboration and personal notifications. The Expo mobile app is a scaffold; hosted deployment configuration remains separate work.
 
 ## How it works
 
@@ -38,11 +38,11 @@ Permissions are enforced in PostgreSQL through row-level security, triggers, and
 - The Fieldwork visual system: forest navigation, orange actions, responsive layouts, mobile project navigation, keyboard focus handling, and readable status indicators.
 - Database support for snag creation, assignment, workflow validation, private file storage, audit events, and notification records.
 - Seeded demo data, automated authorization/workflow tests, and browser regression coverage.
+- Project archive/restore, audited snag soft deletion, and location/category editing with historical-reference protection.
+- Authenticated realtime snag/comment/photo updates with reconnect recovery, a private notifications bell, and live review/reject/reopen workflows. Removals and access changes also reconcile every 15 visible seconds.
 
 ### Still to build
 
-- Project archive, snag soft-delete controls, and location/category editing.
-- Live updates and the notifications interface.
 - Photo markup, PDF/Excel reports, and revision handling.
 - Mobile field capture, offline synchronization, and push notifications.
 

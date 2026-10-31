@@ -119,7 +119,7 @@ test('viewer/member roster stays read-only and managers cannot send new-account 
   expect(r.status()).toBe(403);
 });
 
-test('revocation after load prevents adding users and retains the email draft', async ({
+test('revocation after load removes team management and prevents adding users', async ({
   page,
 }) => {
   await login(page);
@@ -131,13 +131,17 @@ test('revocation after load prevents adding users and retains the email draft', 
     role: 'viewer',
   });
   try {
-    await team(page).getByRole('button', { name: 'Add member', exact: true }).click();
-    await expect(team(page).getByRole('alert')).toContainText('permission');
-    // Let any post-action RSC refresh settle before asserting that the draft survived.
-    await page.waitForLoadState('networkidle');
-    await expect(team(page).getByLabel('Existing account email', { exact: true })).toHaveValue(
-      'member2@snagflow.test',
+    await expect(team(page).getByRole('button', { name: 'Add member', exact: true })).toHaveCount(
+      0,
+      { timeout: 20_000 },
     );
+    expect(
+      await (
+        await fixture(
+          `project_members?project_id=eq.${project}&user_id=eq.44444444-4444-4444-8444-444444444444`,
+        )
+      ).json(),
+    ).toHaveLength(0);
   } finally {
     await fixture(`project_members?project_id=eq.${project}&user_id=eq.${manager}`, 'PATCH', {
       role: 'manager',

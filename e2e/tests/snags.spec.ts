@@ -142,7 +142,7 @@ test('save and add another starts a fresh draft without duplicate first snag', a
   await page.getByLabel('Title', { exact: true }).fill(title);
   await page.getByRole('button', { name: 'Save & add another', exact: true }).click();
   await expect(page.getByLabel('Title', { exact: true })).toHaveValue('');
-  await expect(page.getByRole('status')).toContainText('Snag saved');
+  await expect(page.getByRole('status').filter({ hasText: 'Snag saved' })).toContainText('Snag saved');
   const response = await fixture(
     `snags?project_id=eq.${projectId}&title=eq.${encodeURIComponent(title)}&select=id`,
   );

@@ -177,6 +177,10 @@ test('lost committed delete response offers safe return to refreshed project wit
   await expect(dialog(page).getByRole('alert')).toContainText('could not be confirmed');
   await page.unroute('**/*');
   expect((await (await fixture(`snags?id=eq.${third}`)).json())[0].deleted_at).toBeTruthy();
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  // Exercise the live hook's 250ms coalescing window while recovery is open.
+  await page.waitForTimeout(500);
+  await expect(dialog(page).getByRole('alert')).toContainText('could not be confirmed');
   await dialog(page).getByRole('button', { name: 'Confirm delete', exact: true }).click();
   await expect(dialog(page).getByRole('alert')).toContainText('already deleted');
   const beforeRecovery = await page.evaluate(() => performance.timeOrigin);

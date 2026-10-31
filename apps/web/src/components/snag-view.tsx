@@ -222,6 +222,9 @@ export async function SnagView({ params }: { params: Promise<{ snagId: string }>
                             {describeAction(entry.action)}
                           </span>
                         </p>
+                        {entry.meta && typeof entry.meta === 'object' && !Array.isArray(entry.meta) && typeof entry.meta.comment === 'string' ? (
+                          <p className="mt-1 whitespace-pre-wrap break-words border-l-2 pl-3 text-sm [overflow-wrap:anywhere]">{entry.meta.comment}</p>
+                        ) : null}
                         <p className="text-xs text-muted-foreground">
                           {formatDateTime(entry.created_at)}
                         </p>

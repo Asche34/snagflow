@@ -18,6 +18,7 @@ Migrations (append-only, apply in order — details in-file):
 | `20261029000012_snag_search.sql` | generated `snags.search_document` English tsvector (title + description), GIN index; RLS remains authoritative |
 | `20261029000013_team_invitations.sql` | canonical-email member add, scoped role/removal, admin invite preparation, project cancellation, recipient-bound lookup/atomic acceptance; authenticated execution only |
 | `20261030000014_project_metadata.sql` | preserve historical snag references and child locations on deletion; immutable metadata identity/project, validated names/order, same-project acyclic hierarchy with serialized parent writes; existing RLS unchanged |
+| `20261031000015_realtime_notifications.sql` | RLS-filtered snags/comments/photos/notifications publication; comment notifications for distinct active authorized creator/assignee recipients, excluding the author |
 
 ## Table cards
 

@@ -1,5 +1,42 @@
 import { expect, test, type Page } from '@playwright/test';
 
+// The production bundle contains its build-time public backend URL. Keep the
+// fixture-only browser traffic isolated too; live behavior uses real Supabase
+// in phase3.spec.ts. Never send a fixture JWT to the real local stack.
+test.beforeEach(async ({ page }) => {
+  await page.route(/\/rest\/v1\/notifications(?:\?|$)/, (route) =>
+    route.fulfill({
+      status: 200,
+      headers: { 'content-type': 'application/json', 'content-range': '*/0' },
+      body: route.request().method() === 'HEAD' ? '' : '[]',
+    }),
+  );
+  await page.routeWebSocket(/\/realtime\/v1\/websocket/, (socket) => {
+    socket.onMessage((message) => {
+      const raw = JSON.parse(String(message));
+      const [join, ref, topic, event, payload] = Array.isArray(raw)
+        ? raw
+        : [raw.join_ref, raw.ref, raw.topic, raw.event, raw.payload];
+      if (event !== 'phx_join' && event !== 'heartbeat') return;
+      const response = {
+        status: 'ok',
+        response: {
+          postgres_changes: (payload?.config?.postgres_changes ?? []).map(
+            (scope: object, id: number) => ({ ...scope, id }),
+          ),
+        },
+      };
+      socket.send(
+        JSON.stringify(
+          Array.isArray(raw)
+            ? [join, ref, topic, 'phx_reply', response]
+            : { join_ref: join, ref, topic, event: 'phx_reply', payload: response },
+        ),
+      );
+    });
+  });
+});
+
 async function login(page: Page, role = 'manager') {
   await page.goto('/login');
   await page.getByLabel('Email', { exact: true }).fill(`${role}@snagflow.test`);

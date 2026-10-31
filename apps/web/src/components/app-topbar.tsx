@@ -4,9 +4,11 @@ import { Button } from "@/components/ui/button";
 import { signOut } from "@/app/actions";
 import { initialsOf, loadWorkspace } from "@/lib/data";
 import { cn } from "@/lib/utils";
+import { NotificationBell } from "./notification-bell";
+import { LiveWorkspace } from "./live-workspace";
 
 export async function AppTopbar() {
-  const workspace = await loadWorkspace();
+  const workspace = await loadWorkspace({ includeSnags: false });
   if (!workspace) redirect("/login");
 
   const { user, profile, companyName } = workspace;
@@ -20,6 +22,8 @@ export async function AppTopbar() {
       </p>
 
       <div className="flex shrink-0 items-center gap-2 sm:gap-4">
+        <LiveWorkspace userId={user.id} projectIds={workspace.projects.map((project) => project.id)} />
+        <NotificationBell key={user.id} userId={user.id} />
         <div className="flex items-center gap-2">
           <span className="hidden size-9 shrink-0 items-center justify-center rounded-full bg-secondary text-xs font-semibold text-secondary-foreground sm:flex" aria-hidden>
             {initialsOf(displayName)}

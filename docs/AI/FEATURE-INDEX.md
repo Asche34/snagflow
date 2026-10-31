@@ -120,10 +120,24 @@ Tests: `supabase/tests/metadata.test.ts`, `e2e/tests/metadata.spec.ts`. Delivery
 ### FEAT-WEB-COMMENTS (done, web)
 Thread-local member/manager composer, shared validation, character count, focused feedback, draft retention and stable-UUID response-loss recovery. Project RLS remains authoritative; thread reads paginate beyond the backend cap and distinguish unavailable reads from empty threads.
 Impl: `apps/web/src/components/comment-form.tsx`, `snag-view.tsx`, `apps/web/src/app/(app)/snags/[snagId]/actions.ts`, `apps/web/src/lib/data.ts`.
-Tests: `e2e/tests/metadata.spec.ts`, `e2e/tests/fieldwork.spec.ts`. Cross-session collaboration uses explicit refresh; realtime remains Phase 3.
+Tests: `e2e/tests/metadata.spec.ts`, `e2e/tests/fieldwork.spec.ts`. Live cross-session updates and reconnect coverage are delivered below.
+
+### FEAT-REALTIME (done, web)
+Authenticated Postgres Changes on project snags and the open snag's comments/photos; coalesced server reconciliation, reconnect/foreground catch-up, connection feedback and author-aware notices. Visible-page 15-second reconciliation catches removals and revoked access without unsafe DELETE subscriptions. Initial Realtime authentication is awaited before subscribing.
+Impl: `apps/web/src/lib/use-live-updates.ts`, `apps/web/src/components/live-workspace.tsx`, `apps/web/src/components/app-topbar.tsx`.
+DB: `supabase/migrations/20261031000015_realtime_notifications.sql`. Tests: `e2e/tests/phase3.spec.ts`.
+
+### FEAT-NOTIF-UI (done, web)
+Personal live bell with exact unread count, latest 30 updates, snag links, individual/all read actions, separate read/write recovery and accessible responsive dialog. Comment inserts notify distinct active, still-authorized creator/assignee recipients except the actor. Existing workflow notifications are reused.
+Impl: `apps/web/src/components/notification-bell.tsx`; migration 15 comment trigger.
+Tests: `supabase/tests/notifications.test.ts`, `e2e/tests/phase3.spec.ts`.
+
+### FEAT-WORKFLOW-UI (done, web)
+Existing assignment/shared-map status controls and dashboard review queue reconcile live. Required reject/reopen reasons, controlled drafts, focused transport/RPC errors, pending locks and visible audit reasons complete the manager loop. Pristine assignment selections follow remote changes; intentional drafts retain their value with a conflict hint.
+Impl: `apps/web/src/components/snag-actions.tsx`, `apps/web/src/components/snag-assignment.tsx`, `apps/web/src/components/snag-view.tsx`, existing transition server action. RPC and shared authorization/workflow contracts unchanged.
+Tests: `e2e/tests/phase3.spec.ts`, existing snag/workflow suites. Delivery: `docs/AI/PHASE3-COMPLETE-2026-10-31.md`.
 
 ## PLANNED (spec §15 — do not build before prior phases)
 
-- FEAT-WORKFLOW-UI / FEAT-REALTIME / FEAT-NOTIF-UI — Phase 3
 - FEAT-MARKUP / FEAT-REPORTS — Phase 4
 - FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7

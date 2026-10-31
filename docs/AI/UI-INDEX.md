@@ -9,6 +9,11 @@
 Shared components: `apps/web/src/components/ui/*` (button, badge, card, dialog, dropdown-menu, input, select, separator, skeleton, tabs, textarea, avatar).
 Helpers: `apps/web/src/lib/utils.ts::cn`.
 
+Phase 3 is delivered in the existing workspace: personal notifications bell in the topbar,
+live project/dashboard/detail refresh, reconnect feedback, required reject/reopen reasons and
+visible audit reasons. The review queue remains on `/dashboard`; no separate `/queue` route
+was introduced. See `docs/AI/PHASE3-COMPLETE-2026-10-31.md` and the feature index.
+
 Current lifecycle controls: `apps/web/src/components/lifecycle-control.tsx`, integrated in
 project and snag views. Manager/admin archive/restore and delete use Fieldwork Radix confirmations,
 initial Cancel focus, hydration/pending gating and focused errors. Dashboard Archived projects
@@ -22,7 +27,6 @@ provides retained project access; active navigation/queues omit archived project
 | Projects list/detail | `/projects`, `/projects/[id]` | 2 | member-of or admin |
 | Snag list + detail + create | `/projects/[id]/snags…`, `/snags/[id]` | 2 | per action matrix |
 | Team management | `/projects/[id]/team` | 2 | manager/admin (users: admin) |
-| Review queue, notifications | `/queue`, bell | 3 | manager/admin |
 | Settings, reports | `/settings`, `/reports` | 4 | admin |
 
 ## Mobile (`apps/mobile`, Expo Router)

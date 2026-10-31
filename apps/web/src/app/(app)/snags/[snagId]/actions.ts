@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { CommentCreateSchema, UUIDSchema, type SnagStatus } from '@snagflow/shared';
+import { CommentCreateSchema, UUIDSchema, SNAG_STATUSES, type SnagStatus } from '@snagflow/shared';
 import { createClient } from '@/lib/supabase/server';
 import { friendlyTransitionError } from '@/lib/errors';
 
@@ -23,7 +23,7 @@ export async function transitionSnag(
   const toStatus = String(formData.get('toStatus') ?? '') as SnagStatus;
   const comment = String(formData.get('comment') ?? '').trim();
 
-  if (!snagId || !toStatus) {
+  if (!UUIDSchema.safeParse(snagId).success || !SNAG_STATUSES.includes(toStatus) || comment.length > 5000) {
     return { error: 'Missing snag or target status.' };
   }
 
@@ -38,8 +38,7 @@ export async function transitionSnag(
     return { error: friendlyTransitionError(error.message) };
   }
 
-  revalidatePath(`/snags/${snagId}`);
-  revalidatePath('/dashboard');
+  revalidatePath('/', 'layout');
   return { ok: true };
 }
 

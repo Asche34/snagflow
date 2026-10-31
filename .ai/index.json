@@ -195,6 +195,36 @@
       "test": "supabase/tests/lifecycle.test.ts + e2e/tests/lifecycle.spec.ts",
       "doc": "docs/AI/ARCHIVE-DELETE-2026-10-30.md",
       "status": "done"
+    },
+    "FEAT-REALTIME": {
+      "module": "MOD-WEB",
+      "impl": [
+        "apps/web/src/lib/use-live-updates.ts",
+        "apps/web/src/components/live-workspace.tsx"
+      ],
+      "db": "supabase/migrations/20261031000015_realtime_notifications.sql",
+      "test": "e2e/tests/phase3.spec.ts",
+      "doc": "docs/AI/PHASE3-COMPLETE-2026-10-31.md"
+    },
+    "FEAT-NOTIF-UI": {
+      "module": "MOD-WEB",
+      "impl": "apps/web/src/components/notification-bell.tsx",
+      "db": "supabase/migrations/20261031000015_realtime_notifications.sql",
+      "test": [
+        "e2e/tests/phase3.spec.ts",
+        "supabase/tests/notifications.test.ts"
+      ],
+      "doc": "docs/AI/PHASE3-COMPLETE-2026-10-31.md"
+    },
+    "FEAT-WORKFLOW-UI": {
+      "module": "MOD-WEB",
+      "impl": [
+        "apps/web/src/components/snag-actions.tsx",
+        "apps/web/src/components/snag-assignment.tsx",
+        "apps/web/src/components/snag-view.tsx"
+      ],
+      "test": "e2e/tests/phase3.spec.ts",
+      "doc": "docs/AI/PHASE3-COMPLETE-2026-10-31.md"
     }
   },
   "modules": {
@@ -381,7 +411,8 @@
       "supabase/migrations/20261029000011_authorization_hardening.sql",
       "supabase/migrations/20261029000012_snag_search.sql",
       "supabase/migrations/20261029000013_team_invitations.sql",
-      "supabase/migrations/20261030000014_project_metadata.sql"
+      "supabase/migrations/20261030000014_project_metadata.sql",
+      "supabase/migrations/20261031000015_realtime_notifications.sql"
     ],
     "tests_discovered": [
       "packages/shared/tests/permissions.test.ts",
@@ -391,6 +422,7 @@
       "supabase/tests/integrity.test.ts",
       "supabase/tests/lifecycle.test.ts",
       "supabase/tests/metadata.test.ts",
+      "supabase/tests/notifications.test.ts",
       "supabase/tests/projects.test.ts",
       "supabase/tests/rls_isolation.test.ts",
       "supabase/tests/rls_write.test.ts",
@@ -401,6 +433,7 @@
       "e2e/tests/filters.spec.ts",
       "e2e/tests/lifecycle.spec.ts",
       "e2e/tests/metadata.spec.ts",
+      "e2e/tests/phase3.spec.ts",
       "e2e/tests/projects.spec.ts",
       "e2e/tests/snags.spec.ts",
       "e2e/tests/team.spec.ts"

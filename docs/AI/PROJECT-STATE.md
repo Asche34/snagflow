@@ -5,9 +5,9 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Field                | Value |
 | -------------------- | ----- |
 | Version              | 0.1.0 |
-| DB schema version    | migration `20261030000014_project_metadata.sql` (applied and verified locally; hosted application pending) |
-| Phase (spec §15)     | **2 — web core complete locally.** Phase 3 next; phases 0–1 complete. |
-| Last delivered | Project location/category management with historical references preserved; resilient thread-local comments and two-browser collaboration |
+| DB schema version    | migration `20261031000015_realtime_notifications.sql` (applied and verified locally; hosted application pending) |
+| Phase (spec §15)     | **3 — workflow and realtime complete locally.** Phase 4 next; phases 0–2 complete. |
+| Last delivered | Authenticated realtime collaboration/reconnect, personal notifications bell, live manager review/reject/reopen and assignment reconciliation |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -35,13 +35,16 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - DB: colleagues' profiles are readable inside shared projects (migration 10) — needed for names in every list
 - **E2E: `e2e/` workspace package** — Playwright driven against a **real Chrome**, 6 tests: anonymous redirect, manager sign-in, session cookie, wrong password, sign-out, viewer RLS scoping (Phase 2)
 
+- Web realtime: authenticated project/detail subscriptions, coalesced server reconciliation, reconnect/foreground catch-up, 15-second visible-page removal/access reconciliation and author-aware notices (Phase 3)
+- Web notifications: private live bell, exact unread count/latest 30, individual/all read actions and recoverable failures; migration 15 comment recipient notifications (Phase 3)
+- Web workflow: live dashboard review queue, required reject/reopen reasons, visible audit reasons, retained drafts/focused failures and remote assignment reconciliation (Phase 3)
+
 ## Features in progress
 
-- Phase 2 delivered locally; realtime/notifications and remaining workflow UX are Phase 3.
+- Phases 0–3 delivered locally; Phase 4 image markup/reports/revisions is next.
 
 ## Features remaining (order per spec §15)
 
-- Phase 3: workflow UI gating, review queue, reject/reopen UX, notifications bell, Realtime
 - Phase 4: image markup (react-konva) + PDF/Excel reports (@react-pdf/renderer, exceljs) + revisions
 - Phase 5: mobile app on hosted Supabase (auth, camera flow, review flow)
 - Phase 6: offline sync (expo-sqlite mirror, outbox, photo queue), push notifications (Edge Function)
@@ -49,6 +52,13 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Edge function `push-send` (spec §12) — not yet created
 
 ## Tests current
+
+### Phase 3 workflow and realtime — 2026-10-31
+
+- Migration 15 is applied locally and recorded in the ledger. RLS remains authoritative; no shared workflow/permission or public row/RPC type change. Local data is preserved and hosted services are untouched.
+- Final targeted verification: **191 checks passed** — 69 real-browser, nine fixture UI, 49 real DB, 39 shared and 25 transactional SQL assertions. Eight browser cases and three DB cases are new. Production build, configured web/shared/DB-test/E2E lint/typechecks, regenerated-type equivalence and AI docs/index validation passed. Full mobile/monorepo gate is not included.
+- Final full-browser log: `.superpowers/phase3-release.log` (69 passed in 4.6 minutes); fixture log: `.superpowers/phase3-fixture-release.log` (nine passed). Lost-response deletion with an explicit background-refresh signal is red/green verified. Its modal deferral also passed independent review; an already-in-flight refresh resolving after a dialog opens remains a documented minor.
+- Independent review prompted assignment-selection and recovery-feedback corrections. Real browser/SQL inspection also reproduced and fixed the installed SDK's anonymous initial-subscription race. Details, evidence and deployment limitations: `docs/AI/PHASE3-COMPLETE-2026-10-31.md`.
 
 ### Phase 2 metadata and comments — 2026-10-30
 
@@ -148,7 +158,7 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Running locally (Windows + Docker Desktop WSL2)
 
-1. `supabase.cmd start` then `supabase.cmd db reset` (API on 54321, Studio on 54323)
+1. `supabase.cmd start` (API on 54321; preserve existing data. Use `supabase.cmd db reset` only for an explicitly disposable fresh stack.)
 2. `docker compose up --build` (web app on **3003** — `WEB_PORT` in `.env` — via `host.docker.internal`)
 3. Sign in with a seeded account (password `Password123!`) — the login page lists them
 4. Browser tests: `E2E_BASE_URL=http://localhost:3003 pnpm --filter @snagflow/e2e test`
@@ -159,4 +169,4 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Next step recommended
 
-Start Phase 3: realtime snag/comment/photo updates with reconnect handling, notifications bell, then remaining review/reject/reopen UX from spec §6/§8. Latest handoff: `PHASE2-COMPLETE-2026-10-30.md`. Local schema is migration 14; hosted migrations/invitation settings remain a separate deployment step under `TEAM-INVITES-2026-10-30.md` plus migration 14. Preserve local data; do not reset an existing stack.
+Start Phase 4: image markup, PDF/Excel reports and revisions. Latest handoff: `PHASE3-COMPLETE-2026-10-31.md`. Local schema is migration 15; hosted migrations/invitation settings remain a separate deployment step under `TEAM-INVITES-2026-10-30.md` plus migrations 14–15. Preserve local data; do not reset an existing stack.

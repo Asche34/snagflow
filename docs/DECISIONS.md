@@ -2,6 +2,16 @@
 
 Every non-obvious choice made while building SnagFlow. Format: **Decision** — Reason — Alternative considered.
 
+## 2026-10-31 — Phase 3 workflow and realtime
+
+- Treat Postgres Changes as invalidation signals and reconcile through authenticated server reads. Subscribe to project snags, exact-snag detail children and exact-user notifications. Coalesce bursts for 250ms; refresh after subscription/reconnect, foreground/online recovery and every 15 visible seconds. Existing pagination, signed photos and RLS remain authoritative; avoid duplicating server models in a client cache.
+- Avoid DELETE subscriptions: Postgres Changes cannot safely apply their normal SELECT RLS/project filters to deletion payloads. Visible-page reconciliation catches photo/snags removals and revoked access with up to 15 seconds of delay; ordinary INSERT/UPDATE changes arrive live. This costs periodic reads rather than widening realtime payload visibility or altering deletion authorization.
+- Await the installed SDK's initial Realtime authentication before subscribing. Real browser tests and read-only subscription inspection demonstrated anonymous joins without it; awaiting setAuth restores authenticated RLS delivery. Keep automatic token refresh and retry failed bootstrap on foreground/interval recovery.
+- Preserve deliberate comment/reason/assignment drafts across refresh. Untouched assignment controls derive from current server props; edited controls retain their draft and explain remote changes. Reuse shared transition rules, existing manager queue and RPCs. Reasons remain stored by the existing backend in activity metadata (first 200 characters), with full rejection notification snippets.
+- Defer workspace reconciliation while a visible modal is open, then refresh after it closes. A real response-loss deletion regression showed that replacing the deleted route under its recovery dialog could remove the user's Return to project link. Bell reads remain live inside its dialog; underlying workspace changes catch up on close.
+- Bell reads latest 30 rows plus an exact unread count; individual/all read writes use the caller session and existing per-user RLS. Add a narrowly scoped after-insert comment trigger for the spec's missing creator/assignee notification emission; deduplicate recipients and exclude the actor/inactive/removed recipients.
+- Execute in the clean main checkout at user-authorized base f00f298, reuse installed CLIs and preserve the local stack. An independent reviewer identified stale assignment selection and recovery feedback issues; targeted regressions cover their fixes. Fixture browser notifications/WebSockets are mocked within the fixture suite so its fake sessions never reach the real local backend. Hosted services remain untouched.
+
 ---
 
 ## Environment decisions (made before Phase 0 code)
