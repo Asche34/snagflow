@@ -67,4 +67,3 @@ Files: mobile report UI/client, tests, `README.md`, `docs/DECISIONS.md`, AI hand
 - Review corrections were reproduced and verified: transport/profile refresh draft retention, confirmed-access clearing, changed create assignment, changed committed-comment receipts, archived-project scoping, live edit permissions and report denial clearing. Oversized number search now yields an empty lookup instead of a database integer error.
 - Hosted/device access identifiers remain unprovided after the user requested and received an explanation; local work continued. No hosted configuration/migration or external email was changed. Exact deployment checklist and physical acceptance matrix are in the Phase 5 handoff.
 - Integration follows the user's authorized commit/push to main after final staged-file checks; physical-device acceptance is not represented as complete.
-
