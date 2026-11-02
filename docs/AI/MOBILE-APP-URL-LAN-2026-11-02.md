@@ -19,10 +19,10 @@ The user has Android 16, can join the same network, and initially has neither Ex
 
 | Purpose | Address |
 | --- | --- |
-| Native App URL | `http://10.48.43.195:3003` |
-| Phone reachability check | `http://10.48.43.195:3003/api/health` |
-| Same local Supabase | `http://10.48.43.195:54321` |
-| Expo Go entry | `exp://10.48.43.195:8081` |
+| Native App URL | `http://172.20.10.183:3003` |
+| Phone reachability check | `http://172.20.10.183:3003/api/health` |
+| Same local Supabase | `http://172.20.10.183:54321` |
+| Expo Go entry | `exp://172.20.10.183:8081` |
 | Existing PC web app | `http://127.0.0.1:3003` |
 
 1. Install [Expo Go for SDK 58 on Android](https://expo.dev/go?device=true&platform=android&sdkVersion=58), then put the phone on the PC's Wi-Fi. The installed native Skia version 2.14.0 is listed as included in [SDK 58 Expo Go](https://docs.expo.dev/versions/v58.0.0/sdk/skia/).
@@ -35,10 +35,10 @@ Expo Go is a convenient local password/camera/markup/share trial. It does not in
 
 ## Runtime and network controls
 
-- The existing standalone stays bound to loopback3003. `scripts/mobile/lan-forwarder.mjs` binds **only** Wi-Fi10.48.43.195:3003 and forwards to loopback3003; it does not select an upstream from an incoming URL. It also supports WebSocket forwarding for development use.
-- Local runtime has `MOBILE_PUBLIC_SUPABASE_URL=http://10.48.43.195:54321`; `SUPABASE_SERVER_URL` remains on loopback54321 so Wi-Fi changes do not break the PC backend connection. The existing server-only invitation key and canonical APP_URL are restored privately by `.superpowers/app-url/start-web.ps1`, based on the previous task-owned runtime script. No credentials are printed. The compiled PC browser backend remains unchanged.
+- The existing standalone stays bound to loopback3003. `scripts/mobile/lan-forwarder.mjs` binds **only** Wi-Fi172.20.10.183:3003 and forwards to loopback3003; it does not select an upstream from an incoming URL. It also supports WebSocket forwarding for development use.
+- Local runtime has `MOBILE_PUBLIC_SUPABASE_URL=http://172.20.10.183:54321`; `SUPABASE_SERVER_URL` remains on loopback54321 so Wi-Fi changes do not break the PC backend connection. The existing server-only invitation key and canonical APP_URL are restored privately by `.superpowers/app-url/start-web.ps1`, based on the previous task-owned runtime script. No credentials are printed. The compiled PC browser backend remains unchanged.
 - Expo Go Metro runs on8081 with explicit Wi-Fi hostname and local App URL/backend defaults. PC probes confirm an Android SDK58 manifest with the Wi-Fi bundle host. The exact current Android development bundle is fetched as a separate compile check; this is not a phone-run claim.
-- **User-approved firewall rule:** `SnagFlow-LAN-phone-test`, inbound TCP3003/54321/8081, local address10.48.43.195, remote LocalSubnet, firewall otherwise enabled. Automatic approval initially rejected this persistent rule; it was applied only after the user explicitly approved these exact settings. The address changed during setup; the rule was updated only after a second explicit user approval. Remove it after testing with `Remove-NetFirewallRule -Name 'SnagFlow-LAN-phone-test'` in an elevated shell.
+- **User-approved firewall rule:** `SnagFlow-LAN-phone-test`, inbound TCP3003/54321/8081, local address172.20.10.183, remote LocalSubnet, firewall otherwise enabled. Automatic approval initially rejected this persistent rule; it was applied only after the user explicitly approved these exact settings. The address changed during setup and was updated after explicit user approval; the final network returned to the originally approved 172.20.10.183, so runtime, QR and rule were restored to that approved address. Remove it after testing with `Remove-NetFirewallRule -Name 'SnagFlow-LAN-phone-test'` in an elevated shell.
 - If Wi-Fi/IP changes, update runtime public addresses, restart the bridge/Metro, and replace the scoped firewall address. Do not listen on a public adapter or disable the firewall. Stop the task-owned Next process before rebuilding on Windows; restore its private invitation settings on restart.
 
 ## Verification and review
