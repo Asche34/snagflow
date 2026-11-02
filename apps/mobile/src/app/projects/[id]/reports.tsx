@@ -32,7 +32,8 @@ import {
   shareReport,
   type ReportRevision,
 } from '../../../lib/reports';
-import { supabase } from '../../../lib/supabase';
+import { getApiBaseUrl, isCurrentClient } from '../../../lib/supabase';
+import { guardedFetch } from '../../../lib/connection';
 import { useResource } from '../../../lib/use-resource';
 import { useAuth } from '../../../providers/auth';
 import { AccessUnavailableError } from '../../../lib/online';
@@ -127,7 +128,7 @@ export default function ReportsScreen() {
 }
 
 function ReportsWorkspace({ id }: { id: string }) {
-  const { session, profile } = useAuth();
+  const { client: supabase, session, profile } = useAuth();
   const [page, setPage] = useState(1);
   const [format, setFormat] = useState<ReportRequest['format']>('pdf');
   const [theme, setTheme] = useState<ReportRequest['theme']>('classic');
@@ -142,10 +143,14 @@ function ReportsWorkspace({ id }: { id: string }) {
   const config = useMemo(() => {
     try {
       return {
-        api: createReportApi(process.env.EXPO_PUBLIC_API_BASE_URL ?? '', async () => {
-          const { data, error: sessionError } = await supabase.auth.getSession();
-          return sessionError ? null : (data.session?.access_token ?? null);
-        }),
+        api: createReportApi(
+          getApiBaseUrl(),
+          async () => {
+            const { data, error: sessionError } = await supabase.auth.getSession();
+            return sessionError ? null : (data.session?.access_token ?? null);
+          },
+          guardedFetch(fetch, () => isCurrentClient(supabase)),
+        ),
         error: null,
       };
     } catch (setupError) {
@@ -154,13 +159,13 @@ function ReportsWorkspace({ id }: { id: string }) {
         error:
           setupError instanceof Error
             ? setupError.message
-            : 'Set EXPO_PUBLIC_API_BASE_URL to the web app URL.',
+            : 'Connect to your app URL from the sign-in screen.',
       };
     }
-  }, []);
+  }, [supabase]);
   const resource = useResource(
     async () => {
-      const context = await projectContext(id, session!.user.id);
+      const context = await projectContext(id, session!.user.id, supabase);
       const allowed = canAct(
         profile?.is_active ? { id: session!.user.id, isAdmin: profile.is_admin } : null,
         context.role,
@@ -235,7 +240,7 @@ function ReportsWorkspace({ id }: { id: string }) {
     setPending('Preparing private download');
     try {
       const url = await config.api.download(report.id);
-      await shareReport(url, report, Platform.OS);
+      await shareReport(url, report, Platform.OS, () => isCurrentClient(supabase));
     } catch (failure) {
       if (failure instanceof AccessUnavailableError) {
         setAccessLost(true);

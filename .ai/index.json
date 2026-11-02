@@ -283,6 +283,24 @@
         "e2e/mobile-tests"
       ],
       "doc": "docs/AI/PHASE5-MOBILE-2026-11-02.md"
+    },
+    "FEAT-MOBILE-CONNECTION": {
+      "module": "MOD-MOBILE",
+      "impl": [
+        "packages/shared/src/mobile-connection.ts",
+        "apps/mobile/src/providers/connection.tsx",
+        "apps/mobile/src/lib/connection.ts",
+        "apps/web/src/app/api/mobile-config/route.ts"
+      ],
+      "test": [
+        "apps/mobile/tests/connection.test.ts",
+        "apps/mobile/tests/connection-mutation.test.ts",
+        "apps/mobile/tests/report-switch.test.ts",
+        "packages/shared/tests/mobile-connection.test.ts",
+        "packages/shared/tests/mobile-config.test.ts",
+        "e2e/mobile-tests/app-url.spec.ts"
+      ],
+      "doc": "docs/AI/MOBILE-APP-URL-LAN-2026-11-02.md"
     }
   },
   "modules": {
@@ -413,6 +431,12 @@
         "file": "apps/web/src/app/api/reports/[reportId]/route.ts",
         "auth": "active project manager/admin",
         "note": "short-lived private download signing"
+      },
+      {
+        "method": "GET/OPTIONS",
+        "url": "/api/mobile-config",
+        "file": "apps/web/src/app/api/mobile-config/route.ts",
+        "auth": "public explicit allowlist, no-store"
       }
     ],
     "mobile": [
@@ -539,6 +563,8 @@
     ],
     "tests_discovered": [
       "packages/shared/tests/annotations.test.ts",
+      "packages/shared/tests/mobile-config.test.ts",
+      "packages/shared/tests/mobile-connection.test.ts",
       "packages/shared/tests/permissions.test.ts",
       "packages/shared/tests/photos.test.ts",
       "packages/shared/tests/report-outputs.test.mjs",
@@ -556,11 +582,15 @@
       "supabase/tests/team.test.ts",
       "supabase/tests/workflow.test.ts",
       "apps/mobile/tests/auth.test.ts",
+      "apps/mobile/tests/connection-mutation.test.ts",
+      "apps/mobile/tests/connection.test.ts",
       "apps/mobile/tests/markup.test.ts",
       "apps/mobile/tests/mobile-live.test.ts",
       "apps/mobile/tests/online.test.ts",
       "apps/mobile/tests/photos.test.ts",
+      "apps/mobile/tests/report-switch.test.ts",
       "apps/mobile/tests/reports.test.ts",
+      "e2e/mobile-tests/app-url.spec.ts",
       "e2e/mobile-tests/mobile.spec.ts",
       "e2e/tests/auth.spec.ts",
       "e2e/tests/fieldwork.spec.ts",

@@ -8,14 +8,17 @@ import {
 } from '@snagflow/shared';
 import { supabase } from './supabase';
 import { stableWrite } from './online';
-async function userId() {
-  const { data, error } = await supabase.auth.getUser();
+import { assertConnectionClient } from './connection';
+async function userId(client: typeof supabase) {
+  assertConnectionClient(client, supabase);
+  const { data, error } = await client.auth.getUser();
+  assertConnectionClient(client, supabase);
   if (error || !data.user) throw Error('Sign in again before saving.');
   return data.user.id;
 }
-export async function saveSnag(input: SnagCreate) {
+export async function saveSnag(input: SnagCreate, client = supabase) {
   const value = SnagCreateSchema.parse(input);
-  const actor = await userId();
+  const actor = await userId(client);
   const details = {
     title: value.title,
     description: value.description ?? null,
@@ -27,7 +30,7 @@ export async function saveSnag(input: SnagCreate) {
   // The BEFORE INSERT trigger replaces this placeholder with its locked project counter.
   const row = await stableWrite(
     async () => {
-      const r = await supabase
+      const r = await client
         .from('snags')
         .select('*')
         .eq('client_id', value.clientId)
@@ -38,7 +41,7 @@ export async function saveSnag(input: SnagCreate) {
       return r.data;
     },
     async () => {
-      const r = await supabase
+      const r = await client
         .from('snags')
         .insert({
           ...details,
@@ -54,21 +57,27 @@ export async function saveSnag(input: SnagCreate) {
     },
   );
   if (Object.entries(details).some(([key, value]) => row[key as keyof typeof row] !== value))
-    await updateSnag(row.id, {
-      title: value.title,
-      description: value.description ?? null,
-      priority: value.priority,
-      categoryId: value.categoryId ?? null,
-      locationId: value.locationId ?? null,
-      dueDate: value.dueDate ?? null,
-    });
+    await updateSnag(
+      row.id,
+      {
+        title: value.title,
+        description: value.description ?? null,
+        priority: value.priority,
+        categoryId: value.categoryId ?? null,
+        locationId: value.locationId ?? null,
+        dueDate: value.dueDate ?? null,
+      },
+      client,
+    );
   if (value.assigneeId !== undefined && row.assignee_id !== value.assigneeId)
-    await assignSnag(row.id, value.assigneeId);
+    await assignSnag(row.id, value.assigneeId, client);
+  assertConnectionClient(client, supabase);
   return row;
 }
-export async function updateSnag(id: string, input: unknown) {
+export async function updateSnag(id: string, input: unknown, client = supabase) {
+  assertConnectionClient(client, supabase);
   const v = SnagUpdateSchema.parse(input);
-  const r = await supabase
+  const r = await client
     .from('snags')
     .update({
       title: v.title,
@@ -82,36 +91,46 @@ export async function updateSnag(id: string, input: unknown) {
     .select('id')
     .single();
   if (r.error) throw r.error;
+  assertConnectionClient(client, supabase);
 }
-export async function assignSnag(snagId: string, assigneeId: string | null) {
+export async function assignSnag(snagId: string, assigneeId: string | null, client = supabase) {
+  assertConnectionClient(client, supabase);
   const v = SnagAssignSchema.parse({ snagId, assigneeId });
   // Generated PostgreSQL Args omit nullable parameters; RPC explicitly accepts NULL to unassign.
-  const r = await supabase.rpc('assign_snag', {
+  const r = await client.rpc('assign_snag', {
     p_snag_id: v.snagId,
     p_assignee_id: v.assigneeId as string,
   });
   if (r.error) throw r.error;
+  assertConnectionClient(client, supabase);
 }
-export async function transitionSnag(snagId: string, toStatus: string, comment: string) {
+export async function transitionSnag(
+  snagId: string,
+  toStatus: string,
+  comment: string,
+  client = supabase,
+) {
+  assertConnectionClient(client, supabase);
   const v = SnagTransitionSchema.parse({ snagId, toStatus, comment });
-  const r = await supabase.rpc('transition_snag', {
+  const r = await client.rpc('transition_snag', {
     p_snag_id: v.snagId,
     p_to_status: v.toStatus,
     p_comment: v.comment,
   });
   if (r.error) throw r.error;
+  assertConnectionClient(client, supabase);
 }
-export async function addComment(id: string, snagId: string, body: string) {
+export async function addComment(id: string, snagId: string, body: string, client = supabase) {
   const v = CommentCreateSchema.parse({ snagId, body });
-  const author = await userId();
+  const author = await userId(client);
   const row = await stableWrite(
     async () => {
-      const r = await supabase.from('comments').select('*').eq('id', id).maybeSingle();
+      const r = await client.from('comments').select('*').eq('id', id).maybeSingle();
       if (r.error) throw r.error;
       return r.data;
     },
     async () => {
-      const r = await supabase
+      const r = await client
         .from('comments')
         .insert({ id, snag_id: v.snagId, body: v.body, author_id: author })
         .select('*')
@@ -122,6 +141,7 @@ export async function addComment(id: string, snagId: string, body: string) {
   );
   if (row.snag_id !== snagId || row.author_id !== author)
     throw Error('This comment identity is already in use.');
+  assertConnectionClient(client, supabase);
   return row.body === v.body
     ? { saved: true as const }
     : { saved: false as const, previousBody: row.body };

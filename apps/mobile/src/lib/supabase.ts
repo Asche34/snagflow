@@ -3,19 +3,22 @@ import type { Database } from '@snagflow/shared/db-types';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import { createChunkedStorage, type SessionStorage } from './session-storage';
+import { MobileConnectionSchema, type MobileConnection } from '@snagflow/shared';
+import { CryptoDigestAlgorithm, digestStringAsync } from 'expo-crypto';
+import { connectionStorageKey, revocableStorage, guardedFetch } from './connection';
 
-const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
-const anonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-let validUrl = false;
-try {
-  validUrl = !!url && ['https:', 'http:'].includes(new URL(url).protocol);
-} catch {
-  /* Setup is rendered by the provider. */
+export let supabaseSetupError: string | null =
+  'Enter your SnagFlow app URL and tap Connect before signing in.';
+export function defaultConnection(): MobileConnection | null {
+  const parsed = MobileConnectionSchema.safeParse({
+    application: 'SnagFlow',
+    version: 1,
+    appUrl: process.env.EXPO_PUBLIC_API_BASE_URL,
+    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+  });
+  return parsed.success ? parsed.data : null;
 }
-export const supabaseSetupError =
-  !validUrl || !anonKey
-    ? 'Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in apps/mobile/.env, then restart Expo. Use the public anon key for the same Supabase project as the web app.'
-    : null;
 
 const nativeStorage = createChunkedStorage({
   getItem: (key) => SecureStore.getItemAsync(key),
@@ -38,17 +41,68 @@ const webStorage: SessionStorage = {
   },
 };
 
-// An inert client keeps imports safe before environment setup; the provider blocks all screens.
-export const supabase = createClient<Database>(
-  validUrl ? url! : 'http://127.0.0.1:1',
-  anonKey || 'unconfigured',
-  {
+const storage = Platform.OS === 'web' ? webStorage : nativeStorage;
+export const connectionPreferencesStorage = storage;
+let activeConnection: MobileConnection | null = null;
+let activeStorageKey: string | null = null;
+let deactivateStorage: (() => void) | null = null;
+// Imports remain safe before configuration; this inert client cannot persist or refresh sessions.
+export let supabase = createClient<Database>('http://127.0.0.1:1', 'unconfigured', {
+  auth: { autoRefreshToken: false, persistSession: false, detectSessionInUrl: false },
+});
+export function getApiBaseUrl(): string {
+  return activeConnection?.appUrl ?? '';
+}
+export function isCurrentClient(client: typeof supabase): boolean {
+  return client === supabase && activeStorageKey !== null;
+}
+let pendingInstallation: Promise<unknown> = Promise.resolve();
+export function installConnection(value: MobileConnection, resetSession = false): Promise<string> {
+  const result = pendingInstallation.then(() => performInstallation(value, resetSession));
+  pendingInstallation = result.catch(() => {});
+  return result;
+}
+async function performInstallation(
+  value: MobileConnection,
+  resetSession: boolean,
+): Promise<string> {
+  const next = MobileConnectionSchema.parse(value);
+  const key = await connectionStorageKey(next, (text) =>
+    digestStringAsync(CryptoDigestAlgorithm.SHA256, text),
+  );
+  if (activeStorageKey === key && !resetSession) return key;
+  const previous = supabase;
+  const previousKey = activeStorageKey;
+  activeStorageKey = null;
+  activeConnection = null;
+  supabaseSetupError = 'Reconnect to your SnagFlow app before signing in.';
+  deactivateStorage?.();
+  deactivateStorage = null;
+  await previous.auth.stopAutoRefresh();
+  await previous.removeAllChannels();
+  if (previousKey) {
+    await storage.removeItem(previousKey);
+    await storage.removeItem(`${previousKey}-code-verifier`);
+  }
+  if (resetSession && previousKey !== key) {
+    await storage.removeItem(key);
+    await storage.removeItem(`${key}-code-verifier`);
+  }
+  const guarded = revocableStorage(storage);
+  supabase = createClient<Database>(next.supabaseUrl, next.supabaseAnonKey, {
+    global: { fetch: guardedFetch(fetch, guarded.isActive) },
     auth: {
-      storage: Platform.OS === 'web' ? webStorage : nativeStorage,
-      autoRefreshToken: !supabaseSetupError,
-      persistSession: !supabaseSetupError,
+      storage: guarded.storage,
+      storageKey: key,
+      autoRefreshToken: true,
+      persistSession: true,
       detectSessionInUrl: false,
       flowType: 'pkce',
     },
-  },
-);
+  });
+  activeConnection = next;
+  activeStorageKey = key;
+  deactivateStorage = guarded.deactivate;
+  supabaseSetupError = null;
+  return key;
+}

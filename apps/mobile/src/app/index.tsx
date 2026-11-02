@@ -3,14 +3,15 @@ import { isReviewer } from '@snagflow/shared';
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 import { useAuth } from '../providers/auth';
-import { supabase } from '../lib/supabase';
+import { useConnection } from '../providers/connection';
 import { useResource } from '../lib/use-resource';
 import { listSnags } from '../lib/data';
 import { readPages } from '../lib/online';
 import { Button, Choices, ErrorText, Loading, Screen, styles } from '../components/ui';
 import { SnagList } from '../components/snag-list';
 export default function Home() {
-  const { session, profile, signOut } = useAuth();
+  const { client: supabase, session, profile, signOut } = useAuth();
+  const connection = useConnection();
   const [mode, setMode] = useState<'mine' | 'review'>('mine');
   const [page, setPage] = useState(0);
   const userId = session?.user.id ?? '';
@@ -57,7 +58,12 @@ export default function Home() {
       }
       const snags =
         mode === 'mine'
-          ? await listSnags(null, { mine: userId, projectIds: projects.map((p) => p.id) }, page)
+          ? await listSnags(
+              null,
+              { mine: userId, projectIds: projects.map((p) => p.id) },
+              page,
+              supabase,
+            )
           : await (async () => {
               const r = await query
                 .order('updated_at', { ascending: false })
@@ -81,9 +87,16 @@ export default function Home() {
       <View style={styles.row}>
         <Button label="Notifications" secondary onPress={() => router.push('/notifications')} />
         <Button label="Sign out" secondary onPress={() => void signOut()} />
+        <Button
+          label="Change app URL"
+          secondary
+          disabled={connection.busy}
+          onPress={() => void connection.resetSession()}
+        />
       </View>
       <Text style={styles.text}>Online mode · pull to refresh. Changes require a connection.</Text>
       <ErrorText error={resource.error} />
+      <ErrorText error={connection.error} />
       {resource.error && <Button label="Retry" onPress={() => void resource.refresh()} />}
       {resource.loading && !resource.data && <Loading />}
       {resource.data && (

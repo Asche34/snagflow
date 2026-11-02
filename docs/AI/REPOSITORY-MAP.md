@@ -28,6 +28,7 @@ apps/mobile/
   src/app/projects/           project lists, capture, reports
   src/app/snags/              detail, comments, workflow and photos
   src/providers/auth.tsx      secure session/profile and lifecycle
+  src/providers/connection.tsx App URL discovery/persistence and connection-keyed auth lifecycle
   src/components/             Fieldwork native forms, photos, workflow, Skia markup
   src/lib/                    typed RLS reads/mutations, photos, reports, auth helpers
   tests/                      pure units + separate local-backend integration suite
@@ -52,6 +53,7 @@ supabase/
 
 scripts/ai/update-index.mjs   regenerates derivable parts of .ai/index.json
 scripts/ai/check-ai-docs.mjs  validates AI docs, links, JSON
+scripts/mobile/lan-forwarder.mjs explicit private-interface local-device test bridge
 ```
 
 Latest implementation review: `docs/AI/REVIEW-2026-10-29.md`.

@@ -7,7 +7,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally; hosted application pending) |
 | Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
-| Last delivered | Expo auth, projects/snags, camera/native markup, assigned work/review, personal updates and report sharing |
+| Last delivered | Login App URL discovery/switching, isolated native sessions and Android16 same-Wi-Fi test setup (phone actions pending) |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -54,6 +54,12 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Edge function `push-send` (spec §12) — not yet created
 
 ## Tests current
+
+### Mobile App URL and Android LAN trial — 2026-11-02
+
+- App URL/Connect discovers a versioned public configuration, remembers it, namespaces/revokes secure sessions, clears private navigation and binds old request chains to their originating deployment. Reports follow the selected web origin and phone-reachable signed download host.
+- Verification: 175 scoped checks — mobile units50, shared/output89, local mobile API8, mobile browser8 and web auth/invite/report20. Configured monorepo build/lint/typechecks pass; Android/iOS/browser exports and current Android development bundle compilation pass. Offline Change app URL recovery is also covered. Evidence/review details: `docs/AI/MOBILE-APP-URL-LAN-2026-11-02.md`.
+- User has Android16 with no native client initially installed. Current Wi-Fi address is10.48.43.195 (it changed during preparation). User explicitly approved the scoped inbound test rule and its address update. Local health/discovery/Expo manifest and bundle probes pass from the PC; no physical phone action or hosted verification has been observed.
 
 ### Phase 5 mobile online — 2026-11-02
 
@@ -180,8 +186,8 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Blockers
 
-- Phase 5 acceptance needs hosted project/canonical API details, explicit hosted deployment authorization, and a physical device/OS plus native installation/access arrangement. These do not block local implementation.
+- Phase 5 hosted acceptance needs hosted project/canonical API details and explicit deployment authorization. Android16 local Wi-Fi testing is prepared; Expo Go installation and actual phone observations are pending. These do not block the delivered implementation.
 
 ## Next step recommended
 
-Complete Phase 5 hosted/device acceptance using `PHASE5-MOBILE-2026-11-02.md`, then start Phase 6. Local schema remains migration 17. Hosted migrations/invitation settings require separate authorization under `TEAM-INVITES-2026-10-30.md` plus migrations 14–17. Preserve local data; do not reset an existing stack.
+Run the Android16 local trial using `MOBILE-APP-URL-LAN-2026-11-02.md`, then complete hosted/device acceptance using `PHASE5-MOBILE-2026-11-02.md` before Phase6. Local schema remains migration17. Hosted migrations/invitation settings require separate authorization. Preserve local data; do not reset an existing stack.

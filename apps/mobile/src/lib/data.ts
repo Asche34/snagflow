@@ -4,17 +4,17 @@ import { AccessUnavailableError, readPages, searchIntent } from './online';
 export type Row<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Row'];
 export type ProjectContext = Awaited<ReturnType<typeof projectContext>>;
-export async function projectContext(id: string, userId: string) {
+export async function projectContext(id: string, userId: string, client = supabase) {
   const [project, membership, locations, categories, members] = await Promise.all([
-    supabase.from('projects').select('*').eq('id', id).single(),
-    supabase
+    client.from('projects').select('*').eq('id', id).single(),
+    client
       .from('project_members')
       .select('role')
       .eq('project_id', id)
       .eq('user_id', userId)
       .maybeSingle(),
     readPages(async (from, to) => {
-      const r = await supabase
+      const r = await client
         .from('locations')
         .select('*')
         .eq('project_id', id)
@@ -24,7 +24,7 @@ export async function projectContext(id: string, userId: string) {
       return r.data;
     }),
     readPages(async (from, to) => {
-      const r = await supabase
+      const r = await client
         .from('categories')
         .select('*')
         .eq('project_id', id)
@@ -34,7 +34,7 @@ export async function projectContext(id: string, userId: string) {
       return r.data;
     }),
     readPages(async (from, to) => {
-      const r = await supabase
+      const r = await client
         .from('project_members')
         .select('*,profiles!project_members_user_id_fkey(id,full_name,email,is_active)')
         .eq('project_id', id)
@@ -68,8 +68,13 @@ export type SnagFilters = {
   createdBy?: string;
   dueBefore?: string;
 };
-export async function listSnags(projectId: string | null, filters: SnagFilters = {}, page = 0) {
-  let q = supabase.from('snags').select('*', { count: 'exact' }).is('deleted_at', null);
+export async function listSnags(
+  projectId: string | null,
+  filters: SnagFilters = {},
+  page = 0,
+  client = supabase,
+) {
+  let q = client.from('snags').select('*', { count: 'exact' }).is('deleted_at', null);
   if (projectId) q = q.eq('project_id', projectId);
   if (filters.projectIds) q = q.in('project_id', filters.projectIds);
   if (filters.status) q = q.eq('status', filters.status);
@@ -92,20 +97,15 @@ export async function listSnags(projectId: string | null, filters: SnagFilters =
   if (result.error) throw result.error;
   return { rows: result.data, count: result.count ?? 0 };
 }
-export async function snagDetail(id: string, userId: string) {
-  const snag = await supabase
-    .from('snags')
-    .select('*')
-    .eq('id', id)
-    .is('deleted_at', null)
-    .single();
+export async function snagDetail(id: string, userId: string, client = supabase) {
+  const snag = await client.from('snags').select('*').eq('id', id).is('deleted_at', null).single();
   if (snag.error) throw snag.error;
   if (!snag.data) throw new AccessUnavailableError();
   const [context, photos, comments, activity] = await Promise.all([
-    projectContext(snag.data.project_id, userId),
-    supabase.from('snag_photos').select('*').eq('snag_id', id).order('sort_order'),
+    projectContext(snag.data.project_id, userId, client),
+    client.from('snag_photos').select('*').eq('snag_id', id).order('sort_order'),
     readPages(async (from, to) => {
-      const r = await supabase
+      const r = await client
         .from('comments')
         .select('*')
         .eq('snag_id', id)
@@ -116,7 +116,7 @@ export async function snagDetail(id: string, userId: string) {
       return r.data;
     }),
     readPages(async (from, to) => {
-      const r = await supabase
+      const r = await client
         .from('activity_log')
         .select('*')
         .eq('snag_id', id)

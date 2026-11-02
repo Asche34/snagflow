@@ -18,11 +18,18 @@ import {
   rememberReturnPath,
   safeReturnPath,
 } from '../lib/auth-callback';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '../providers/auth';
+import { useConnection } from '../providers/connection';
+import { AppUrlSchema } from '@snagflow/shared';
 
 export default function LoginScreen() {
-  const { session, profile, error: authError } = useAuth();
+  const { client: supabase, session, profile, error: authError } = useAuth();
+  const server = useConnection();
+  const [appUrl, setAppUrl] = useState(server.connection?.appUrl ?? '');
+  const normalized = AppUrlSchema.safeParse(appUrl);
+  const connected =
+    !!server.connection && normalized.success && normalized.data === server.connection.appUrl;
+  const locked = server.busy || !connected;
   const { returnTo } = useLocalSearchParams<{ returnTo?: string }>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,7 +42,7 @@ export default function LoginScreen() {
   }, [destination]);
 
   async function submit(mode: 'password' | 'magic') {
-    if (pending) return;
+    if (pending || locked) return;
     setError(null);
     setMessage(null);
     const canonicalEmail = email.trim().toLowerCase();
@@ -87,6 +94,59 @@ export default function LoginScreen() {
           <View style={styles.card}>
             <Text style={styles.heading}>Sign in to your team</Text>
             <Text style={styles.body}>Use the account provided by your administrator.</Text>
+            <Text nativeID="app-url-label" style={styles.label}>
+              App URL
+            </Text>
+            <TextInput
+              accessibilityLabel="App URL"
+              accessibilityLabelledBy="app-url-label"
+              style={styles.input}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              autoComplete="url"
+              value={appUrl}
+              onChangeText={setAppUrl}
+              editable={!pending && !server.busy}
+              placeholder="https://snagflow.example.com"
+              placeholderTextColor="#58675e"
+              returnKeyType="go"
+              onSubmitEditing={() => {
+                if (!pending) void server.connect(appUrl).catch(() => {});
+              }}
+            />
+            <Text style={styles.body}>
+              Enter the team web app address. For local testing, use the private IP address and port
+              of this PC.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: pending || server.busy, busy: server.busy }}
+              disabled={pending || server.busy}
+              onPress={() => {
+                setPassword('');
+                setError(null);
+                setMessage(null);
+                void server.connect(appUrl).catch(() => {});
+              }}
+              style={[styles.secondary, (pending || server.busy) && styles.disabled]}
+            >
+              <Text style={styles.secondaryText}>{server.busy ? 'Connecting…' : 'Connect'}</Text>
+            </Pressable>
+            {server.error && (
+              <Text accessibilityRole="alert" style={styles.error}>
+                {server.error}
+              </Text>
+            )}
+            {connected && (
+              <Text accessibilityLiveRegion="polite" style={styles.body}>
+                Connected to {server.connection!.appUrl}
+                {server.connection!.appUrl.startsWith('http:') ? ' · local HTTP testing' : ''}
+              </Text>
+            )}
+            {!connected && !server.busy && (
+              <Text style={styles.body}>Connect to this address before signing in.</Text>
+            )}
             <Text nativeID="email-label" style={styles.label}>
               Email
             </Text>
@@ -101,7 +161,7 @@ export default function LoginScreen() {
               textContentType="emailAddress"
               value={email}
               onChangeText={setEmail}
-              editable={!pending}
+              editable={!pending && !locked}
               returnKeyType="next"
             />
             <Text nativeID="password-label" style={styles.label}>
@@ -117,7 +177,7 @@ export default function LoginScreen() {
               textContentType="password"
               value={password}
               onChangeText={setPassword}
-              editable={!pending}
+              editable={!pending && !locked}
               onSubmitEditing={() => {
                 void submit('password');
               }}
@@ -135,23 +195,23 @@ export default function LoginScreen() {
             )}
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: pending, busy: pending }}
-              disabled={pending}
+              accessibilityState={{ disabled: pending || locked, busy: pending }}
+              disabled={pending || locked}
               onPress={() => {
                 void submit('password');
               }}
-              style={[styles.primary, pending && styles.disabled]}
+              style={[styles.primary, (pending || locked) && styles.disabled]}
             >
               <Text style={styles.primaryText}>{pending ? 'Please wait…' : 'Sign in'}</Text>
             </Pressable>
             <Pressable
               accessibilityRole="button"
-              accessibilityState={{ disabled: pending }}
-              disabled={pending}
+              accessibilityState={{ disabled: pending || locked }}
+              disabled={pending || locked}
               onPress={() => {
                 void submit('magic');
               }}
-              style={[styles.secondary, pending && styles.disabled]}
+              style={[styles.secondary, (pending || locked) && styles.disabled]}
             >
               <Text style={styles.secondaryText}>Email me a sign-in link</Text>
             </Pressable>

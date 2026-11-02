@@ -13,8 +13,8 @@ import { SnagForm } from '../../../components/snag-form';
 import { MarkupEditor } from '../../../components/markup-editor';
 export default function Capture() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { session, profile } = useAuth();
-  const r = useResource(() => projectContext(id, session!.user.id), `capture:${id}`, [
+  const { client: supabase, session, profile } = useAuth();
+  const r = useResource(() => projectContext(id, session!.user.id, supabase), `capture:${id}`, [
     'project_members',
     'projects',
     'locations',
@@ -51,8 +51,8 @@ export default function Capture() {
     setBusy(true);
     setError(null);
     try {
-      const row = await saveSnag({ ...details, clientId, projectId: id });
-      const results = await uploadPhotos(id, row.id, photos, setPhotos);
+      const row = await saveSnag({ ...details, clientId, projectId: id }, supabase);
+      const results = await uploadPhotos(id, row.id, photos, setPhotos, 0, supabase);
       if (results.some((p) => p.status !== 'done'))
         throw Error('Snag saved. Some photos need retry; keep this screen open and save again.');
       if (another === 'another') {
@@ -74,17 +74,27 @@ export default function Capture() {
     try {
       for (const photo of photos) {
         if (photo.status === 'done') continue;
-        const row = await saveSnag({
-          clientId: photo.id,
-          projectId: id,
-          title: `Site photo ${new Date(photo.takenAt).toLocaleString()}`,
-          priority: 'medium',
-        });
+        const row = await saveSnag(
+          {
+            clientId: photo.id,
+            projectId: id,
+            title: `Site photo ${new Date(photo.takenAt).toLocaleString()}`,
+            priority: 'medium',
+          },
+          supabase,
+        );
         setCreatedIds((ids) => ({ ...ids, [photo.id]: row.id }));
-        const result = await uploadPhotos(id, row.id, [photo], (next) => {
-          items = items.map((p) => (p.id === photo.id ? next[0]! : p));
-          setPhotos([...items]);
-        });
+        const result = await uploadPhotos(
+          id,
+          row.id,
+          [photo],
+          (next) => {
+            items = items.map((p) => (p.id === photo.id ? next[0]! : p));
+            setPhotos([...items]);
+          },
+          0,
+          supabase,
+        );
         if (result[0]?.status !== 'done')
           throw Error(
             'Capture stopped at an unfinished photo. Retry keeps the same snag identity.',

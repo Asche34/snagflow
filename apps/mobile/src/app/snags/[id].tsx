@@ -7,15 +7,14 @@ import { useAuth } from '../../providers/auth';
 import { snagDetail } from '../../lib/data';
 import { useResource } from '../../lib/use-resource';
 import { addComment, message, updateSnag } from '../../lib/mutations';
-import { supabase } from '../../lib/supabase';
 import { Button, ErrorText, Field, human, Loading, Screen, styles } from '../../components/ui';
 import { SnagForm } from '../../components/snag-form';
 import { Workflow } from '../../components/workflow';
 import { Photos } from '../../components/photos';
 export default function Snag() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { session, profile } = useAuth();
-  const r = useResource(() => snagDetail(id, session!.user.id), `snag:${id}`, [
+  const { client: supabase, session, profile } = useAuth();
+  const r = useResource(() => snagDetail(id, session!.user.id, supabase), `snag:${id}`, [
     'snags',
     'snag_photos',
     'comments',
@@ -120,7 +119,7 @@ export default function Snag() {
                 busy={busy}
                 onSave={(value) =>
                   void run(async () => {
-                    await updateSnag(id, value);
+                    await updateSnag(id, value, supabase);
                     setEdit(false);
                   })
                 }
@@ -169,7 +168,7 @@ export default function Snag() {
                 disabled={busy || !body.trim()}
                 onPress={() =>
                   void run(async () => {
-                    const receipt = await addComment(commentId, id, body);
+                    const receipt = await addComment(commentId, id, body, supabase);
                     setCommentId(randomUUID());
                     if (receipt.saved) {
                       setBody('');

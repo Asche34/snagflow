@@ -45,7 +45,7 @@ describe.skipIf(!hasEnv)('mobile services against local Supabase', () => {
       await admin.from('comments').delete().eq('snag_id', snagId);
       await admin.from('snags').delete().eq('id', snagId);
     }
-    await state.client?.auth.signOut();
+    await state.client?.auth.signOut({ scope: 'local' });
   });
   it('loads project metadata and named team members under user RLS', async () => {
     const context = await projectContext(PROJECT_A, UIDS.manager);

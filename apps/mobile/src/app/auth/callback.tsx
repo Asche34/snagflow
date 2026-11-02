@@ -4,12 +4,11 @@ import * as Linking from 'expo-linking';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { consumeReturnPath, exchangeAuthCallback } from '../../lib/auth-callback';
-import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../providers/auth';
 
 export default function AuthCallbackScreen() {
   const incomingUrl = Linking.useLinkingURL();
-  const { session, profile } = useAuth();
+  const { client: supabase, session, profile } = useAuth();
   const started = useRef(false);
   const [completed, setCompleted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +39,7 @@ export default function AuthCallbackScreen() {
         setError('Unable to use this sign-in link. Request a new sign-in link on this device.');
       }
     })();
-  }, [incomingUrl]);
+  }, [incomingUrl, supabase]);
 
   useEffect(() => {
     if (completed && session && profile?.is_active) router.replace(consumeReturnPath() as Href);

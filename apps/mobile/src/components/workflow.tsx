@@ -16,7 +16,7 @@ export function Workflow({
   fixCount: number;
   onSaved: () => Promise<void>;
 }) {
-  const { session, profile } = useAuth();
+  const { client: supabase, session, profile } = useAuth();
   const [comment, setComment] = useState('');
   const [assignee, setAssignee] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -69,7 +69,7 @@ export function Workflow({
             disabled={busy}
             secondary
             onPress={() =>
-              void run(() => assignSnag(snag.id, (assignee ?? snag.assignee_id) || null))
+              void run(() => assignSnag(snag.id, (assignee ?? snag.assignee_id) || null, supabase))
             }
           />
         </>
@@ -99,7 +99,7 @@ export function Workflow({
                 (rule.fixPhotoRequired && context.project.require_fix_photo && !fixCount) ||
                 (rule.action === 'start_work' && !snag.assignee_id)
               }
-              onPress={() => void run(() => transitionSnag(snag.id, rule.to, comment))}
+              onPress={() => void run(() => transitionSnag(snag.id, rule.to, comment, supabase))}
             />
           </View>
         ))}

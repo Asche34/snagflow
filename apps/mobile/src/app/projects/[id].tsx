@@ -18,7 +18,7 @@ import {
 import { SnagList } from '../../components/snag-list';
 export default function Project() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { session, profile } = useAuth();
+  const { client: supabase, session, profile } = useAuth();
   const [filters, setFilters] = useState<SnagFilters>({});
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(0);
@@ -29,8 +29,8 @@ export default function Project() {
   };
   const r = useResource(
     async () => ({
-      context: await projectContext(id, session!.user.id),
-      snags: await listSnags(id, filters, page),
+      context: await projectContext(id, session!.user.id, supabase),
+      snags: await listSnags(id, filters, page, supabase),
     }),
     `project:${id}:${JSON.stringify(filters)}:${page}`,
     ['snags', 'project_members', 'projects', 'locations', 'categories'],

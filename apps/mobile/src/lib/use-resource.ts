@@ -9,6 +9,7 @@ export function useResource<T>(
   scope: string,
   tables: string[] = ['snags'],
 ) {
+  const [client] = useState(() => supabase);
   const loaderRef = useRef(loader);
   useEffect(() => {
     loaderRef.current = loader;
@@ -59,14 +60,14 @@ export function useResource<T>(
   const tableKey = tables.join(',');
   useEffect(() => {
     let disposed = false;
-    let channel: ReturnType<typeof supabase.channel> | undefined;
+    let channel: ReturnType<typeof client.channel> | undefined;
     let timer: ReturnType<typeof setTimeout> | undefined;
     void (async () => {
-      const { data: auth } = await supabase.auth.getSession();
+      const { data: auth } = await client.auth.getSession();
       if (!auth.session || disposed) return;
-      await supabase.realtime.setAuth(auth.session.access_token);
+      await client.realtime.setAuth(auth.session.access_token);
       if (disposed) return;
-      channel = supabase.channel(`mobile:${scope}:${Math.random()}`);
+      channel = client.channel(`mobile:${scope}:${Math.random()}`);
       for (const table of tableKey.split(','))
         channel.on('postgres_changes', { event: '*', schema: 'public', table }, () => {
           clearTimeout(timer);
@@ -81,8 +82,8 @@ export function useResource<T>(
     return () => {
       disposed = true;
       clearTimeout(timer);
-      if (channel) void supabase.removeChannel(channel);
+      if (channel) void client.removeChannel(channel);
     };
-  }, [scope, tableKey, refresh]);
+  }, [scope, tableKey, refresh, client]);
   return { data, error, loading, refresh };
 }

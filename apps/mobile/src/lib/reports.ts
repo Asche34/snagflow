@@ -181,7 +181,12 @@ export async function shareReport(
   url: string,
   report: ReportRevision,
   platform: string,
+  current: () => boolean = () => true,
 ): Promise<void> {
+  const ensureCurrent = () => {
+    if (!current()) throw Error('The app connection changed. Retry in the selected app.');
+  };
+  ensureCurrent();
   const downloadUrl = safeDownloadUrl(url);
   if (platform === 'web') {
     if (typeof window === 'undefined') throw new Error('Open the report in a browser.');
@@ -201,9 +206,11 @@ export async function shareReport(
   ]);
   if (!(await Sharing.isAvailableAsync()))
     throw new Error('File sharing is unavailable on this device.');
+  ensureCurrent();
   const file = new File(Paths.cache, `snagflow-${report.id}-${Date.now()}.${report.format}`);
   try {
     const downloaded = await File.downloadFileAsync(downloadUrl, file);
+    ensureCurrent();
     await Sharing.shareAsync(downloaded.uri, {
       dialogTitle: `Share report revision ${report.revision}`,
       mimeType:
@@ -213,6 +220,7 @@ export async function shareReport(
       UTI: report.format === 'pdf' ? 'com.adobe.pdf' : 'org.openxmlformats.spreadsheetml.sheet',
     });
   } catch {
+    ensureCurrent();
     throw new Error(
       'Unable to download or share this report. Check your connection and retry download.',
     );

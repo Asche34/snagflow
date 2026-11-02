@@ -67,10 +67,10 @@
   },
   "current_state": {
     "phase": "5 mobile online implemented locally; hosted/physical-device acceptance pending",
-    "last_work": "Native Expo auth, project/snags, camera/markup, assigned work/review and report sharing",
-    "next_recommended": "Authorize hosted deployment and perform physical-device acceptance before Phase 6",
+    "last_work": "Mobile App URL discovery, isolated connection/session switching and Android16 same-Wi-Fi test setup",
+    "next_recommended": "Install Expo Go and record local Android16 observations, then authorize hosted acceptance",
     "blockers": [
-      "Hosted project/access and device information not provided; hosted changes require explicit authorization"
+      "Physical phone actions and hosted project/deployment authorization remain pending"
     ]
   },
   "important_files": [

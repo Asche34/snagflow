@@ -7,6 +7,8 @@ import {
 } from '@snagflow/shared';
 import type { Database } from '@snagflow/shared/db-types';
 import { dimensions } from './online';
+import { assertConnectionClient } from './connection';
+type PhotoClient = typeof import('./supabase').supabase;
 
 export type PhotoStatus = 'queued' | 'preparing' | 'uploading' | 'saving' | 'done' | 'error';
 export type QueuedPhoto = {
@@ -278,15 +280,18 @@ export async function pickPhoto(
 }
 
 /** Appends private JPEG bytes; it never overwrites originals or prior annotation revisions. */
-export async function uploadImmutable(path: string, uri: string): Promise<void> {
+export async function uploadImmutable(
+  path: string,
+  uri: string,
+  client: PhotoClient,
+): Promise<void> {
+  const namespace = await import('./supabase');
+  assertConnectionClient(client, namespace.supabase);
   const pieces = path.split('/');
   if (pieces.length !== 3 || !pieces[2]?.endsWith('.jpg'))
     throw new Error('The photo upload path is invalid.');
   for (const part of [pieces[0], pieces[1], pieces[2].slice(0, -4)]) UUIDSchema.parse(part);
-  const [{ supabase }, { Platform }] = await Promise.all([
-    import('./supabase'),
-    import('react-native'),
-  ]);
+  const { Platform } = await import('react-native');
   let bytes: Uint8Array;
   if (Platform.OS === 'web') {
     const response = await fetch(uri);
@@ -296,7 +301,8 @@ export async function uploadImmutable(path: string, uri: string): Promise<void> 
     const { File } = await import('expo-file-system');
     bytes = new Uint8Array(await new File(uri).arrayBuffer());
   }
-  const bucket = supabase.storage.from('snag-photos');
+  assertConnectionClient(client, namespace.supabase);
+  const bucket = client.storage.from('snag-photos');
   await writeImmutableBytes(
     {
       upload: async (objectPath, value) => {
@@ -332,6 +338,7 @@ export async function uploadImmutable(path: string, uri: string): Promise<void> 
     path,
     bytes,
   );
+  assertConnectionClient(client, namespace.supabase);
 }
 
 export async function uploadPhotos(
@@ -339,34 +346,35 @@ export async function uploadPhotos(
   snagId: string,
   items: QueuedPhoto[],
   onChange: (items: QueuedPhoto[]) => void,
-  sortOffset = 0,
+  sortOffset: number,
+  client: PhotoClient,
 ): Promise<QueuedPhoto[]> {
-  const [{ supabase }, { randomUUID }] = await Promise.all([
-    import('./supabase'),
-    import('expo-crypto'),
-  ]);
-  return createPhotoUploader({
+  const namespace = await import('./supabase');
+  assertConnectionClient(client, namespace.supabase);
+  const { randomUUID } = await import('expo-crypto');
+  const result = await createPhotoUploader({
     newId: randomUUID,
-    upload: uploadImmutable,
+    upload: (path, uri) => uploadImmutable(path, uri, client),
     currentUser: async () => {
-      const result = await supabase.auth.getUser();
+      assertConnectionClient(client, namespace.supabase);
+      const result = await client.auth.getUser();
       if (result.error || !result.data.user)
         throw new Error('Sign in again before saving photos. Your draft is retained.');
       return result.data.user.id;
     },
     readPhoto: async (id) => {
-      const result = await supabase.from('snag_photos').select('*').eq('id', id).maybeSingle();
+      const result = await client.from('snag_photos').select('*').eq('id', id).maybeSingle();
       if (result.error) throw result.error;
       return result.data;
     },
     insertPhoto: async (row) => {
-      const result = await supabase.from('snag_photos').insert(row).select('*').single();
+      const result = await client.from('snag_photos').insert(row).select('*').single();
       if (result.error || !result.data)
         throw new Error(result.error?.message ?? 'Photo details were not confirmed saved. Retry.');
       return result.data;
     },
     annotate: async (id, expectedUpdatedAt, path, document) => {
-      const result = await supabase.rpc('save_photo_annotation', {
+      const result = await client.rpc('save_photo_annotation', {
         p_photo_id: id,
         p_expected_updated_at: expectedUpdatedAt,
         p_annotated_path: path,
@@ -380,4 +388,6 @@ export async function uploadPhotos(
         );
     },
   })(projectId, snagId, items, onChange, sortOffset);
+  assertConnectionClient(client, namespace.supabase);
+  return result;
 }

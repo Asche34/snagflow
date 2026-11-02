@@ -6,6 +6,8 @@ Work is organized by project, location, category, priority, and due date. The fi
 
 **Current status:** version 0.1.0, phases 0–4 complete locally. Phase 5 mobile online implementation is available; hosted and physical-device acceptance remains pending. Web and mobile share Supabase authorization, workflow and validation contracts. See [mobile setup](apps/mobile/README.md) and [the Phase 5 handoff](docs/AI/PHASE5-MOBILE-2026-11-02.md).
 
+Mobile users can now enter the **App URL** at login and connect to the same SnagFlow deployment without entering backend keys. [Android16 local Wi-Fi test instructions](docs/AI/MOBILE-APP-URL-LAN-2026-11-02.md) include the current addresses and approved scoped firewall setup.
+
 ## How it works
 
 The snag lifecycle is:

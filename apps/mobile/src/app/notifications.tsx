@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '../providers/auth';
-import { supabase } from '../lib/supabase';
 import { useResource } from '../lib/use-resource';
 import { Button, ErrorText, human, Loading, Screen, styles } from '../components/ui';
 export default function Notifications() {
-  const { session } = useAuth();
+  const { client: supabase, session } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const r = useResource(

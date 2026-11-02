@@ -40,3 +40,5 @@ provides retained project access; active navigation/queues omit archived project
 | Personal updates | `/notifications` | `apps/mobile/src/app/notifications.tsx` | implemented locally |
 
 Fieldwork native screens reuse shared permissions/workflow/validation. Hosted/physical-device acceptance remains pending. Browser preview uses original photos; native Skia markup is Android/iOS only.
+
+Login now includes App URL/Connect, verified connection feedback, disabled credentials for unconnected URL edits and remembered server configuration. Connection setup remains available without mobile build-time backend values; see `docs/AI/MOBILE-APP-URL-LAN-2026-11-02.md`.

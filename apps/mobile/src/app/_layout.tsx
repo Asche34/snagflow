@@ -4,9 +4,10 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '../providers/auth';
 import { rememberReturnPath, safeReturnPath } from '../lib/auth-callback';
-import { supabaseSetupError } from '../lib/supabase';
+import { ConnectionProvider, useConnection } from '../providers/connection';
 
 function Navigation() {
+  const connection = useConnection();
   const { session, profile, loading, error, signOut, refreshProfile } = useAuth();
   const pathname = usePathname();
   useEffect(() => {
@@ -14,13 +15,6 @@ function Navigation() {
     if (!session && path !== '/') rememberReturnPath(path);
   }, [pathname, session]);
 
-  if (supabaseSetupError)
-    return (
-      <View style={styles.center}>
-        <Text style={styles.title}>Connect SnagFlow</Text>
-        <Text style={styles.body}>{supabaseSetupError}</Text>
-      </View>
-    );
   if (session && !loading && (!profile || !profile.is_active)) {
     return (
       <View style={styles.center}>
@@ -46,6 +40,20 @@ function Navigation() {
         >
           <Text style={styles.buttonText}>Sign out</Text>
         </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ disabled: connection.busy }}
+          disabled={connection.busy}
+          style={styles.button}
+          onPress={() => void connection.resetSession()}
+        >
+          <Text style={styles.buttonText}>Change app URL</Text>
+        </Pressable>
+        {connection.error && (
+          <Text accessibilityRole="alert" style={styles.body}>
+            {connection.error}
+          </Text>
+        )}
       </View>
     );
   }
@@ -108,10 +116,26 @@ function Navigation() {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <Navigation />
-      </AuthProvider>
+      <ConnectionProvider>
+        <ConnectionRoot />
+      </ConnectionProvider>
     </SafeAreaProvider>
+  );
+}
+
+function ConnectionRoot() {
+  const { ready, identity } = useConnection();
+  if (!ready)
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator color="#c2410c" accessibilityLabel="Restoring app connection" />
+        <Text style={styles.body}>Restoring app connection…</Text>
+      </View>
+    );
+  return (
+    <AuthProvider key={identity}>
+      <Navigation />
+    </AuthProvider>
   );
 }
 

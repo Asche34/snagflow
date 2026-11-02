@@ -16,6 +16,7 @@ import { AccessUnavailableError } from '../lib/online';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type AuthContextValue = {
+  client: typeof supabase;
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
@@ -26,6 +27,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const [client] = useState(() => supabase);
   const [session, setSession] = useState<Session | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [initializing, setInitializing] = useState(!supabaseSetupError);
@@ -44,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setProfileLoading(true);
     try {
-      const { data, error: readError } = await supabase
+      const { data, error: readError } = await client
         .from('profiles')
         .select('*')
         .eq('id', userId)
@@ -61,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       if (request === profileRequest.current) setProfileLoading(false);
     }
-  }, []);
+  }, [client]);
 
   useEffect(() => {
     if (supabaseSetupError) return;
@@ -84,12 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // This callback must remain synchronous: SDK calls here can deadlock Auth's lock.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, next) => {
+    } = client.auth.onAuthStateChange((_event, next) => {
       ++eventVersion;
       applySession(next);
     });
     const startedAt = eventVersion;
-    void supabase.auth
+    void client.auth
       .getSession()
       .then(({ data, error: sessionError }) => {
         if (!mounted || eventVersion !== startedAt) return;
@@ -111,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       invalidateProfileRequest();
       subscription.unsubscribe();
     };
-  }, []);
+  }, [client]);
 
   // Profile requests run after React commits, outside onAuthStateChange's lock.
   const userId = session?.user.id;
@@ -124,20 +126,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (Platform.OS === 'web') return;
     const update = (state: string | null | undefined) => {
       if (state === 'active') {
-        void supabase.auth.startAutoRefresh();
+        void client.auth.startAutoRefresh();
         void refreshProfile();
-      } else void supabase.auth.stopAutoRefresh();
+      } else void client.auth.stopAutoRefresh();
     };
     update(AppState.currentState);
     const listener = AppState.addEventListener('change', update);
     return () => {
       listener.remove();
-      void supabase.auth.stopAutoRefresh();
+      void client.auth.stopAutoRefresh();
     };
-  }, [refreshProfile]);
+  }, [refreshProfile, client]);
 
   const signOut = useCallback(async () => {
-    const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
+    const { error: signOutError } = await client.auth.signOut({ scope: 'local' });
     if (signOutError) {
       setError('Unable to sign out. Please retry.');
       throw new Error('Unable to sign out. Please retry.');
@@ -149,11 +151,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
     setProfileLoading(false);
     setError(null);
-  }, []);
+  }, [client]);
 
   return (
     <AuthContext.Provider
       value={{
+        client,
         session,
         profile,
         loading: initializing || profileLoading,

@@ -2,7 +2,7 @@
 
 Expo SDK 58 online field app. Auth, project search, assigned work, camera/library capture, continuous capture, native editable markup, fix/review workflow, comments, personal updates and PDF/Excel sharing use the same backend/contracts as web. Phase 5 acceptance still needs a physical device against the hosted project.
 
-From the repository root, install the locked workspace dependencies with `pnpm install --frozen-lockfile`. Copy `apps/mobile/.env.example` to `apps/mobile/.env.local` and fill in the public Supabase URL/anon key and reachable web API origin. Never put a service-role key in mobile. Then run:
+From the repository root, install the locked workspace dependencies with `pnpm install --frozen-lockfile`. On the login screen, enter the SnagFlow **App URL** and tap **Connect**. The updated web deployment advertises its public backend configuration automatically; users do not enter keys or rebuild to change servers. Optional environment defaults can be copied from `apps/mobile/.env.example`. Never put a service-role key in mobile. Then run:
 
 ```powershell
 pnpm.cmd --filter mobile start
@@ -30,3 +30,5 @@ For a physical phone, localhost refers to the phone itself. Supply reachable LAN
 This phase has no offline mirror, background queue or push registration. Keep capture/edit screens open until saves and photos finish. Failed writes retain drafts and stable request identities; restarting or navigating away can discard unfinished local drafts. Review/reopen reasons and required fix photos are enforced by the server.
 
 Deployment approval, access requirements and the physical-device test matrix are in [the Phase 5 handoff](../../docs/AI/PHASE5-MOBILE-2026-11-02.md).
+
+Current Android16 Wi-Fi test addresses, installation instructions and the explicitly approved scoped firewall rule are in [the App URL/LAN handoff](../../docs/AI/MOBILE-APP-URL-LAN-2026-11-02.md). HTTPS is required for public App URLs; private-address HTTP is for local tests only.

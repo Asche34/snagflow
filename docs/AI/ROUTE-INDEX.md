@@ -25,6 +25,7 @@ Machine pointers: `.ai/index.json::routes`; `node scripts/ai/update-index.mjs` r
 | Method | URL | Handler | Auth | File | Status |
 | ------ | --- | ------- | ---- | ---- | ------ |
 | GET | `/api/health` | reachability | public | `apps/web/src/app/api/health/route.ts` | live |
+| GET/OPTIONS | `/api/mobile-config` | versioned public mobile connection settings | public, explicit allowlist/no-store | `apps/web/src/app/api/mobile-config/route.ts` | live |
 | POST | `/api/invitations` | prepare/send or retry project invitation | active admin + canonical Origin | `apps/web/src/app/api/invitations/route.ts` | live |
 | GET/POST | `/api/reports` | history/generate | caller cookie or bearer; manager/admin | `apps/web/src/app/api/reports/route.ts` | live |
 | GET | `/api/reports/[reportId]` | private download signing | caller cookie or bearer; manager/admin | `apps/web/src/app/api/reports/[reportId]/route.ts` | live |

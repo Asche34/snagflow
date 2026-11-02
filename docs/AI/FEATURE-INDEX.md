@@ -152,6 +152,11 @@ Expo Router auth with secure PKCE sessions; role-aware home/projects/search/deta
 Impl: `apps/mobile/src/providers/auth.tsx`, `src/lib/` and `src/components/` under mobile; routes in `apps/mobile/src/app/`.
 Tests: `apps/mobile/tests`, `e2e/mobile-tests`, `e2e/playwright.mobile.config.ts`. Handoff and deployment/device checklist: `docs/AI/PHASE5-MOBILE-2026-11-02.md`.
 
+### FEAT-MOBILE-CONNECTION (implemented locally)
+Login App URL/Connect, public deployment discovery, validation/probe, remembered configuration, isolated secure sessions and connection-bound request cancellation. Selected deployment also controls reports. Android16 LAN test setup is prepared; actual phone observations remain pending.
+Impl: `packages/shared/src/mobile-connection.ts`, `apps/mobile/src/lib/connection.ts`, `apps/mobile/src/lib/supabase.ts`, `apps/mobile/src/providers/connection.tsx`, `apps/mobile/src/app/login.tsx`, `apps/web/src/app/api/mobile-config/route.ts`, `apps/web/src/lib/mobile-config.ts`.
+Tests: connection/shared public-response tests, `apps/mobile/tests/connection-mutation.test.ts`, `apps/mobile/tests/report-switch.test.ts`, `e2e/mobile-tests/app-url.spec.ts`. Handoff: `docs/AI/MOBILE-APP-URL-LAN-2026-11-02.md`.
+
 ## PLANNED (spec §15 — do not build before prior phases)
 
 - FEAT-MOBILE hosted/device acceptance — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7

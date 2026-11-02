@@ -8,7 +8,6 @@ import {
   type ProjectRole,
 } from '@snagflow/shared';
 import { useAuth } from '../providers/auth';
-import { supabase } from '../lib/supabase';
 import type { Row } from '../lib/data';
 import { message } from '../lib/mutations';
 import { pickPhoto, uploadPhotos, uploadImmutable, type QueuedPhoto } from '../lib/photos';
@@ -38,7 +37,7 @@ export function Photos({
   canAdd: boolean;
   onSaved: () => Promise<void>;
 }) {
-  const { session, profile } = useAuth();
+  const { client: supabase, session, profile } = useAuth();
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -77,7 +76,7 @@ export function Photos({
       current = false;
       clearInterval(timer);
     };
-  }, [photos, retry]);
+  }, [photos, retry, supabase]);
   const pick = async (source: 'camera' | 'library') => {
     setBusy(true);
     setError(null);
@@ -94,7 +93,7 @@ export function Photos({
     setBusy(true);
     setError(null);
     try {
-      const next = await uploadPhotos(projectId, snagId, queue, setQueue);
+      const next = await uploadPhotos(projectId, snagId, queue, setQueue, 0, supabase);
       setQueue(next.filter((p) => p.status !== 'done'));
       await onSaved();
     } catch (e) {
@@ -139,7 +138,7 @@ export function Photos({
     const intent = { ...current, content, path };
     editRef.current = intent;
     setEdit(intent);
-    await uploadImmutable(path, uri);
+    await uploadImmutable(path, uri, supabase);
     const r = await supabase.rpc('save_photo_annotation', {
       p_photo_id: current.photo.id,
       p_expected_updated_at: current.expected,

@@ -2,6 +2,7 @@ import { createClient as createSupabaseClient, type SupabaseClient } from '@supa
 import { canAct, type Database } from '@snagflow/shared';
 import { createClient } from '@/lib/supabase/server';
 import { getSupabaseAnonKey, getSupabaseServerUrl } from '@/lib/env';
+import { publicReportDownloadUrl } from '@/lib/mobile-config';
 
 import { ReportError } from './errors';
 export { ReportError } from './errors';
@@ -90,11 +91,8 @@ export async function signedReportUrl(client: ReportClient, path: string) {
       'The report was saved, but its download is unavailable. Retry Download from history.',
       503,
     );
-  const url = new URL(result.data.signedUrl);
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-    const publicUrl = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL);
-    url.protocol = publicUrl.protocol;
-    url.host = publicUrl.host;
-  }
-  return url.toString();
+  return publicReportDownloadUrl(result.data.signedUrl, {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    MOBILE_PUBLIC_SUPABASE_URL: process.env.MOBILE_PUBLIC_SUPABASE_URL,
+  });
 }
