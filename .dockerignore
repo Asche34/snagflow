@@ -12,6 +12,17 @@ out
 .git
 .gitignore
 .github
+.superpowers
+**/.expo
+**/credentials.json
+**/*.jks
+**/*.keystore
+**/*.p12
+**/*.mobileprovision
+e2e/test-results
+e2e/playwright-report
+e2e/blob-report
+e2e/.playwright
 **/*.tsbuildinfo
 **/*.log
 
@@ -20,6 +31,8 @@ out
 .env.*
 **/.env
 **/.env.*
+**/*.env
+supabase.env
 !.env.example
 
 docs

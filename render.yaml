@@ -1,0 +1,25 @@
+# Preparation only: creating/syncing this Blueprint deploys externally.
+# Obtain explicit approval and identify the hosted Supabase project first.
+services:
+  - type: web
+    name: snagflow-web
+    runtime: docker
+    plan: free
+    branch: main
+    dockerfilePath: ./apps/web/Dockerfile
+    dockerContext: .
+    autoDeployTrigger: 'off'
+    healthCheckPath: /api/health
+    envVars:
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: NEXT_PUBLIC_APP_URL
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: NEXT_PUBLIC_DEMO_ACCOUNTS
+        value: 'false'

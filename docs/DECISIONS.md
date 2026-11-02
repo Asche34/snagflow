@@ -256,3 +256,11 @@ Every non-obvious choice made while building SnagFlow. Format: **Decision** — 
 - A persistent firewall change was initially rejected by automatic approval review. Apply only the subsequently user-approved rule: inbound TCP3003/54321/8081, local Wi-Fi10.48.43.195 (updated after explicit approval when the address changed), remote LocalSubnet. Keep the firewall enabled and document exact removal. No hosted service or local database reset is involved.
 - Mobile integration cleanup uses session-local sign-out. Concurrent tests with the same seeded role account otherwise invalidate another suite's session; run shared-account fixture suites serially even when their project records are disposable.
 - Provide a local Change app URL recovery action on Home/unavailable-account screens. Revoke and clear the device's old session without requiring an unavailable logout endpoint, preserve the editable address, and remount the auth subtree with a fresh local generation. Server-side account/session revocation is separate from this device-only recovery.
+
+## 2026-11-02 — Standalone Android acceptance APK and Render preparation
+
+- User requests an installable version1 APK with the editable App URL retained. Prepare only an internal preview profile, Android ID com.snagflow.app and version1.0.0/code1. Store publishing and wider Phase7 remain separate.
+- Disable dotenv and clear optional public connection presets in the profile so local PC values or preview environment defaults cannot bind the APK to the wrong server. Users connect through the existing validated discovery flow.
+- Use repository-root EAS source ignores and exclude environment/signing/runtime artifacts from both cloud and Docker contexts. Retain workspace manifests/shared sources; inspect the actual archive before upload.
+- Reuse the existing standalone Dockerfile for a Render Free trial, manual deployments and private runtime invitation credentials. Accounts are available, but hosted migrations/configuration/deployment still require explicit approval. Preserve all existing local data.
+- Record the user's local Android success as user-reported evidence; the exact acceptance matrix and hosted/APK checks remain unverified.

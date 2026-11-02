@@ -10,7 +10,13 @@ dist/
 *.tsbuildinfo
 
 # env & secrets
+credentials.json
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
 .env
+.env.*
 .env.local
 .env*.local
 !.env.example

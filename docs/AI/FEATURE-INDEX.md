@@ -153,7 +153,7 @@ Impl: `apps/mobile/src/providers/auth.tsx`, `src/lib/` and `src/components/` und
 Tests: `apps/mobile/tests`, `e2e/mobile-tests`, `e2e/playwright.mobile.config.ts`. Handoff and deployment/device checklist: `docs/AI/PHASE5-MOBILE-2026-11-02.md`.
 
 ### FEAT-MOBILE-CONNECTION (implemented locally)
-Login App URL/Connect, public deployment discovery, validation/probe, remembered configuration, isolated secure sessions and connection-bound request cancellation. Selected deployment also controls reports. Android16 LAN test setup is prepared; actual phone observations remain pending.
+Login App URL/Connect, public deployment discovery, validation/probe, remembered configuration, isolated secure sessions and connection-bound request cancellation. Selected deployment also controls reports. User reports local Android16 success; full hosted acceptance remains pending. Standalone APK/Render preparation: `docs/AI/ANDROID-APK-HOSTING-2026-11-02.md`.
 Impl: `packages/shared/src/mobile-connection.ts`, `apps/mobile/src/lib/connection.ts`, `apps/mobile/src/lib/supabase.ts`, `apps/mobile/src/providers/connection.tsx`, `apps/mobile/src/app/login.tsx`, `apps/web/src/app/api/mobile-config/route.ts`, `apps/web/src/lib/mobile-config.ts`.
 Tests: connection/shared public-response tests, `apps/mobile/tests/connection-mutation.test.ts`, `apps/mobile/tests/report-switch.test.ts`, `e2e/mobile-tests/app-url.spec.ts`. Handoff: `docs/AI/MOBILE-APP-URL-LAN-2026-11-02.md`.
 

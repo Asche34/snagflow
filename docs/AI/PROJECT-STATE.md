@@ -7,7 +7,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally; hosted application pending) |
 | Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
-| Last delivered | Login App URL discovery/switching, isolated native sessions and Android16 same-Wi-Fi test setup (phone actions pending) |
+| Last delivered | App URL connection delivered; user reports local Android16 success. Standalone1.0 APK profile and Render template prepared; Expo linked; cloud APK build and hosted acceptance pending. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -186,8 +186,8 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Blockers
 
-- Phase 5 hosted acceptance needs hosted project/canonical API details and explicit deployment authorization. Android16 local Wi-Fi testing is prepared; Expo Go installation and actual phone observations are pending. These do not block the delivered implementation.
+- Phase5 hosted acceptance needs hosted project/canonical API details and explicit deployment authorization. User reports local Android16 testing works, without enumerating all acceptance cases. Expo/Render/Supabase accounts exist; Expo is authenticated and linked; APK build remains pending. See `ANDROID-APK-HOSTING-2026-11-02.md`.
 
 ## Next step recommended
 
-Run the Android16 local trial using `MOBILE-APP-URL-LAN-2026-11-02.md`, then complete hosted/device acceptance using `PHASE5-MOBILE-2026-11-02.md` before Phase6. Local schema remains migration17. Hosted migrations/invitation settings require separate authorization. Preserve local data; do not reset an existing stack.
+Expo sign-in and source archive inspection are complete; build the requested standalone APK. Identify the hosted Supabase project/data status and obtain concrete Render/migration approval, then complete hosted/device acceptance using `PHASE5-MOBILE-2026-11-02.md` before Phase6. Local schema remains migration17. Preserve local data; do not reset an existing stack.
