@@ -31,9 +31,9 @@
 - [x] Add repository-root `.easignore`, signing ignores and Docker context exclusions. Inspect a local EAS source archive before any upload.
 - [x] Add `render.yaml` with free Docker service, health check, manual deploys and environment prompts. Validate YAML/schema locally; do not create a service.
 - [x] Run mobile lint/typecheck/units and Android export; record user-reported local device success and remaining hosted/native APK checks.
-- [ ] Connect the user's Expo account through device login; only then link/build the requested preview with no paid upgrade. Record the exact project/build result if performed.
+- [x] Connect the user's Expo account through device login; only then link/build the requested preview with no paid upgrade. Record the exact project/build result if performed.
 
 ## Delivery ledger
 
-- Accounts exist per user; Expo CLI device sign-in requested. Hosted project and data status not yet identified.
+- Expo account asche34 authenticated and linked; preview build36b6a885-d543-4bea-8809-2063b4947f6d queued from7b09d98. User identifies Supabase by name only; unique reference/data status remain pending.
 - Ruling: Android application ID `com.snagflow.app`, version1.0.0/code1 for the first test APK. Retain signing identity for future upgrades; no store submission.

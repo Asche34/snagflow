@@ -6,7 +6,7 @@
 
 Dotenv is disabled and optional connection presets are explicitly invalid `unconfigured` placeholders (EAS rejects empty environment values; the existing schema resolves these to no connection). Testers enter the compatible hosted HTTPS origin, which advertises its public backend through `/api/mobile-config`. No hosted URL is required before compilation.
 
-User reports the Expo Go app works on Android16 against the local environment. Specific acceptance flows were not enumerated; this is user-reported local evidence, not independently observed or hosted/APK acceptance. Expo, Render and Supabase accounts exist. Expo device sign-in completed as `asche34`; project `@asche34/snagflow` is linked (ID `302bd0c3-e2e2-4f3f-98b8-40c0902549db`). Hosted project/data status and canonical origin remain unidentified. No cloud build or hosted change has been performed yet.
+User reports the Expo Go app works on Android16 against the local environment. Specific acceptance flows were not enumerated; this is user-reported local evidence, not independently observed or hosted/APK acceptance. Expo, Render and Supabase accounts exist. Expo device sign-in completed as `asche34`; project `@asche34/snagflow` is linked (ID `302bd0c3-e2e2-4f3f-98b8-40c0902549db`). Hosted project/data status and canonical origin remain unidentified. The preview cloud build has been submitted; Render and Supabase remain unchanged.
 
 ## APK build
 
@@ -45,4 +45,14 @@ Render Free sleeps after15 minutes without traffic and has limited compute; repo
 - Android Hermes export passes with dotenv disabled and unconfigured connection presets. This compiles JavaScript/assets; it is not an APK/Gradle build.
 - Expo public config resolves version1.0.0, Android ID/version code and custom scheme.
 - Render YAML passes its published draft2020 JSON schema. The validator ignores an unused optional URI format; this template has no such field. No hosted API validation/deployment is claimed.
-- EAS profile and local archive inspection passed after authentication; native/cloud build remains pending. Docker context exclusions now cover local runtime, test environment and signing files; the image/runtime was not rebuilt for this configuration-only change.
+- EAS profile and local archive inspection passed after authentication; native/cloud build outcome remains pending. Docker context exclusions now cover local runtime, test environment and signing files; the image/runtime was not rebuilt for this configuration-only change.
+
+## Submitted build
+
+- Expo project: `@asche34/snagflow`, ID `302bd0c3-e2e2-4f3f-98b8-40c0902549db`.
+- Build: [36b6a885-d543-4bea-8809-2063b4947f6d](https://expo.dev/accounts/asche34/projects/snagflow/builds/36b6a885-d543-4bea-8809-2063b4947f6d), Android preview, version1.0.0/code1.
+- Source: `7b09d98c82eab5f561d8cc5ae88ba35c4a6e3caf`. Last observed status: `IN_QUEUE`; no APK artifact available yet.
+- Signing: Android keystore generated remotely and held by Expo for this account/project; no key/password was printed or committed. Reuse it for upgrades.
+- EAS confirmed no account-level plaintext/sensitive preview variables. The build profile supplies dotenv opt-out and inert connection placeholders.
+- Initial EAS validation rejected empty environment values. Replacing them with invalid nonempty placeholders passed validation and preserves the blank connection flow. CLI linkage initially wrote a root stub; it was removed and the actual mobile config linked before submission. No root app.json remains.
+- Independent review found no remaining blocker after archive checks; Render cold-start warm-up guidance is included above.

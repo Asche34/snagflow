@@ -7,7 +7,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally; hosted application pending) |
 | Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
-| Last delivered | App URL connection delivered; user reports local Android16 success. Standalone1.0 APK profile and Render template prepared; Expo linked; cloud APK build and hosted acceptance pending. |
+| Last delivered | App URL connection delivered; user reports local Android16 success. Standalone1.0 APK profile and Render template prepared; Expo linked; preview APK build submitted/in queue, hosted acceptance pending. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -186,7 +186,7 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Blockers
 
-- Phase5 hosted acceptance needs hosted project/canonical API details and explicit deployment authorization. User reports local Android16 testing works, without enumerating all acceptance cases. Expo/Render/Supabase accounts exist; Expo is authenticated and linked; APK build remains pending. See `ANDROID-APK-HOSTING-2026-11-02.md`.
+- Phase5 hosted acceptance needs hosted project/canonical API details and explicit deployment authorization. User reports local Android16 testing works, without enumerating all acceptance cases. Expo/Render/Supabase accounts exist; Expo is authenticated and linked; APK build is queued (build36b6a885-d543-4bea-8809-2063b4947f6d). See `ANDROID-APK-HOSTING-2026-11-02.md`.
 
 ## Next step recommended
 
