@@ -6,8 +6,8 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | -------------------- | ----- |
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally; hosted application pending) |
-| Phase (spec §15)     | **4 — markup and reports complete locally.** Phases 0–3 complete; Phase 5 mobile online mode next. |
-| Last delivered | Editable private image markup, PDF/Excel exports with three themes/options/filters and revision history |
+| Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
+| Last delivered | Expo auth, projects/snags, camera/native markup, assigned work/review, personal updates and report sharing |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -44,16 +44,22 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 
 ## Features in progress
 
-- None in the delivered web phases; Phase 5 mobile online mode is next.
+- Phase 5 hosted Supabase / physical-device acceptance. Native online implementation is present; see `docs/AI/PHASE5-MOBILE-2026-11-02.md` for deployment approval, access requirements, evidence and acceptance matrix.
 
 ## Features remaining (order per spec §15)
 
-- Phase 5: mobile app on hosted Supabase (auth, camera flow, review flow)
+- Phase 5 acceptance: authorized hosted deployment and physical-device auth/camera/markup/work/review/share verification
 - Phase 6: offline sync (expo-sqlite mirror, outbox, photo queue), push notifications (Edge Function)
 - Phase 7: PWA, dark mode, EAS profiles, E2E (Playwright) — **the E2E suite now exists; expand it to the full §14 golden path**
 - Edge function `push-send` (spec §12) — not yet created
 
 ## Tests current
+
+### Phase 5 mobile online — 2026-11-02
+
+- **299 targeted checks passed**: mobile units 41, real local mobile-service integration eight, isolated mobile browser five, existing web browser 81, Fieldwork fixture UI nine, DB 55, shared/output 75 and rollback-only SQL 25. Monorepo build/lint/typecheck: 12 tasks passed. Final Android/iOS Hermes exports passed. Evidence is in `docs/AI/PHASE5-MOBILE-2026-11-02.md`.
+- Independent review's material recovery/authorization findings were reproduced and corrected, including foreground transport failures retaining drafts, explicit comment receipts, revised null assignment and active-project scoping. Final independent assessment has no remaining material finding.
+- No new migration/shared rule; local ledger/data preserved. Hosted services unchanged. Physical camera/orientation/touch markup, native linking/sharing and hosted acceptance remain unverified. Offline/push and distribution polish remain later phases.
 
 ### Phase 4 markup and reports — 2026-11-02
 
@@ -174,8 +180,8 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Blockers
 
-- none open.
+- Phase 5 acceptance needs hosted project/canonical API details, explicit hosted deployment authorization, and a physical device/OS plus native installation/access arrangement. These do not block local implementation.
 
 ## Next step recommended
 
-Start Phase 5 mobile online mode per the build prompt. Latest handoff: `PHASE4-COMPLETE-2026-11-02.md`. Local schema is migration 17. Hosted migrations/invitation settings remain separate deployment work under `TEAM-INVITES-2026-10-30.md` plus migrations 14–17. Preserve local data; do not reset an existing stack.
+Complete Phase 5 hosted/device acceptance using `PHASE5-MOBILE-2026-11-02.md`, then start Phase 6. Local schema remains migration 17. Hosted migrations/invitation settings require separate authorization under `TEAM-INVITES-2026-10-30.md` plus migrations 14–17. Preserve local data; do not reset an existing stack.

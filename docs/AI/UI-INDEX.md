@@ -33,6 +33,10 @@ provides retained project access; active navigation/queues omit archived project
 
 | Screen | Route | Files | Status |
 | ------ | ----- | ----- | ------ |
-| Home (placeholder) | `/` | `apps/mobile/src/app/index.tsx` (+ `_layout.tsx`) | live placeholder |
+| Auth/session | `/login`, `/auth/callback` | `apps/mobile/src/app/login.tsx`, `apps/mobile/src/app/auth/callback.tsx`, `apps/mobile/src/providers/auth.tsx` | implemented locally |
+| Assigned work/review/projects | `/` | `apps/mobile/src/app/index.tsx` | implemented locally |
+| Project, capture, reports | `/projects/[id]` and children | `apps/mobile/src/app/projects/` | implemented locally |
+| Snag collaboration | `/snags/[id]` | `apps/mobile/src/app/snags/[id].tsx` | implemented locally |
+| Personal updates | `/notifications` | `apps/mobile/src/app/notifications.tsx` | implemented locally |
 
-Phase 5 adds auth/camera/review flows under `apps/mobile/src/app/`.
+Fieldwork native screens reuse shared permissions/workflow/validation. Hosted/physical-device acceptance remains pending. Browser preview uses original photos; native Skia markup is Android/iOS only.

@@ -266,6 +266,23 @@
         "packages/shared/tests/report-outputs.test.mjs"
       ],
       "doc": "docs/AI/PHASE4-COMPLETE-2026-11-02.md"
+    },
+    "FEAT-MOBILE": {
+      "module": "MOD-MOBILE",
+      "status": "implemented locally; hosted/device acceptance pending",
+      "impl": [
+        "apps/mobile/src/providers/auth.tsx",
+        "apps/mobile/src/lib/data.ts",
+        "apps/mobile/src/lib/mutations.ts",
+        "apps/mobile/src/lib/photos.ts",
+        "apps/mobile/src/lib/reports.ts",
+        "apps/mobile/src/components/markup-editor.tsx"
+      ],
+      "test": [
+        "apps/mobile/tests",
+        "e2e/mobile-tests"
+      ],
+      "doc": "docs/AI/PHASE5-MOBILE-2026-11-02.md"
     }
   },
   "modules": {
@@ -279,7 +296,7 @@
     },
     "MOD-MOBILE": {
       "path": "apps/mobile",
-      "role": "Expo app (Phase 5 builds here)"
+      "role": "Online Expo field app: auth, project/snags, camera/markup, assigned work/review, reports; device/hosted acceptance pending"
     },
     "MOD-DATABASE": {
       "path": "supabase",
@@ -402,8 +419,50 @@
       {
         "path": "/",
         "file": "apps/mobile/src/app/index.tsx",
-        "auth": "none (placeholder)",
-        "note": "real nav stack lands in Phase 5 (spec s11)"
+        "auth": "active authenticated account",
+        "note": "Phase 5 implemented locally; hosted/device acceptance pending"
+      },
+      {
+        "path": "/login",
+        "file": "apps/mobile/src/app/login.tsx",
+        "auth": "public",
+        "note": "Phase 5 implemented locally; hosted/device acceptance pending"
+      },
+      {
+        "path": "/auth/callback",
+        "file": "apps/mobile/src/app/auth/callback.tsx",
+        "auth": "exact PKCE callback",
+        "note": "Phase 5 implemented locally; hosted/device acceptance pending"
+      },
+      {
+        "path": "/projects/[id]",
+        "file": "apps/mobile/src/app/projects/[id].tsx",
+        "auth": "project RLS",
+        "note": "Phase 5 implemented locally; hosted/device acceptance pending"
+      },
+      {
+        "path": "/projects/[id]/capture",
+        "file": "apps/mobile/src/app/projects/[id]/capture.tsx",
+        "auth": "project member or manager/admin",
+        "note": "Phase 5 implemented locally; hosted/device acceptance pending"
+      },
+      {
+        "path": "/projects/[id]/reports",
+        "file": "apps/mobile/src/app/projects/[id]/reports.tsx",
+        "auth": "project manager/admin",
+        "note": "Phase 5 implemented locally; hosted/device acceptance pending"
+      },
+      {
+        "path": "/snags/[id]",
+        "file": "apps/mobile/src/app/snags/[id].tsx",
+        "auth": "project RLS; per-action shared permissions",
+        "note": "Phase 5 implemented locally; hosted/device acceptance pending"
+      },
+      {
+        "path": "/notifications",
+        "file": "apps/mobile/src/app/notifications.tsx",
+        "auth": "own user RLS",
+        "note": "Phase 5 implemented locally; hosted/device acceptance pending"
       }
     ],
     "e2e": [
@@ -496,6 +555,13 @@
       "supabase/tests/rls_write.test.ts",
       "supabase/tests/team.test.ts",
       "supabase/tests/workflow.test.ts",
+      "apps/mobile/tests/auth.test.ts",
+      "apps/mobile/tests/markup.test.ts",
+      "apps/mobile/tests/mobile-live.test.ts",
+      "apps/mobile/tests/online.test.ts",
+      "apps/mobile/tests/photos.test.ts",
+      "apps/mobile/tests/reports.test.ts",
+      "e2e/mobile-tests/mobile.spec.ts",
       "e2e/tests/auth.spec.ts",
       "e2e/tests/fieldwork.spec.ts",
       "e2e/tests/filters.spec.ts",
@@ -519,7 +585,14 @@
       "apps/web/src/app/invite/[token]/page.tsx",
       "apps/web/src/app/login/page.tsx",
       "apps/web/src/app/page.tsx",
+      "apps/mobile/src/app/auth/callback.tsx",
       "apps/mobile/src/app/index.tsx",
+      "apps/mobile/src/app/login.tsx",
+      "apps/mobile/src/app/notifications.tsx",
+      "apps/mobile/src/app/projects/[id]/capture.tsx",
+      "apps/mobile/src/app/projects/[id]/reports.tsx",
+      "apps/mobile/src/app/projects/[id].tsx",
+      "apps/mobile/src/app/snags/[id].tsx",
       "apps/mobile/src/app/_layout.tsx"
     ]
   }

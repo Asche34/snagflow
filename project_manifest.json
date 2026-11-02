@@ -8,7 +8,7 @@
     "mobile": "Expo SDK 58 + Expo Router",
     "shared": "packages/shared (TypeScript): permissions, workflow, zod schemas",
     "backend": "Supabase (Postgres RLS, Auth, Storage, Realtime, Edge Functions)",
-    "testing": "vitest (shared, db) + Playwright (real auth and isolated UI suites)",
+    "testing": "Vitest (shared, DB, mobile units/services) + Playwright (web and isolated mobile browser preview)",
     "tooling": "pnpm 9 + Turborepo + Supabase CLI"
   },
   "entrypoints": {
@@ -41,6 +41,13 @@
       "cmd": "pnpm --filter @snagflow/e2e test",
       "dir": "e2e/tests",
       "requires": "real local Supabase + running web app + Chrome/Chromium"
+    },
+    "mobile": {
+      "cmd": "pnpm --filter mobile test",
+      "integration": "pnpm --filter mobile test:integration",
+      "browser": "e2e/playwright.mobile.config.ts",
+      "dir": "apps/mobile/tests",
+      "requires": "Integration: local Supabase; browser: separate Expo preview and Chrome"
     }
   },
   "documentation": {
@@ -59,10 +66,12 @@
     "decisions": "docs/DECISIONS.md"
   },
   "current_state": {
-    "phase": "4 (markup and reports) complete locally - Phase 5 next",
-    "last_work": "Editable private photo markup and caller-authorized PDF/Excel reports with three themes, options/filters and atomic revision history",
-    "next_recommended": "Phase 5 mobile online mode; hosted migrations through 17 and invitation setup remain separate deployment work",
-    "blockers": []
+    "phase": "5 mobile online implemented locally; hosted/physical-device acceptance pending",
+    "last_work": "Native Expo auth, project/snags, camera/markup, assigned work/review and report sharing",
+    "next_recommended": "Authorize hosted deployment and perform physical-device acceptance before Phase 6",
+    "blockers": [
+      "Hosted project/access and device information not provided; hosted changes require explicit authorization"
+    ]
   },
   "important_files": [
     "packages/shared/src/permissions.ts",

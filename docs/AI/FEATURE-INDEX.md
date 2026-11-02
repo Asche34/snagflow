@@ -147,6 +147,11 @@ Caller-cookie/bearer PDF/Excel generation, Classic/Compact/Photo-first, cover br
 Impl: `apps/web/src/app/api/reports/route.ts`, `apps/web/src/app/api/reports/[reportId]/route.ts`, `apps/web/src/lib/reports/`, `apps/web/src/components/project-reports.tsx`, `packages/shared/src/reports.ts`.
 DB: migrations 16–17. Tests: `e2e/tests/reports.spec.ts`, `packages/shared/tests/reports.test.ts`, `report-outputs.test.mjs`, `supabase/tests/artifacts.test.ts`. Delivery: `docs/AI/PHASE4-COMPLETE-2026-11-02.md`.
 
+### FEAT-MOBILE (implemented locally; hosted/device acceptance pending)
+Expo Router auth with secure PKCE sessions; role-aware home/projects/search/detail; camera/library capture, continuous one-snag/photo, editable native Skia markup, private immutable issue/fix uploads, comments, assignment/review/reopen/delete, in-app updates and bearer PDF/Excel sharing.
+Impl: `apps/mobile/src/providers/auth.tsx`, `src/lib/` and `src/components/` under mobile; routes in `apps/mobile/src/app/`.
+Tests: `apps/mobile/tests`, `e2e/mobile-tests`, `e2e/playwright.mobile.config.ts`. Handoff and deployment/device checklist: `docs/AI/PHASE5-MOBILE-2026-11-02.md`.
+
 ## PLANNED (spec §15 — do not build before prior phases)
 
-- FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7
+- FEAT-MOBILE hosted/device acceptance — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7

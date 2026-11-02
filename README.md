@@ -2,9 +2,9 @@
 
 SnagFlow is a collaborative snag, punch-list, and defect tracker for construction and engineering teams. It gives site teams, contractors, and project managers a shared record of what needs fixing, who is responsible, and what has been reviewed and closed.
 
-Work is organized by project, location, category, priority, and due date. The intended field workflow connects issue evidence, assigned corrective work, review, and an auditable history across a web workspace and a future mobile app.
+Work is organized by project, location, category, priority, and due date. The field workflow connects issue evidence, assigned corrective work, review, and an auditable history across web and mobile.
 
-**Current status:** version 0.1.0, phases 0–4 complete locally. The web workspace supports project/team/location/category management, invitations, capture/search/photos, archive/deletion, manager workflows, realtime collaboration and personal notifications. The Expo mobile app is a scaffold; hosted deployment configuration remains separate work.
+**Current status:** version 0.1.0, phases 0–4 complete locally. Phase 5 mobile online implementation is available; hosted and physical-device acceptance remains pending. Web and mobile share Supabase authorization, workflow and validation contracts. See [mobile setup](apps/mobile/README.md) and [the Phase 5 handoff](docs/AI/PHASE5-MOBILE-2026-11-02.md).
 
 ## How it works
 
@@ -45,7 +45,7 @@ Permissions are enforced in PostgreSQL through row-level security, triggers, and
 
 ### Still to build
 
-- Mobile field capture, offline synchronization, and push notifications.
+- Hosted/physical-device acceptance of mobile online mode, then Phase 6 offline synchronization and push notifications.
 
 Database support for an operation does not mean its web or mobile interface is complete. See [project state](docs/AI/PROJECT-STATE.md) for delivery details and [the build specification](SNAGFLOW_BUILD_PROMPT.md) for the intended scope.
 

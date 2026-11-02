@@ -65,7 +65,7 @@ unrestricted shell on this workstation. No hosted credentials are involved.
 | web project metadata/comments | `e2e/tests/metadata.spec.ts` (real backend, historical references, hierarchy, retries, caps, role revocation, responsive forms, two-session collaboration) |
 | metadata DB integrity/concurrency | `supabase/tests/metadata.test.ts` (real backend, including five opposite-parent-move races) |
 | comment read failures / Fieldwork UI | `e2e/tests/fieldwork.spec.ts` with isolated `e2e/fixtures/fieldwork-api.mjs` transport |
-| mobile | typecheck (Expo scaffold; later phase) |
+| mobile | `pnpm --filter mobile test` (pure), `pnpm --filter mobile test:integration` (separate local Supabase), lint/typecheck, native Expo export; isolated preview suite in `e2e/playwright.mobile.config.ts` |
 
 ## Capture browser fixtures
 

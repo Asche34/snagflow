@@ -23,7 +23,7 @@ Full functional spec: `SNAGFLOW_BUILD_PROMPT.md` (authoritative for intended sco
 
 ```
 apps/web/src/app/          web auth, dashboard, projects, snag and invitation routes
-apps/mobile/src/app/       mobile screens (currently: placeholder home)
+apps/mobile/src/app/       mobile auth, projects, capture/review and report screens
 packages/shared/src/       permissions.ts | workflow.ts | schemas.ts | roles.ts | terminology.ts
 supabase/migrations/       numbered SQL only — schema changes NEVER elsewhere
 supabase/tests/            DB/RLS/workflow tests (supabase-js)
@@ -105,7 +105,7 @@ They apply IN ADDITION to this file when working in those apps.
 
 Phases 0–4 are complete locally: scaffold, database/auth/security, web core, realtime,
 notifications, manager workflows, image markup, PDF/Excel reports and revisions.
-Phase 5 mobile online mode is next. Hosted migrations
+Phase 5 mobile online implementation is delivered locally; hosted/physical-device acceptance remains pending. Hosted migrations
 and invitation runtime configuration remain separate deployment work; consult the latest handoff.
 Terminal-stage phase definitions live in `SNAGFLOW_BUILD_PROMPT.md` §15.
 

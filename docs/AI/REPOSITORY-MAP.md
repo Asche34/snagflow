@@ -23,7 +23,14 @@ apps/web/
 apps/mobile/
   app.json                    Expo config
   src/app/_layout.tsx         root layout
-  src/app/index.tsx           home screen (placeholder until Phase 5)
+  src/app/index.tsx           assigned work, review queue and active projects
+  src/app/login.tsx           invite-only password / PKCE magic-link login
+  src/app/projects/           project lists, capture, reports
+  src/app/snags/              detail, comments, workflow and photos
+  src/providers/auth.tsx      secure session/profile and lifecycle
+  src/components/             Fieldwork native forms, photos, workflow, Skia markup
+  src/lib/                    typed RLS reads/mutations, photos, reports, auth helpers
+  tests/                      pure units + separate local-backend integration suite
 
 packages/shared/
   src/index.ts                public exports

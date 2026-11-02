@@ -24,14 +24,14 @@ class) with a shared, real-time, role-aware platform.
 3. **Work**: assignee starts (open→in_progress), adds fix photo(s), asks review
 4. **Review**: manager approves (→closed) or rejects with required comment (→in_progress, rejection_count++)
 5. **Reopen**: manager, comment required (closed→open)
-6. **Report** (planned Phase 4): PDF/Excel with themes/photo options/filters, saved per revision
+6. **Report**: PDF/Excel with themes/photo options/filters, saved per revision
 
 ## Modules
 
 - MOD-SHARED: single source of truth for roles/permissions/status machine (UI gating)
 - MOD-DATABASE: Supabase Postgres — the enforcing authority (RLS, triggers, RPCs)
 - MOD-WEB (Phase 2+): workspace app — dashboard, project pages, snag lists
-- MOD-MOBILE (Phase 5+): site app — camera-first flows, offline outbox
+- MOD-MOBILE (Phase 5): online site app — camera/markup, assigned work/review, report sharing; offline outbox remains Phase 6
 
 ## Integrations
 

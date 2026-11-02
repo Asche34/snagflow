@@ -26,14 +26,21 @@ Machine pointers: `.ai/index.json::routes`; `node scripts/ai/update-index.mjs` r
 | ------ | --- | ------- | ---- | ---- | ------ |
 | GET | `/api/health` | reachability | public | `apps/web/src/app/api/health/route.ts` | live |
 | POST | `/api/invitations` | prepare/send or retry project invitation | active admin + canonical Origin | `apps/web/src/app/api/invitations/route.ts` | live |
-| POST `/api/reports/[snagReportId]` | PLANNED | manager/admin | `apps/web/src/app/api/` | Phase 4 (PDF/Excel generation) |
+| GET/POST | `/api/reports` | history/generate | caller cookie or bearer; manager/admin | `apps/web/src/app/api/reports/route.ts` | live |
+| GET | `/api/reports/[reportId]` | private download signing | caller cookie or bearer; manager/admin | `apps/web/src/app/api/reports/[reportId]/route.ts` | live |
 
 ## Mobile routes (Expo Router)
 
 | Path | Handler | Auth | File | Status |
 | ---- | ------- | ---- | ---- | ------ |
-| `/` | Home placeholder | public | `apps/mobile/src/app/index.tsx` | live (placeholder) |
-| auth tabs / project / snag flows | PLANNED | members | `apps/mobile/src/app/` | Phase 5 |
+| `/` | assigned work/review/projects | active account | `apps/mobile/src/app/index.tsx` | implemented locally |
+| `/login` | password / PKCE link | public | `apps/mobile/src/app/login.tsx` | implemented locally |
+| `/auth/callback` | exact PKCE exchange | callback validation | `apps/mobile/src/app/auth/callback.tsx` | implemented locally |
+| `/projects/[id]` | project/search | project RLS | `apps/mobile/src/app/projects/[id].tsx` | implemented locally |
+| `/projects/[id]/capture` | camera/create | member+ | `apps/mobile/src/app/projects/[id]/capture.tsx` | implemented locally |
+| `/projects/[id]/reports` | generate/share/history | manager/admin | `apps/mobile/src/app/projects/[id]/reports.tsx` | implemented locally |
+| `/snags/[id]` | detail/photos/workflow | per-action shared gating + RLS/RPC | `apps/mobile/src/app/snags/[id].tsx` | implemented locally |
+| `/notifications` | personal updates | own-user RLS | `apps/mobile/src/app/notifications.tsx` | implemented locally |
 
 ## Backend RPC endpoints (PostgREST)
 

@@ -38,6 +38,9 @@ jobs:
       - name: Unit tests
         run: pnpm --filter @snagflow/shared test
 
+      - name: Mobile online unit tests
+        run: pnpm --filter mobile test
+
   web-build:
     name: Web production build
     runs-on: ubuntu-latest
