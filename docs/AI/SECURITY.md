@@ -8,9 +8,10 @@ Model: zero-trust clients. Postgres is the enforcing authority.
 | Role claims      | `app_role` synced into JWT on profile change (auth hook trigger)           | `20261019000005_security.sql` |
 | AuthZ            | RLS on every public table, policies use SECURITY DEFINER helpers           | `0005` + `0006` |
 | Workflow writes  | guard trigger blocks direct writes to workflow fields; RPC-only            | `0005::guard_snag_update`, `0007` |
-| Storage          | private buckets, path-membership policies                                  | `0008` |
+| Storage          | private buckets, path-membership policies; photo/report bytes append-only for clients | `0008`, `0016`, `0017` |
+| Artifact writes  | optimistic authorized annotation saves; atomic report revisions; persistent five-per-minute report quota | `0016` |
 | Admin flag       | only `profiles.is_admin` (set via seed/admin flows); never client-writable  | policies in `0006` |
-| Service role key | server code only (CI/reports later); never in client bundles                | — |
+| Service role key | server-only invitation administration and test fixtures; report routes use caller JWT | `apps/web/src/lib/supabase/admin.ts` |
 | Secrets          | `.env*` gitignored; `.env.example` documents names only                    | README |
 
 Attack-surface notes:
@@ -20,4 +21,4 @@ Attack-surface notes:
 - Notifications/activity are written by SECURITY DEFINER helpers only.
 - After schema changes run full DB suite (`TESTING.md`) — isolation tests assert cross-project denial.
 
-Known gaps (by design at this phase): rate limiting, audit of failed logins, CSP — revisit in Phase 7 hardening (see KNOWN-ISSUES.md).
+Known gaps: general/login rate limiting, audit of failed logins and CSP — revisit in Phase 7 hardening (see KNOWN-ISSUES.md). Report generation already uses a database-backed quota; immutable unreferenced artifact cleanup requires a future trusted maintenance task.

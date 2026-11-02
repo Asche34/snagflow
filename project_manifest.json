@@ -2,7 +2,7 @@
   "project": "snagflow",
   "description": "Collaborative snag/punch-list/defect tracking: Next.js web + Expo mobile on Supabase",
   "version": "0.1.0",
-  "database_schema_version": "20261030000014",
+  "database_schema_version": "20261102000017",
   "stack": {
     "web": "Next.js 16 App Router + TS strict + Tailwind v4",
     "mobile": "Expo SDK 58 + Expo Router",
@@ -59,9 +59,9 @@
     "decisions": "docs/DECISIONS.md"
   },
   "current_state": {
-    "phase": "3 (workflow and realtime) complete locally - Phase 4 next",
-    "last_work": "Authenticated realtime/reconnect, private notifications and complete manager review/reject/reopen with live assignment reconciliation",
-    "next_recommended": "Phase 4: image markup, PDF/Excel reports and revisions; hosted migrations through 15 and invitation setup remain a separate deployment step",
+    "phase": "4 (markup and reports) complete locally - Phase 5 next",
+    "last_work": "Editable private photo markup and caller-authorized PDF/Excel reports with three themes, options/filters and atomic revision history",
+    "next_recommended": "Phase 5 mobile online mode; hosted migrations through 17 and invitation setup remain separate deployment work",
     "blockers": []
   },
   "important_files": [

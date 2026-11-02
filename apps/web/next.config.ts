@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
   output: "standalone",
   /** The app lives in apps/web but traces files from the whole workspace. */
   outputFileTracingRoot: path.join(__dirname, "../../"),
+  // Report image processing needs sharp's companion native libraries as well
+  // as its .node binding in the standalone bundle (including Windows DLLs).
+  outputFileTracingIncludes: {
+    "/api/reports": [
+      "../../node_modules/.pnpm/@img+sharp-*/node_modules/@img/sharp-*/lib/**/*",
+    ],
+  },
   /** The shared package ships TypeScript sources, so Next has to compile it. */
   transpilePackages: ["@snagflow/shared"],
   turbopack: {

@@ -19,6 +19,8 @@ Migrations (append-only, apply in order — details in-file):
 | `20261029000013_team_invitations.sql` | canonical-email member add, scoped role/removal, admin invite preparation, project cancellation, recipient-bound lookup/atomic acceptance; authenticated execution only |
 | `20261030000014_project_metadata.sql` | preserve historical snag references and child locations on deletion; immutable metadata identity/project, validated names/order, same-project acyclic hierarchy with serialized parent writes; existing RLS unchanged |
 | `20261031000015_realtime_notifications.sql` | RLS-filtered snags/comments/photos/notifications publication; comment notifications for distinct active authorized creator/assignee recipients, excluding the author |
+| `20261031000016_markup_reports.sql` | optimistic authorized photo annotation RPC, persistent report rate limit, atomic/idempotent report revision RPC and XLSX bucket MIME |
+| `20261102000017_immutable_artifacts.sql` | append-only private photo/report bytes; removes client overwrite/delete paths and cleanup-registration races |
 
 ## Table cards
 
@@ -38,6 +40,7 @@ Migrations (append-only, apply in order — details in-file):
 | `notifications` | per-user inbox | id | FK profile, snag | MOD-DATABASE | 0004 |
 | `push_tokens` | expo tokens | id | FK profile | MOD-DATABASE | 0004 |
 | `reports` | generated report revisions | id | FK project, generated_by; theme | MOD-DATABASE | 0004 |
+| `report_generation_requests` | private per-user generation quota; five per minute across processes | id | FK project/profile; RPC-only | MOD-DATABASE | 0016 |
 
 ## Relations that matter
 

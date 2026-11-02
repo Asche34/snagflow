@@ -62,3 +62,14 @@ image preparation in `apps/web/src/lib/photos.ts`, user Storage client in
 Create route: `/projects/[projectId]/snags/new`; edit route: `/snags/[snagId]/edit`.
 Real-browser capture coverage is in `e2e/tests/snags.spec.ts`; shared photo metadata
 validation is in `packages/shared/tests/photos.test.ts`.
+
+## Phase 4 files
+
+Photo markup: `apps/web/src/components/photo-markup.tsx` (modal, retained draft, immutable upload/retry),
+`photo-markup-editor.tsx` (client-only canvas/tools), `snag-photos.tsx` (private gallery),
+`apps/web/src/app/(app)/snags/annotation-actions.ts` (validated save/refresh), shared `packages/shared/src/annotations.ts`.
+Reports: `apps/web/src/app/api/reports/route.ts` (generation/history), `apps/web/src/app/api/reports/[reportId]/route.ts`
+(download signing), `lib/reports/` (caller auth, paginated data, bounded images, PDF/Excel),
+`apps/web/src/components/project-reports.tsx` (project Reports tab), shared `packages/shared/src/reports.ts`.
+Database: migrations 16–17; tests: `supabase/tests/artifacts.test.ts`,
+`packages/shared/tests/annotations.test.ts`, `packages/shared/tests/reports.test.ts`, `e2e/tests/markup.spec.ts`, `e2e/tests/reports.spec.ts`.

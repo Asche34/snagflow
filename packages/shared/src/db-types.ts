@@ -279,6 +279,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"report_generation_requests": {
+                  Row: {
+                    "id": number,"project_id": string,"requested_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: never,"project_id": string,"requested_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "id"?: never,"project_id"?: string,"requested_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "report_generation_requests_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "report_generation_requests_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"reports": {
                   Row: {
                     "created_at": string,"created_by": string,"filters": NonNullable<Json>,"format": Database["public"]['Enums']["report_format"],"id": string,"options": NonNullable<Json>,"project_id": string,"revision": number,"storage_path": string,"theme": string
@@ -402,6 +428,9 @@ isOneToOne: false
 "cancel_project_invite":
 { Args: { "p_id": string }; Returns: undefined
                            },
+"claim_report_generation":
+{ Args: { "p_project_id": string }; Returns: undefined
+                           },
 "get_my_project_invite":
 { Args: { "p_token": string }; Returns: {
               "accepted": boolean,"email": string,"project_id": string,"project_name": string,"role": Database["public"]['Enums']["project_role"]
@@ -427,6 +456,48 @@ isOneToOne: false
 "project_role":
 { Args: { "pid": string }; Returns: Database["public"]['Enums']["project_role"]
                            },
+"save_photo_annotation":
+{ Args: { "p_annotated_path": string,"p_annotation_json": Json,"p_expected_updated_at": string,"p_photo_id": string }; Returns: {
+              "annotated_path": string | null,
+"annotation_json": Json | null,
+"created_at": string,
+"height": number,
+"id": string,
+"kind": Database["public"]['Enums']["photo_kind"],
+"snag_id": string,
+"sort_order": number,
+"storage_path": string,
+"taken_at": string,
+"thumb_path": string | null,
+"updated_at": string,
+"uploaded_by": string,
+"width": number
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "snag_photos"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
+"save_report":
+{ Args: { "p_filters": Json,"p_format": Database["public"]['Enums']["report_format"],"p_id": string,"p_options": Json,"p_project_id": string,"p_storage_path": string,"p_theme": string }; Returns: {
+              "created_at": string,
+"created_by": string,
+"filters": NonNullable<Json>,
+"format": Database["public"]['Enums']["report_format"],
+"id": string,
+"options": NonNullable<Json>,
+"project_id": string,
+"revision": number,
+"storage_path": string,
+"theme": string
+            }
+                          SetofOptions: {
+        from: "*"
+        to: "reports"
+        isOneToOne: true
+        isSetofReturn: false
+      } },
 "set_project_member":
 { Args: { "p_project_id": string,"p_role": Database["public"]['Enums']["project_role"],"p_user_id": string }; Returns: undefined
                            },

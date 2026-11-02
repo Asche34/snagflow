@@ -4,3 +4,5 @@ export * from "./workflow";
 export * from "./schemas";
 export * from "./terminology";
 export * from "./db-types";
+export * from "./reports";
+export * from "./annotations";

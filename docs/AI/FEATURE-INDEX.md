@@ -46,7 +46,7 @@ Recipients notified on assign/transition. Impl: `20261019000007_workflow_rpc.sql
 Append-only audit per snag. Impl: `20261019000007_workflow_rpc.sql::snag_activity` → `activity_log` (`20261019000004_collab_tables.sql`). Rule: BR-ACTIVITY-001.
 
 ### FEAT-ORG-SETTINGS (done, schema)
-Org-wide naming/theme/report config. Impl: `20261019000002_core_tables.sql::org_settings` + UI mirror `packages/shared/src/terminology.ts`. Report generation itself: Phase 4.
+Org-wide naming/theme/report config. Impl: `20261019000002_core_tables.sql::org_settings` + UI mirror `packages/shared/src/terminology.ts`. Report generation: FEAT-REPORTS below.
 
 ### FEAT-UI-PRIMITIVES (done)
 Button/Card/Dialog/Input/Select/Textarea/Tabs/Badge/Skeleton/Avatar/Separator/DropdownMenu:
@@ -66,7 +66,7 @@ Impl: `apps/web/src/components/dashboard-view.tsx`, `apps/web/src/app/(app)/dash
 ### FEAT-WEB-PROJECT (partial, web)
 Project page with Snags / Locations / Team tabs, exact project statistics and URL-backed filters/search. Impl: `apps/web/src/components/project-view.tsx`, `apps/web/src/app/(app)/projects/[projectId]/page.tsx`
 Create/edit: `/projects/new` (admin), `/projects/[projectId]/edit` (project manager/admin).
-Location/category management is delivered below. Activity/reports tabs remain later-phase work.
+Location/category management is delivered below. Reports are delivered below; the separate Activity tab remains future work.
 
 ### FEAT-WEB-PROJECT-DETAILS (done, web)
 Admin creates projects; project managers/admins edit name/code/description/client/address and require-fix-photo setting. Stable-UUID create retry, validation/duplicate errors retain draft, fresh active/access checks on save and layout/navigation refresh.
@@ -74,14 +74,14 @@ Impl: `apps/web/src/components/project-form.tsx`, `apps/web/src/components/proje
 Contracts: `packages/shared/src/schemas.ts::ProjectCreateSchema`, `permissions.ts::canAct`; existing project RLS in migration 5.
 Tests: `e2e/tests/projects.spec.ts`, `supabase/tests/projects.test.ts`. Delivery: `docs/AI/PROJECT-DETAILS-2026-10-29.md`.
 
-### FEAT-WEB-SNAG-UI (partial, web)
+### FEAT-WEB-SNAG-UI (done, web)
 Snag detail: metadata, description, real signed issue/fix photos, comment thread, activity trail, manager assignment and role-gated status transitions.
 Impl: `apps/web/src/components/snag-view.tsx`, `apps/web/src/components/snag-actions.tsx`, `apps/web/src/app/(app)/snags/[snagId]/*`
 Create/edit: project-scoped full-page forms with shared validation, retry identity and Save & add another.
 Photos: client JPEG resizing/thumbnails, private uploads, retry queue and authenticated metadata registration.
 Impl: `apps/web/src/components/snag-form.tsx`, `snag-form-page.tsx`, `photo-picker.tsx`, `snag-photo-upload.tsx`, `snag-photos.tsx`; `apps/web/src/lib/photos.ts`; `apps/web/src/app/(app)/snags/actions.ts`, `photo-actions.ts`.
 Tests: `e2e/tests/snags.spec.ts`, `packages/shared/tests/photos.test.ts`.
-Remaining: photo markup.
+Photo markup is delivered by FEAT-MARKUP below.
 
 ### FEAT-WEB-LIFECYCLE (done, web)
 Confirmed manager/admin project archive/restore and snag soft-delete. Archived projects leave active navigation/dashboard work but retain data and access through the dashboard archived list. Soft deletion retains history, removes list/count/detail visibility under RLS, and returns to the refreshed project. Ambiguous deletion recovery loads a fresh document to discard missed client invalidation.
@@ -137,7 +137,16 @@ Existing assignment/shared-map status controls and dashboard review queue reconc
 Impl: `apps/web/src/components/snag-actions.tsx`, `apps/web/src/components/snag-assignment.tsx`, `apps/web/src/components/snag-view.tsx`, existing transition server action. RPC and shared authorization/workflow contracts unchanged.
 Tests: `e2e/tests/phase3.spec.ts`, existing snag/workflow suites. Delivery: `docs/AI/PHASE3-COMPLETE-2026-10-31.md`.
 
+### FEAT-MARKUP (done, web)
+Client-only react-konva editor with six tools, colour, undo/redo, selection/move/delete and keyboard/button alternatives. Original pixel coordinates, bounded shared document, separate flattened JPEG, retained page draft, signed-link recovery, exact immutable retry and reviewed conflict replacement.
+Impl: `apps/web/src/components/photo-markup.tsx`, `photo-markup-editor.tsx`, `snag-photos.tsx`, `apps/web/src/app/(app)/snags/annotation-actions.ts`, `packages/shared/src/annotations.ts`.
+DB: migrations 16–17. Tests: `e2e/tests/markup.spec.ts`, `packages/shared/tests/annotations.test.ts`, `supabase/tests/artifacts.test.ts`.
+
+### FEAT-REPORTS (done, web)
+Caller-cookie/bearer PDF/Excel generation, Classic/Compact/Photo-first, cover branding/summary/signatures, specified content options/filters/group/sort, paginated reads and bounded private-image processing. Private downloads, persistent rate limit, atomic/idempotent revisions and Reports-tab history/regeneration. Full comments use a separate Excel sheet.
+Impl: `apps/web/src/app/api/reports/route.ts`, `apps/web/src/app/api/reports/[reportId]/route.ts`, `apps/web/src/lib/reports/`, `apps/web/src/components/project-reports.tsx`, `packages/shared/src/reports.ts`.
+DB: migrations 16–17. Tests: `e2e/tests/reports.spec.ts`, `packages/shared/tests/reports.test.ts`, `report-outputs.test.mjs`, `supabase/tests/artifacts.test.ts`. Delivery: `docs/AI/PHASE4-COMPLETE-2026-11-02.md`.
+
 ## PLANNED (spec §15 — do not build before prior phases)
 
-- FEAT-MARKUP / FEAT-REPORTS — Phase 4
 - FEAT-MOBILE — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7

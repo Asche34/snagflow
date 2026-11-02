@@ -10,17 +10,19 @@ import { parseSnagFilters, snagFiltersHref, type QueryParams } from '@/lib/snag-
 import { loadWorkspace } from '@/lib/data';
 import { loadProjectMetadata } from '@/lib/project-metadata';
 import { ProjectMetadata } from '@/components/project-metadata';
+import { ProjectReports } from '@/components/project-reports';
 import { TeamView } from '@/components/team-view';
 import { LifecycleControl } from '@/components/lifecycle-control';
 import { PROJECT_ROLE_LABELS } from '@/lib/labels';
 import { cn } from '@/lib/utils';
 
-type Tab = 'snags' | 'locations' | 'team';
+type Tab = 'snags' | 'locations' | 'team' | 'reports';
 
 const TABS: { id: Tab; label: string }[] = [
   { id: 'snags', label: 'Snags' },
   { id: 'locations', label: 'Locations' },
   { id: 'team', label: 'Team' },
+  { id: 'reports', label: 'Reports' },
 ];
 
 export async function ProjectView({
@@ -42,7 +44,7 @@ export async function ProjectView({
   const { people, members, roles } = workspace;
   const { locations, categories } = await loadProjectMetadata(project.id);
   const role = roles.get(project.id) ?? (workspace.profile?.is_admin ? 'manager' : null);
-  const activeTab: Tab = tab === 'locations' || tab === 'team' ? tab : 'snags';
+  const activeTab: Tab = tab === 'locations' || tab === 'team' || tab === 'reports' ? tab : 'snags';
 
   const projectLocations = locations.filter((location) => location.project_id === project.id);
   const projectMembers = members.filter((member) => member.project_id === project.id);
@@ -276,6 +278,28 @@ export async function ProjectView({
             />
           </CardContent>
         </Card>
+      ) : null}
+
+      {activeTab === 'reports' ? (
+        workspace.profile?.is_active &&
+        canAct(
+          { id: workspace.user.id, isAdmin: workspace.profile.is_admin },
+          role,
+          'report:generate',
+        ) ? (
+          <ProjectReports
+            projectId={project.id}
+            people={people.filter((person) =>
+              projectMembers.some((member) => member.user_id === person.id),
+            )}
+            locations={projectLocations}
+            categories={categories.filter((category) => category.project_id === project.id)}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            Reports require an active project manager or administrator.
+          </p>
+        )
       ) : null}
 
       {activeTab === 'team' ? (

@@ -1,7 +1,8 @@
-import Image from 'next/image';
+import { canAnnotatePhoto } from '@snagflow/shared';
 import type { SnagPhoto } from '@/lib/data';
 import { createClient } from '@/lib/supabase/server';
 import { SnagPhotoUpload } from './snag-photo-upload';
+import { PhotoMarkup } from './photo-markup';
 
 export async function SnagPhotos({
   photos,
@@ -15,15 +16,21 @@ export async function SnagPhotos({
   canUpload: boolean;
 }) {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const [profile, membership] = user ? await Promise.all([
+    supabase.from('profiles').select('is_admin,is_active').eq('id', user.id).maybeSingle(),
+    supabase.from('project_members').select('role').eq('project_id', projectId).eq('user_id', user.id).maybeSingle(),
+  ]) : [null, null];
   const signed = await Promise.all(
     photos.map(async (photo) => {
-      const [original, thumbnail] = await Promise.all([
+      const [original, displayed, thumbnail] = await Promise.all([
         supabase.storage.from('snag-photos').createSignedUrl(photo.storage_path, 300),
+        supabase.storage.from('snag-photos').createSignedUrl(photo.annotated_path ?? photo.storage_path, 300),
         supabase.storage
           .from('snag-photos')
-          .createSignedUrl(photo.thumb_path ?? photo.storage_path, 300),
+          .createSignedUrl(photo.annotated_path ?? photo.thumb_path ?? photo.storage_path, 300),
       ]);
-      return { photo, url: original.data?.signedUrl, thumbnail: thumbnail.data?.signedUrl };
+      return { photo, url: displayed.data?.signedUrl, originalUrl: original.data?.signedUrl, thumbnail: thumbnail.data?.signedUrl };
     }),
   );
   return (
@@ -40,28 +47,7 @@ export async function SnagPhotos({
                 <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {group.map((item, index) => (
                     <li key={item.photo.id}>
-                      {item.url && item.thumbnail ? (
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block overflow-hidden rounded-lg border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                          aria-label={`Open ${label.toLowerCase()} photo ${index + 1}`}
-                        >
-                          <Image
-                            src={item.thumbnail}
-                            alt={`${label} photo ${index + 1}`}
-                            width={item.photo.width}
-                            height={item.photo.height}
-                            unoptimized
-                            className="aspect-4/3 h-auto w-full object-cover"
-                          />
-                        </a>
-                      ) : (
-                        <p className="flex aspect-4/3 items-center justify-center rounded-lg border bg-muted p-3 text-center text-sm text-muted-foreground">
-                          {label} photo {index + 1} is unavailable.
-                        </p>
-                      )}
+                      <PhotoMarkup photo={item.photo} projectId={projectId} label={`${label} photo ${index + 1}`} url={item.url} originalUrl={item.originalUrl} thumbnail={item.thumbnail} canEdit={!!user && !!profile?.data?.is_active && canAnnotatePhoto({ id: user.id, isAdmin: profile.data.is_admin, projectRole: membership?.data?.role ?? null, uploadedBy: item.photo.uploaded_by })} />
                     </li>
                   ))}
                 </ul>

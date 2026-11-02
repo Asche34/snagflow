@@ -225,6 +225,47 @@
       ],
       "test": "e2e/tests/phase3.spec.ts",
       "doc": "docs/AI/PHASE3-COMPLETE-2026-10-31.md"
+    },
+    "FEAT-MARKUP": {
+      "module": "MOD-WEB",
+      "impl": [
+        "apps/web/src/components/photo-markup.tsx",
+        "apps/web/src/components/photo-markup-editor.tsx",
+        "apps/web/src/components/snag-photos.tsx",
+        "apps/web/src/app/(app)/snags/annotation-actions.ts",
+        "packages/shared/src/annotations.ts"
+      ],
+      "db": [
+        "supabase/migrations/20261031000016_markup_reports.sql",
+        "supabase/migrations/20261102000017_immutable_artifacts.sql"
+      ],
+      "test": [
+        "e2e/tests/markup.spec.ts",
+        "packages/shared/tests/annotations.test.ts",
+        "supabase/tests/artifacts.test.ts"
+      ],
+      "doc": "docs/AI/PHASE4-COMPLETE-2026-11-02.md"
+    },
+    "FEAT-REPORTS": {
+      "module": "MOD-WEB",
+      "impl": [
+        "apps/web/src/app/api/reports/route.ts",
+        "apps/web/src/app/api/reports/[reportId]/route.ts",
+        "apps/web/src/components/project-reports.tsx",
+        "apps/web/src/lib/reports",
+        "packages/shared/src/reports.ts"
+      ],
+      "db": [
+        "supabase/migrations/20261031000016_markup_reports.sql",
+        "supabase/migrations/20261102000017_immutable_artifacts.sql"
+      ],
+      "test": [
+        "e2e/tests/reports.spec.ts",
+        "packages/shared/tests/reports.test.ts",
+        "supabase/tests/artifacts.test.ts",
+        "packages/shared/tests/report-outputs.test.mjs"
+      ],
+      "doc": "docs/AI/PHASE4-COMPLETE-2026-11-02.md"
     }
   },
   "modules": {
@@ -277,7 +318,7 @@
         "url": "/projects/[projectId]",
         "file": "apps/web/src/app/(app)/projects/[projectId]/page.tsx",
         "auth": "user",
-        "note": "snags + locations + team, RLS scoped"
+        "note": "snags + locations + team + manager Reports tab, RLS scoped"
       },
       {
         "method": "GET",
@@ -334,6 +375,27 @@
         "file": "apps/web/src/app/invite/[token]/page.tsx",
         "auth": "public shell; confirmed matching email for acceptance",
         "note": "recipient setup with token-bound DB acceptance"
+      },
+      {
+        "method": "GET",
+        "url": "/api/reports",
+        "file": "apps/web/src/app/api/reports/route.ts",
+        "auth": "active project manager/admin; cookie or bearer JWT",
+        "note": "paginated history; rate-limited PDF/XLSX generation and atomic revision registration"
+      },
+      {
+        "method": "POST",
+        "url": "/api/reports",
+        "file": "apps/web/src/app/api/reports/route.ts",
+        "auth": "active project manager/admin; cookie or bearer JWT",
+        "note": "rate-limited PDF/XLSX generation and atomic revision registration"
+      },
+      {
+        "method": "GET",
+        "url": "/api/reports/[reportId]",
+        "file": "apps/web/src/app/api/reports/[reportId]/route.ts",
+        "auth": "active project manager/admin",
+        "note": "short-lived private download signing"
       }
     ],
     "mobile": [
@@ -412,13 +474,19 @@
       "supabase/migrations/20261029000012_snag_search.sql",
       "supabase/migrations/20261029000013_team_invitations.sql",
       "supabase/migrations/20261030000014_project_metadata.sql",
-      "supabase/migrations/20261031000015_realtime_notifications.sql"
+      "supabase/migrations/20261031000015_realtime_notifications.sql",
+      "supabase/migrations/20261031000016_markup_reports.sql",
+      "supabase/migrations/20261102000017_immutable_artifacts.sql"
     ],
     "tests_discovered": [
+      "packages/shared/tests/annotations.test.ts",
       "packages/shared/tests/permissions.test.ts",
       "packages/shared/tests/photos.test.ts",
+      "packages/shared/tests/report-outputs.test.mjs",
+      "packages/shared/tests/reports.test.ts",
       "packages/shared/tests/team.test.ts",
       "packages/shared/tests/workflow.test.ts",
+      "supabase/tests/artifacts.test.ts",
       "supabase/tests/integrity.test.ts",
       "supabase/tests/lifecycle.test.ts",
       "supabase/tests/metadata.test.ts",
@@ -432,9 +500,11 @@
       "e2e/tests/fieldwork.spec.ts",
       "e2e/tests/filters.spec.ts",
       "e2e/tests/lifecycle.spec.ts",
+      "e2e/tests/markup.spec.ts",
       "e2e/tests/metadata.spec.ts",
       "e2e/tests/phase3.spec.ts",
       "e2e/tests/projects.spec.ts",
+      "e2e/tests/reports.spec.ts",
       "e2e/tests/snags.spec.ts",
       "e2e/tests/team.spec.ts"
     ],

@@ -168,39 +168,13 @@ export const ReportSortBySchema = z.enum(['number', 'priority', 'due_date']);
 export const ReportThemeSchema = z.enum(['classic', 'compact', 'photo_first']);
 export const ReportPhotoSizeSchema = z.enum(['small', 'medium', 'large', 'one_per_page']);
 
-export const ReportFiltersSchema = z.object({
-  status: z.array(SnagStatusSchema).optional(),
-  assigneeId: UUIDSchema.optional().nullable(),
-  locationId: UUIDSchema.optional().nullable(),
-  categoryId: UUIDSchema.optional().nullable(),
-  priority: z.array(SnagPrioritySchema).optional(),
-  /** "exclude closed before date X" */
-  closedBefore: z.string().date().optional(),
-  createdFrom: z.string().date().optional(),
-  createdTo: z.string().date().optional(),
-});
-
-export const ReportOptionsSchema = z.object({
-  coverPage: z.boolean().default(true),
-  includePhotos: z.boolean().default(true),
-  useAnnotated: z.boolean().default(true),
-  photoSize: ReportPhotoSizeSchema.default('medium'),
-  includeComments: z.boolean().default(false),
-  includeTimestamps: z.boolean().default(true),
-  includeFixPhotos: z.boolean().default(true),
-  groupBy: ReportGroupBySchema.optional(),
-  sortBy: ReportSortBySchema.default('number'),
-  theme: ReportThemeSchema.default('classic'),
-});
-export type ReportOptions = z.infer<typeof ReportOptionsSchema>;
-
-export const ReportRequestSchema = z.object({
-  projectId: UUIDSchema,
-  format: z.enum(['pdf', 'xlsx']),
-  filters: ReportFiltersSchema.default({}),
-  options: ReportOptionsSchema.default({}),
-});
-export type ReportRequest = z.infer<typeof ReportRequestSchema>;
+export {
+  ReportFiltersSchema,
+  ReportOptionsSchema,
+  ReportRequestSchema,
+  type ReportOptions,
+  type ReportRequest,
+} from './reports';
 
 /** Terminal errors returned by the transition RPCs; UI maps codes to copy. */
 export const SnagRpcErrorSchema = z.object({

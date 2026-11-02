@@ -4,7 +4,7 @@ SnagFlow is a collaborative snag, punch-list, and defect tracker for constructio
 
 Work is organized by project, location, category, priority, and due date. The intended field workflow connects issue evidence, assigned corrective work, review, and an auditable history across a web workspace and a future mobile app.
 
-**Current status:** version 0.1.0, phases 0–3 complete locally. The web workspace supports project/team/location/category management, invitations, capture/search/photos, archive/deletion, manager workflows, realtime collaboration and personal notifications. The Expo mobile app is a scaffold; hosted deployment configuration remains separate work.
+**Current status:** version 0.1.0, phases 0–4 complete locally. The web workspace supports project/team/location/category management, invitations, capture/search/photos, archive/deletion, manager workflows, realtime collaboration and personal notifications. The Expo mobile app is a scaffold; hosted deployment configuration remains separate work.
 
 ## How it works
 
@@ -41,9 +41,10 @@ Permissions are enforced in PostgreSQL through row-level security, triggers, and
 - Project archive/restore, audited snag soft deletion, and location/category editing with historical-reference protection.
 - Authenticated realtime snag/comment/photo updates with reconnect recovery, a private notifications bell, and live review/reject/reopen workflows. Removals and access changes also reconcile every 15 visible seconds.
 
+- Editable image markup with preserved originals, private PDF/Excel reports, three themes, filters/options and revision history/regeneration.
+
 ### Still to build
 
-- Photo markup, PDF/Excel reports, and revision handling.
 - Mobile field capture, offline synchronization, and push notifications.
 
 Database support for an operation does not mean its web or mobile interface is complete. See [project state](docs/AI/PROJECT-STATE.md) for delivery details and [the build specification](SNAGFLOW_BUILD_PROMPT.md) for the intended scope.

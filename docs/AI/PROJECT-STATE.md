@@ -5,9 +5,9 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Field                | Value |
 | -------------------- | ----- |
 | Version              | 0.1.0 |
-| DB schema version    | migration `20261031000015_realtime_notifications.sql` (applied and verified locally; hosted application pending) |
-| Phase (spec §15)     | **3 — workflow and realtime complete locally.** Phase 4 next; phases 0–2 complete. |
-| Last delivered | Authenticated realtime collaboration/reconnect, personal notifications bell, live manager review/reject/reopen and assignment reconciliation |
+| DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally; hosted application pending) |
+| Phase (spec §15)     | **4 — markup and reports complete locally.** Phases 0–3 complete; Phase 5 mobile online mode next. |
+| Last delivered | Editable private image markup, PDF/Excel exports with three themes/options/filters and revision history |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -39,19 +39,28 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 - Web notifications: private live bell, exact unread count/latest 30, individual/all read actions and recoverable failures; migration 15 comment recipient notifications (Phase 3)
 - Web workflow: live dashboard review queue, required reject/reopen reasons, visible audit reasons, retained drafts/focused failures and remote assignment reconciliation (Phase 3)
 
+- Web image markup: original/vector/flattened persistence, all six tools, undo/redo, keyboard movement, conflict review, immutable-byte retries and signed-link recovery (Phase 4)
+- Web reports: caller-authorized PDF/Excel, three themes and content/filter/group/sort controls, bounded paginated reads/images, private downloads, atomic revisions/history/regeneration and persistent quota (Phase 4)
+
 ## Features in progress
 
-- Phases 0–3 delivered locally; Phase 4 image markup/reports/revisions is next.
+- None in the delivered web phases; Phase 5 mobile online mode is next.
 
 ## Features remaining (order per spec §15)
 
-- Phase 4: image markup (react-konva) + PDF/Excel reports (@react-pdf/renderer, exceljs) + revisions
 - Phase 5: mobile app on hosted Supabase (auth, camera flow, review flow)
 - Phase 6: offline sync (expo-sqlite mirror, outbox, photo queue), push notifications (Edge Function)
 - Phase 7: PWA, dark mode, EAS profiles, E2E (Playwright) — **the E2E suite now exists; expand it to the full §14 golden path**
 - Edge function `push-send` (spec §12) — not yet created
 
 ## Tests current
+
+### Phase 4 markup and reports — 2026-11-02
+
+- Local migrations 16–17 are applied and recorded; original/photo/report bytes are append-only for clients, annotation saves detect conflicts and report registration allocates atomic revisions. Generated DB types match the running local schema. Data is preserved and hosted services are untouched.
+- **245 targeted checks passed**: 81 real-browser (69 existing + seven markup + five reports), nine fixture UI, 55 real DB, 75 shared/output and 25 transactional SQL assertions. Final production build, configured web/shared/DB/E2E lint/typechecks, shared declarations and AI doc/index checks passed. Full mobile/monorepo gate remains unverified.
+- Real production exports cover 100 snags with photos in all three themes and Excel; full records beyond 1,000 rows, immutable retry/revisions, seven maximum-length Excel comments and nine actual PDF size/theme geometries are checked. Rendered pages and glyph/image bounds caught and corrected layout defects beyond text-presence assertions.
+- Independent DB, whole-feature and scoped pagination reviews have no remaining material findings after fixes. Delivery, verification evidence, runtime details and limits: `docs/AI/PHASE4-COMPLETE-2026-11-02.md`.
 
 ### Phase 3 workflow and realtime — 2026-10-31
 
@@ -169,4 +178,4 @@ PowerShell output compression uses the explicit wrapper.
 
 ## Next step recommended
 
-Start Phase 4: image markup, PDF/Excel reports and revisions. Latest handoff: `PHASE3-COMPLETE-2026-10-31.md`. Local schema is migration 15; hosted migrations/invitation settings remain a separate deployment step under `TEAM-INVITES-2026-10-30.md` plus migrations 14–15. Preserve local data; do not reset an existing stack.
+Start Phase 5 mobile online mode per the build prompt. Latest handoff: `PHASE4-COMPLETE-2026-11-02.md`. Local schema is migration 17. Hosted migrations/invitation settings remain separate deployment work under `TEAM-INVITES-2026-10-30.md` plus migrations 14–17. Preserve local data; do not reset an existing stack.

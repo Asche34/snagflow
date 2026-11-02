@@ -24,7 +24,7 @@ const list = (dir, filter) => {
 idx.auto.migrations_discovered = list(join(ROOT, "supabase", "migrations"), (n) => n.endsWith(".sql"));
 
 // 2. tests (unit + db + e2e)
-const sharedTests = list(join(ROOT, "packages", "shared", "tests"), (n) => n.endsWith(".test.ts")).map(
+const sharedTests = list(join(ROOT, "packages", "shared", "tests"), (n) => /\.test\.(ts|mjs)$/.test(n)).map(
   (f) => f,
 );
 const e2eTests = list(join(ROOT, "e2e", "tests"), (n) => n.endsWith(".spec.ts")).map((f) =>

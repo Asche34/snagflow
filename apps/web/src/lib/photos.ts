@@ -82,8 +82,17 @@ export async function uploadPhotos(
       ] as const) {
         const { error } = await supabase.storage
           .from('snag-photos')
-          .upload(`${prefix}/${id}.jpg`, blob, { contentType: 'image/jpeg', upsert: true });
-        if (error) throw new Error('Upload interrupted. Check your connection and retry.');
+          .upload(`${prefix}/${id}.jpg`, blob, { contentType: 'image/jpeg', upsert: false });
+        if (error) {
+          // Objects are immutable. Reconcile an already-completed upload after a
+          // duplicate or lost response rather than replacing the original bytes.
+          const existing = await supabase.storage.from('snag-photos').info(`${prefix}/${id}.jpg`);
+          if (
+            existing.error ||
+            existing.data?.contentType !== 'image/jpeg' ||
+            existing.data.size !== blob.size
+          ) throw new Error('Upload interrupted. Check your connection and retry.');
+        }
       }
       status('saving');
       const registered = await registerSnagPhoto({
