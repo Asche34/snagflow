@@ -8,7 +8,7 @@
 
 **Tech Stack:** Installed Expo58/React Native, existing Modal/Router and Supabase dependencies, local Playwright preview, EAS27.2.0 internal APK.
 
-**Spec:** User's mobile adjustment request; priority semantics clarification is pending.
+**Spec:** User's mobile adjustment request; user confirmed Medium default with no required priority selection.
 
 ## Constraints and review focus
 
@@ -39,3 +39,5 @@
 - Ruling: optional priority uses the existing Medium default with clear UI copy; true unset requires a separately agreed shared/DB/web change.
 
 - Cloud build submitted from4ab3b53 as fcca55a1-633b-4e89-b4aa-33ff6f4db5bb. Source archive319 files passed exclusion/private-key checks. Final observed queue wait74.3 minutes; native artifact remains externally pending. Commit is local only to avoid unapproved Vercel deployment.
+
+- User clarification confirmed the implemented optional-priority behavior: Use Medium by default; no selection required. No rebuild is needed for this confirmation.

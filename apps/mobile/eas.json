@@ -11,6 +11,7 @@
       "pnpm": "9.15.9",
       "env": {
         "EXPO_NO_DOTENV": "1",
+        "GRADLE_OPTS": "-Dorg.gradle.jvmargs=\"-XX:MaxMetaspaceSize=1g -Xmx4g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8\" -Dorg.gradle.parallel=false -Dorg.gradle.workers.max=2 -Dorg.gradle.daemon=false",
         "EXPO_PUBLIC_API_BASE_URL": "unconfigured",
         "EXPO_PUBLIC_SUPABASE_URL": "unconfigured",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "unconfigured"

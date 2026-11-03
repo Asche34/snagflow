@@ -271,3 +271,7 @@ Every non-obvious choice made while building SnagFlow. Format: **Decision** — 
 - Retain only successful capture location/category in project-local state, with fresh snag UUID and cleared independent fields/photos. Do not add durable storage or carry defaults across projects/accounts/deployments. Disable project switching while capture operations are pending; independent review and a delayed POST regression identified the required guard.
 - Make priority selection optional while keeping the existing shared Medium default, with explicit UI copy and a Decide later option. True unset priority was offered for clarification but would require a separate cross-app/database change; no new nullable priority or authorization rule is introduced.
 - Build version1.0.1/code2 with the existing Android package/signing identity, so testers can upgrade the installed APK and keep their deployment setting. No hosted web/Auth changes are part of this build request.
+
+## 2026-11-03 — Constrain Android preview build parallelism
+
+The first replacement APK build completed Metro bundling but its Gradle daemon disappeared during native compilation, with no explicit source or heap error. Keep native dependencies and Expo's4GiB JVM default; reduce concurrent native/Java compilation by disabling Gradle project parallelism and limiting workers to2 through EAS preview GRADLE_OPTS. This tests resource pressure as the cause without a paid worker change or broad package upgrade. Do not claim the hypothesis proven until a native retry result is observed.
