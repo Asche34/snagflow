@@ -39,3 +39,10 @@ Expo build fcca55a1-633b-4e89-b4aa-33ff6f4db5bb subsequently returned ERRORED: E
 Resource pressure is a hypothesis, not a proven operating-system OOM event. The constrained retry keeps Expo's normal4GiB Gradle heap/metaspace/encoding defaults and existing worker/signing/version2, while disabling parallel project execution and limiting Gradle workers to2 through the documented GRADLE_OPTS profile environment override. No dependency upgrades or paid resource class is selected. Source of supported override: https://docs.expo.dev/build-reference/infrastructure/#gradle-jvm-args . Actual native success remains to be observed.
 
 User explicitly confirmed Medium default with no required priority selection; this matches the shipped JavaScript source and needs no feature change.
+
+## Constrained retry submitted
+
+- New Expo build: [cf113c7a-35d5-4d15-896a-f7181666c0df](https://expo.dev/accounts/asche34/projects/snagflow/builds/cf113c7a-35d5-4d15-896a-f7181666c0df).
+- Source:47f428d9150e44279ac97483bcbd419695cbed69, Android1.0.1/code2, existing remote keystore. Only the preview Gradle concurrency override changed; source UI/behavior and dependency lock are unchanged.
+- EAS archive inspection accepted the retry profile. Independent review found no configuration blocker and confirmed the override preserves JVM/worker-size defaults except project parallelism/worker count. Actual worker log must confirm the override and native outcome before calling the experiment successful.
+- Expo build list confirms first attempt ERRORED and this retry IN_QUEUE. No APK artifact exists yet; use this new build link rather than the failed attempt. No native success, physical acceptance, paid worker upgrade, Vercel deployment or repository push is claimed.
