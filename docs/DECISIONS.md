@@ -264,3 +264,10 @@ Every non-obvious choice made while building SnagFlow. Format: **Decision** — 
 - Use repository-root EAS source ignores and exclude environment/signing/runtime artifacts from both cloud and Docker contexts. Retain workspace manifests/shared sources; inspect the actual archive before upload.
 - Reuse the existing standalone Dockerfile for a Render Free trial, manual deployments and private runtime invitation credentials. Accounts are available, but hosted migrations/configuration/deployment still require explicit approval. Preserve all existing local data.
 - Record the user's local Android success as user-reported evidence; the exact acceptance matrix and hosted/APK checks remain unverified.
+
+## 2026-11-03 — Mobile project navigation and repeated capture
+
+- Keep the protected Expo Router stack and implement the requested project side panel with installed React Native Modal, authenticated paginated project reads and RLS. Avoid a route-tree/dependency rewrite for this narrow navigation change.
+- Retain only successful capture location/category in project-local state, with fresh snag UUID and cleared independent fields/photos. Do not add durable storage or carry defaults across projects/accounts/deployments. Disable project switching while capture operations are pending; independent review and a delayed POST regression identified the required guard.
+- Make priority selection optional while keeping the existing shared Medium default, with explicit UI copy and a Decide later option. True unset priority was offered for clarification but would require a separate cross-app/database change; no new nullable priority or authorization rule is introduced.
+- Build version1.0.1/code2 with the existing Android package/signing identity, so testers can upgrade the installed APK and keep their deployment setting. No hosted web/Auth changes are part of this build request.

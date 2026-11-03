@@ -5,9 +5,9 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Field                | Value |
 | -------------------- | ----- |
 | Version              | 0.1.0 |
-| DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally; hosted application pending) |
+| DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally and on hosted project mtpmqnczwdbglebrakhw) |
 | Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
-| Last delivered | App URL connection delivered; user reports local Android16 success. Standalone1.0 APK profile and Render template prepared; Expo linked; preview APK build submitted/in queue, hosted acceptance pending. |
+| Last delivered | Mobile1.0.1 adjustments verified locally: Projects-first home, project side menu, retained location/category and optional priority. Replacement APK build pending; hosted/device acceptance still in progress. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
@@ -41,6 +41,8 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 
 - Web image markup: original/vector/flattened persistence, all six tools, undo/redo, keyboard movement, conflict review, immutable-byte retries and signed-link recovery (Phase 4)
 - Web reports: caller-authorized PDF/Excel, three themes and content/filter/group/sort controls, bounded paginated reads/images, private downloads, atomic revisions/history/regeneration and persistent quota (Phase 4)
+
+Current mobile release evidence: `docs/AI/MOBILE-FIELD-ADJUSTMENTS-2026-11-03.md`.
 
 ## Features in progress
 
@@ -184,10 +186,14 @@ PowerShell output compression uses the explicit wrapper.
 3. Sign in with a seeded account (password `Password123!`) — the login page lists them
 4. Browser tests: `E2E_BASE_URL=http://localhost:3003 pnpm --filter @snagflow/e2e test`
 
+## Current hosted invitation investigation
+
+Brevo initially rejected an unvalidated sender. User changed to a personal sender and now reports successful delivery into spam; sender rejection is resolved, while inbox placement/domain authentication and invitation acceptance remain unverified. User subsequently approved the narrower single invitation redirect addition; applied and read-back verified, preserving Site URL/SMTP/all existing aliases. User explicitly confirmed successful password setup and project joining from the newest invitation; hosted invitation acceptance is user-verified. Evidence: `docs/AI/HOSTED-INVITES-2026-11-03.md`. No resend has been made by the agent; only the approved invitation allowlist addition was applied.
+
 ## Blockers
 
-- Phase5 hosted acceptance needs hosted project/canonical API details and explicit deployment authorization. User reports local Android16 testing works, without enumerating all acceptance cases. Expo/Render/Supabase accounts exist; Expo is authenticated and linked; APK build is queued (build36b6a885-d543-4bea-8809-2063b4947f6d). See `ANDROID-APK-HOSTING-2026-11-02.md`.
+- Phase5 hosted acceptance needs hosted project/canonical API details and explicit deployment authorization. User reports local Android16 testing works, without enumerating all acceptance cases. APK build36b6a885-d543-4bea-8809-2063b4947f6d finished. User configured/redeployed Vercel: login/health/discovery200. Hosted schema through17 and first administrator/private password verification are complete. Public signup remains enabled; invite-only Auth/redirects/SMTP and full hosted/native acceptance remain pending. See `HOSTED-VERCEL-2026-11-03.md`.
 
 ## Next step recommended
 
-Expo sign-in and source archive inspection are complete; build the requested standalone APK. Identify the hosted Supabase project/data status and obtain concrete Render/migration approval, then complete hosted/device acceptance using `PHASE5-MOBILE-2026-11-02.md` before Phase6. Local schema remains migration17. Preserve local data; do not reset an existing stack.
+Finish the remaining invite-only Auth/redirect configuration with authorization, sign in privately as the first admin at https://snagflow.vercel.app and verify the APK against hosted services before Phase6. Hold further pushes until the linked Vercel deployment behavior/rollout is authorized. Local schema remains migration17. Preserve local data; do not reset an existing stack.

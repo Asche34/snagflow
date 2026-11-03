@@ -1,5 +1,7 @@
 # Android APK and Render preparation — 2026-11-02
 
+Update2026-11-03: APK finished. User chose existing Vercel instead of Render; current target/access/approval state and artifact are in docs/AI/HOSTED-VERCEL-2026-11-03.md. Render steps below are historical preparation and must not be executed for this rollout.
+
 ## Prepared
 
 `apps/mobile/eas.json` has a `preview` profile for a signed, internally distributed Android APK with bundled JavaScript. It needs neither Expo Go nor Metro. SnagFlow1.0.0 keeps **App URL → Connect → Sign in**. Android application ID is `com.snagflow.app`, initial version code1, scheme `snagflow`. Preserve signing identity for future upgrades and increment version codes. Store publication, automatic updates and broader Phase7 remain separate.
@@ -45,13 +47,13 @@ Render Free sleeps after15 minutes without traffic and has limited compute; repo
 - Android Hermes export passes with dotenv disabled and unconfigured connection presets. This compiles JavaScript/assets; it is not an APK/Gradle build.
 - Expo public config resolves version1.0.0, Android ID/version code and custom scheme.
 - Render YAML passes its published draft2020 JSON schema. The validator ignores an unused optional URI format; this template has no such field. No hosted API validation/deployment is claimed.
-- EAS profile and local archive inspection passed after authentication; native/cloud build outcome remains pending. Docker context exclusions now cover local runtime, test environment and signing files; the image/runtime was not rebuilt for this configuration-only change.
+- EAS profile and local archive inspection passed after authentication; native/cloud build finished successfully; device acceptance remains pending. Docker context exclusions now cover local runtime, test environment and signing files; the image/runtime was not rebuilt for this configuration-only change.
 
 ## Submitted build
 
 - Expo project: `@asche34/snagflow`, ID `302bd0c3-e2e2-4f3f-98b8-40c0902549db`.
 - Build: [36b6a885-d543-4bea-8809-2063b4947f6d](https://expo.dev/accounts/asche34/projects/snagflow/builds/36b6a885-d543-4bea-8809-2063b4947f6d), Android preview, version1.0.0/code1.
-- Source: `7b09d98c82eab5f561d8cc5ae88ba35c4a6e3caf`. Last observed status: `IN_QUEUE`; no APK artifact available yet.
+- Source: `7b09d98c82eab5f561d8cc5ae88ba35c4a6e3caf`. Status on2026-11-03: `FINISHED`. APK download/checksum and the user-selected Vercel rollout are recorded in `docs/AI/HOSTED-VERCEL-2026-11-03.md`.
 - Signing: Android keystore generated remotely and held by Expo for this account/project; no key/password was printed or committed. Reuse it for upgrades.
 - EAS confirmed no account-level plaintext/sensitive preview variables. The build profile supplies dotenv opt-out and inert connection placeholders.
 - Initial EAS validation rejected empty environment values. Replacing them with invalid nonempty placeholders passed validation and preserves the blank connection flow. CLI linkage initially wrote a root stub; it was removed and the actual mobile config linked before submission. No root app.json remains.

@@ -4,13 +4,13 @@ test('an unavailable deployment can be left locally to change App URL', async ({
   await page.getByLabel('Email', { exact: true }).fill('manager@snagflow.test');
   await page.getByLabel('Password', { exact: true }).fill('Password123!');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Fieldwork', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
   await page.route('**/auth/v1/**', (route) => route.abort());
   await page.route('**/rest/v1/**', (route) => route.abort());
   await page.getByRole('button', { name: 'Change app URL', exact: true }).click();
   await expect(page.getByLabel('App URL', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Password', { exact: true })).toHaveValue('');
-  await expect(page.getByRole('heading', { name: 'Fieldwork', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toHaveCount(0);
 });
 test('App URL discovery is public, versioned and contains only public configuration', async ({
   request,
@@ -56,9 +56,9 @@ test('URL edits require connection verification, bad URLs preserve the current c
   await page.getByLabel('Email', { exact: true }).fill('manager@snagflow.test');
   await page.getByLabel('Password', { exact: true }).fill('Password123!');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Fieldwork', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Fieldwork', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByLabel('App URL', { exact: true })).toHaveValue('http://localhost:3003');
   await page.getByLabel('App URL', { exact: true }).fill('http://127.0.0.1:3003');

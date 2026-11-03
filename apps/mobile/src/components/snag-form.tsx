@@ -11,6 +11,7 @@ export function SnagForm({
   onSave,
   label = 'Save snag',
   defaultTitle = '',
+  defaults,
 }: {
   context: ProjectContext;
   initial?: Row<'snags'>;
@@ -18,13 +19,14 @@ export function SnagForm({
   onSave: (value: Omit<SnagCreate, 'clientId' | 'projectId'>) => void;
   label?: string;
   defaultTitle?: string;
+  defaults?: Pick<SnagCreate, 'locationId' | 'categoryId'>;
 }) {
   const { session, profile } = useAuth();
   const [title, setTitle] = useState(initial?.title ?? defaultTitle);
   const [description, setDescription] = useState(initial?.description ?? '');
-  const [priority, setPriority] = useState<SnagPriority>(initial?.priority ?? 'medium');
-  const [location, setLocation] = useState(initial?.location_id ?? '');
-  const [category, setCategory] = useState(initial?.category_id ?? '');
+  const [priority, setPriority] = useState<SnagPriority | ''>(initial?.priority ?? '');
+  const [location, setLocation] = useState(initial?.location_id ?? defaults?.locationId ?? '');
+  const [category, setCategory] = useState(initial?.category_id ?? defaults?.categoryId ?? '');
   const [due, setDue] = useState(initial?.due_date ?? '');
   const [assignee, setAssignee] = useState(initial?.assignee_id ?? '');
   const actor =
@@ -41,12 +43,21 @@ export function SnagForm({
         editable={!busy}
       />
       <Choices
-        label="Priority"
+        label={initial ? 'Priority' : 'Priority (optional)'}
         value={priority}
-        options={SNAG_PRIORITIES.map((value) => ({ value, label: value }))}
+        options={[
+          ...(!initial ? [{ value: '' as const, label: 'Decide later (Medium default)' }] : []),
+          ...SNAG_PRIORITIES.map((value) => ({ value, label: value })),
+        ]}
         onChange={setPriority}
         disabled={busy}
       />
+      {!initial && (
+        <Text style={styles.muted}>
+          Priority can be decided by a manager or administrator later. Skipping it uses Medium until
+          changed.
+        </Text>
+      )}
       <Choices
         label="Location"
         value={location}
@@ -97,7 +108,7 @@ export function SnagForm({
           onSave({
             title,
             description,
-            priority,
+            priority: priority || 'medium',
             locationId: location || null,
             categoryId: category || null,
             dueDate: due || null,

@@ -39,6 +39,8 @@ const TEST_PASSWORD = 'Password123!';
 
 const projectId = crypto.randomUUID();
 const projectName = `Mobile verification ${Date.now()}`;
+const secondProjectId = crypto.randomUUID();
+const secondProjectName = `Mobile switch target ${Date.now()}`;
 const locationId = crypto.randomUUID(),
   categoryId = crypto.randomUUID();
 let memberName = '';
@@ -47,7 +49,7 @@ async function login(page: Page, role: keyof typeof CREDS) {
   await page.getByLabel('Email', { exact: true }).fill(CREDS[role]);
   await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Fieldwork', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
 }
 async function photo(page: Page, button = 'Choose photo') {
   const data = await page.evaluate(() => {
@@ -95,25 +97,34 @@ async function noHorizontalOverflow(page: Page) {
 }
 
 test.beforeAll(async () => {
-  const project = await backend
-    .from('projects')
-    .insert({
-      id: projectId,
-      name: projectName,
-      code: `M${Date.now()}`,
-      created_by: UIDS.admin,
-      require_fix_photo: true,
-    });
+  const project = await backend.from('projects').insert({
+    id: projectId,
+    name: projectName,
+    code: `M${Date.now()}`,
+    created_by: UIDS.admin,
+    require_fix_photo: true,
+  });
   if (project.error) throw project.error;
-  const members = await backend
-    .from('project_members')
-    .insert(
-      (['manager', 'member1', 'viewer'] as const).map((role) => ({
-        project_id: projectId,
-        user_id: UIDS[role],
-        role: role === 'member1' ? 'member' : role,
-      })),
-    );
+  const second = await backend.from('projects').insert({
+    id: secondProjectId,
+    name: secondProjectName,
+    code: `S${Date.now()}`,
+    created_by: UIDS.admin,
+  });
+  if (second.error) throw second.error;
+  const secondMember = await backend.from('project_members').insert({
+    project_id: secondProjectId,
+    user_id: UIDS.member1,
+    role: 'member',
+  });
+  if (secondMember.error) throw secondMember.error;
+  const members = await backend.from('project_members').insert(
+    (['manager', 'member1', 'viewer'] as const).map((role) => ({
+      project_id: projectId,
+      user_id: UIDS[role],
+      role: role === 'member1' ? 'member' : role,
+    })),
+  );
   if (members.error) throw members.error;
   const location = await backend
     .from('locations')
@@ -147,8 +158,117 @@ test.afterAll(async () => {
     const removed = await bucket.remove(paths);
     if (removed.error) throw removed.error;
   }
-  const deleted = await backend.from('projects').delete().eq('id', projectId);
+  const deleted = await backend.from('projects').delete().in('id', [projectId, secondProjectId]);
   if (deleted.error) throw deleted.error;
+});
+
+test('projects lead the home screen and the project side menu switches projects', async ({
+  page,
+}, info) => {
+  await login(page, 'member1');
+  await expect(page.getByText('Fieldwork', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
+  const project = page.getByRole('button', { name: `Open ${projectName}`, exact: true });
+  await expect(project).toBeVisible();
+  const projectPosition = await project.boundingBox();
+  const workPosition = await page.getByText('Your work', { exact: true }).boundingBox();
+  expect(projectPosition && workPosition && projectPosition.y < workPosition.y).toBeTruthy();
+  await project.click();
+  await page.getByRole('button', { name: 'Switch project', exact: true }).click();
+  await expect(
+    page
+      .getByRole('button', { name: `Switch to ${projectName}`, exact: true })
+      .getByText('Current project', { exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: `Switch to ${secondProjectName}`, exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/projects/${secondProjectId}$`));
+  await expect(page.getByRole('heading', { name: secondProjectName, exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Close project menu', exact: true })).toHaveCount(
+    0,
+  );
+  await page.getByRole('button', { name: 'Switch project', exact: true }).click();
+  await page.screenshot({ path: info.outputPath('project-side-menu.png') });
+  await page.getByRole('button', { name: 'Close project menu', exact: true }).click();
+  await page.getByRole('button', { name: 'Switch project', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('button', { name: 'Close project menu', exact: true })).toHaveCount(
+    0,
+  );
+  await noHorizontalOverflow(page);
+});
+
+test('save and add another retains location/category but resets snag-specific inputs', async ({
+  page,
+}, info) => {
+  await login(page, 'member1');
+  await page.goto(`/projects/${projectId}/capture`);
+  await page.getByRole('radio', { name: 'Save & add another', exact: true }).click();
+  await page.getByLabel('Title', { exact: true }).fill('First repeated capture');
+  await page.getByLabel('Description', { exact: true }).fill('Only on the first snag');
+  await page.getByRole('radio', { name: 'Mobile plant room', exact: true }).click();
+  await page.getByRole('radio', { name: 'Mobile electrical', exact: true }).click();
+  await page.getByRole('button', { name: 'Save snag', exact: true }).click();
+  await expect(page.getByText(/Ready for the next capture/)).toBeVisible();
+  await expect(page.getByLabel('Title', { exact: true })).toHaveValue('');
+  await expect(page.getByLabel('Description', { exact: true })).toHaveValue('');
+  await expect(page.getByRole('radio', { name: 'Mobile plant room', exact: true })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'Mobile electrical', exact: true })).toBeChecked();
+  await expect(
+    page.getByRole('radio', { name: 'Decide later (Medium default)', exact: true }),
+  ).toBeChecked();
+  await page.getByLabel('Title', { exact: true }).fill('Second repeated capture');
+  await page.getByRole('button', { name: 'Save snag', exact: true }).click();
+  await expect(page.getByLabel('Title', { exact: true })).toHaveValue('');
+  const rows = await backend
+    .from('snags')
+    .select('id,title,location_id,category_id,priority')
+    .eq('project_id', projectId)
+    .in('title', ['First repeated capture', 'Second repeated capture']);
+  if (rows.error) throw rows.error;
+  expect(rows.data).toHaveLength(2);
+  expect(new Set(rows.data.map((row: { id: string }) => row.id)).size).toBe(2);
+  for (const row of rows.data) {
+    expect(row.location_id).toBe(locationId);
+    expect(row.category_id).toBe(categoryId);
+    expect(row.priority).toBe('medium');
+  }
+  await page.screenshot({ path: info.outputPath('retained-capture-fields.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Switch project', exact: true }).click();
+  await page.getByRole('button', { name: `Switch to ${secondProjectName}`, exact: true }).click();
+  await page.getByRole('button', { name: 'Capture snag', exact: true }).click();
+  await expect(page.getByRole('radio', { name: 'No location', exact: true })).toBeChecked();
+  await expect(page.getByRole('radio', { name: 'No category', exact: true })).toBeChecked();
+});
+
+test('project switching is blocked while a capture save is pending', async ({ page }) => {
+  await login(page, 'member1');
+  await page.goto(`/projects/${projectId}/capture`);
+  await page.getByLabel('Title', { exact: true }).fill('Delayed capture project guard');
+  let release!: () => void;
+  let started!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const pending = new Promise<void>((resolve) => {
+    started = resolve;
+  });
+  await page.route('**/rest/v1/snags*', async (route) => {
+    if (route.request().method() === 'POST') {
+      started();
+      await gate;
+    }
+    await route.continue();
+  });
+  await page.getByRole('button', { name: 'Save snag', exact: true }).click();
+  await pending;
+  try {
+    await expect(page.getByRole('button', { name: 'Switch project', exact: true })).toBeDisabled();
+  } finally {
+    release();
+  }
+  await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
+  await expect(page.getByRole('button', { name: 'Switch project', exact: true })).toBeEnabled();
 });
 
 test('phone login reports invalid credentials, signs in and signs out', async ({ page }, info) => {
@@ -160,7 +280,7 @@ test('phone login reports invalid credentials, signs in and signs out', async ({
   await expect(page.getByRole('alert')).toContainText('Unable to sign in');
   await page.getByLabel('Password', { exact: true }).fill(TEST_PASSWORD);
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Fieldwork', exact: true })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible();
   await noHorizontalOverflow(page);
   await page.screenshot({ path: info.outputPath('phone-home.png'), fullPage: true });
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
@@ -176,6 +296,11 @@ test('viewer sees project data with creation, reports and review controls gated'
   await expect(page.getByRole('radio', { name: 'Ready for review', exact: true })).toHaveCount(0);
   await page.getByRole('button', { name: `Open ${projectName}`, exact: true }).click();
   await expect(page.getByRole('heading', { name: projectName, exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Switch project', exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: `Switch to ${secondProjectName}`, exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole('button', { name: 'Close project menu', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Capture snag', exact: true })).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Reports', exact: true })).toHaveCount(0);
   await page.goto(`/projects/${projectId}/capture`);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Image, Text, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { randomUUID } from 'expo-crypto';
 import { canAct, type AnnotationDocument, type SnagCreate } from '@snagflow/shared';
 import { useAuth } from '../../../providers/auth';
@@ -11,8 +11,12 @@ import { pickPhoto, uploadPhotos, type QueuedPhoto } from '../../../lib/photos';
 import { Button, Choices, ErrorText, Loading, Screen, styles } from '../../../components/ui';
 import { SnagForm } from '../../../components/snag-form';
 import { MarkupEditor } from '../../../components/markup-editor';
+import { ProjectSwitcher } from '../../../components/project-switcher';
 export default function Capture() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  return <ProjectCapture key={id} id={id} />;
+}
+function ProjectCapture({ id }: { id: string }) {
   const { client: supabase, session, profile } = useAuth();
   const r = useResource(() => projectContext(id, session!.user.id, supabase), `capture:${id}`, [
     'project_members',
@@ -26,6 +30,7 @@ export default function Capture() {
   const [mode, setMode] = useState<'single' | 'continuous'>('single');
   const [another, setAnother] = useState<'open' | 'another'>('open');
   const [formKey, setFormKey] = useState(0);
+  const [defaults, setDefaults] = useState<Pick<SnagCreate, 'locationId' | 'categoryId'>>({});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
@@ -56,6 +61,7 @@ export default function Capture() {
       if (results.some((p) => p.status !== 'done'))
         throw Error('Snag saved. Some photos need retry; keep this screen open and save again.');
       if (another === 'another') {
+        setDefaults({ locationId: details.locationId, categoryId: details.categoryId });
         setPhotos([]);
         setClientId(randomUUID());
         setFormKey((v) => v + 1);
@@ -120,6 +126,7 @@ export default function Capture() {
   };
   return (
     <Screen title="Capture snag">
+      <Stack.Screen options={{ headerRight: () => <ProjectSwitcher disabled={busy} /> }} />
       <ErrorText error={r.error ?? error} />
       {notice && (
         <Text accessibilityRole="alert" style={styles.text}>
@@ -225,6 +232,7 @@ export default function Capture() {
                 <SnagForm
                   key={formKey}
                   context={r.data}
+                  defaults={defaults}
                   busy={busy}
                   onSave={(details) => void save(details)}
                 />

@@ -4,6 +4,19 @@ import { AccessUnavailableError, readPages, searchIntent } from './online';
 export type Row<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Row'];
 export type ProjectContext = Awaited<ReturnType<typeof projectContext>>;
+export async function listActiveProjects(client = supabase) {
+  return readPages(async (from, to) => {
+    const result = await client
+      .from('projects')
+      .select('*')
+      .eq('status', 'active')
+      .order('updated_at', { ascending: false })
+      .order('id')
+      .range(from, to);
+    if (result.error) throw result.error;
+    return result.data;
+  });
+}
 export async function projectContext(id: string, userId: string, client = supabase) {
   const [project, membership, locations, categories, members] = await Promise.all([
     client.from('projects').select('*').eq('id', id).single(),

@@ -18,6 +18,9 @@ import {
 import { SnagList } from '../../components/snag-list';
 export default function Project() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  return <ProjectScreen key={id} id={id} />;
+}
+function ProjectScreen({ id }: { id: string }) {
   const { client: supabase, session, profile } = useAuth();
   const [filters, setFilters] = useState<SnagFilters>({});
   const [query, setQuery] = useState('');

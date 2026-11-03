@@ -5,7 +5,7 @@ import { Text, View } from 'react-native';
 import { useAuth } from '../providers/auth';
 import { useConnection } from '../providers/connection';
 import { useResource } from '../lib/use-resource';
-import { listSnags } from '../lib/data';
+import { listActiveProjects, listSnags } from '../lib/data';
 import { readPages } from '../lib/online';
 import { Button, Choices, ErrorText, Loading, Screen, styles } from '../components/ui';
 import { SnagList } from '../components/snag-list';
@@ -18,17 +18,7 @@ export default function Home() {
   const resource = useResource(
     async () => {
       const [projects, memberships] = await Promise.all([
-        readPages(async (from, to) => {
-          const r = await supabase
-            .from('projects')
-            .select('*')
-            .eq('status', 'active')
-            .order('updated_at', { ascending: false })
-            .order('id')
-            .range(from, to);
-          if (r.error) throw r.error;
-          return r.data;
-        }),
+        listActiveProjects(supabase),
         readPages(async (from, to) => {
           const r = await supabase
             .from('project_members')
@@ -79,7 +69,7 @@ export default function Home() {
   );
   return (
     <Screen
-      title="Fieldwork"
+      title="Projects"
       refresh={() => void resource.refresh()}
       refreshing={resource.loading && !!resource.data}
     >
@@ -101,6 +91,24 @@ export default function Home() {
       {resource.loading && !resource.data && <Loading />}
       {resource.data && (
         <>
+          {resource.data.projects.map((project) => (
+            <View key={project.id} style={styles.card}>
+              <Text style={styles.muted}>{project.code}</Text>
+              <Text style={styles.title}>{project.name}</Text>
+              <Button
+                label={`Open ${project.name}`}
+                secondary
+                onPress={() =>
+                  router.push({ pathname: '/projects/[id]', params: { id: project.id } })
+                }
+              />
+            </View>
+          ))}
+          {!resource.data.projects.length && (
+            <Text style={styles.muted}>
+              No active projects. Ask your project manager for access.
+            </Text>
+          )}
           <Choices
             label="Your work"
             value={mode}
@@ -130,25 +138,6 @@ export default function Home() {
               onPress={() => setPage((p) => p + 1)}
             />
           </View>
-          <Text style={styles.heading}>Projects</Text>
-          {resource.data.projects.map((project) => (
-            <View key={project.id} style={styles.card}>
-              <Text style={styles.muted}>{project.code}</Text>
-              <Text style={styles.title}>{project.name}</Text>
-              <Button
-                label={`Open ${project.name}`}
-                secondary
-                onPress={() =>
-                  router.push({ pathname: '/projects/[id]', params: { id: project.id } })
-                }
-              />
-            </View>
-          ))}
-          {!resource.data.projects.length && (
-            <Text style={styles.muted}>
-              No active projects. Ask your project manager for access.
-            </Text>
-          )}
         </>
       )}
     </Screen>

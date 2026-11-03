@@ -5,6 +5,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '../providers/auth';
 import { rememberReturnPath, safeReturnPath } from '../lib/auth-callback';
 import { ConnectionProvider, useConnection } from '../providers/connection';
+import { ProjectSwitcher } from '../components/project-switcher';
 
 function Navigation() {
   const connection = useConnection();
@@ -83,6 +84,12 @@ function Navigation() {
           headerStyle: { backgroundColor: '#203d2c' },
           headerTintColor: '#fff',
           contentStyle: { backgroundColor: '#f6f7f4' },
+          headerRight: () =>
+            session &&
+            profile?.is_active &&
+            (pathname.startsWith('/projects/') || pathname.startsWith('/snags/')) ? (
+              <ProjectSwitcher />
+            ) : null,
         }}
       >
         <Stack.Screen name="login" options={{ headerShown: false }} />
