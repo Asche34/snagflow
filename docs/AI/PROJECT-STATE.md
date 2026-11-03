@@ -7,7 +7,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally and on hosted project mtpmqnczwdbglebrakhw) |
 | Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
-| Last delivered | Mobile1.0.1 adjustments verified locally: Projects-first home, project side menu, retained location/category and optional priority. Replacement APK build pending; hosted/device acceptance still in progress. |
+| Last delivered | Mobile1.0.1 adjustments verified locally: Projects-first home, project side menu, retained location/category and optional priority. Replacement APK build fcca55a1-633b-4e89-b4aa-33ff6f4db5bb queued; hosted/device acceptance still in progress. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete

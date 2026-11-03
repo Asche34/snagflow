@@ -23,3 +23,11 @@
 No hosted configuration, migration, email, Vercel setting or offline/push work is part of these adjustments. Prior hosted handoff edits are preserved. Main is linked to Vercel deployment; keep any unapproved web deployment/push separate from the requested Expo APK build. Native physical acceptance of this replacement remains the user's next step.
 
 Cloud build ID, final source commit and actual APK URL are recorded when available. Do not claim native build success from the browser or Hermes export alone.
+
+## Cloud build submitted
+
+- Source commit: 4ab3b53f59ea4288eae308afee4dafcfff4c011a (local main; not pushed, to avoid the linked Vercel automatic web deployment).
+- Expo build: [fcca55a1-633b-4e89-b4aa-33ff6f4db5bb](https://expo.dev/accounts/asche34/projects/snagflow/builds/fcca55a1-633b-4e89-b4aa-33ff6f4db5bb), preview, Android1.0.1/code2, same remote keystore.
+- Last observed status: IN_QUEUE,74.3 minutes after submission. Expo has not assigned a worker and no artifact/error is reported. Native cloud verification and APK download remain externally pending; do not provide the prior APK as the replacement.
+- Local source archive:319 files; expected shared/component inputs present, environment files excluded and no actual local service-role key literal found. No account-level preview variables override manual App URL behavior.
+  The source/test work is complete, but the requested APK artifact is not available while Expo remains queued. The build page above is the current user-facing progress/download destination. No paid-priority upgrade or duplicate build was requested. The agent does not claim a background notification or physical-device verification.

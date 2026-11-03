@@ -26,7 +26,7 @@
 - [x] Implement shared active-project read, header side menu, home order and project-local reset behavior.
 - [x] Implement successful-save capture defaults and agreed optional-priority presentation.
 - [x] Run mobile lint/typecheck/units and isolated real-local-backend browser checks; export Android and review screenshots.
-- [ ] Obtain independent review; update feature/handoff docs and build version. Review staging for secrets, commit requested changes and submit Expo preview build.
+- [x] Obtain independent review; update feature/handoff docs and build version. Review staging for secrets, commit requested changes and submit Expo preview build.
 - [ ] Observe cloud build result, provide actual APK URL and record remaining physical-device checks.
 
 ## Baseline and decisions
@@ -37,3 +37,5 @@
 
 - Verification: all11 browser checks,50 mobile units, mobile/E2E lint/typecheck and Android export pass. Independent review's capture/save race fixed and regression verified.
 - Ruling: optional priority uses the existing Medium default with clear UI copy; true unset requires a separately agreed shared/DB/web change.
+
+- Cloud build submitted from4ab3b53 as fcca55a1-633b-4e89-b4aa-33ff6f4db5bb. Source archive319 files passed exclusion/private-key checks. Final observed queue wait74.3 minutes; native artifact remains externally pending. Commit is local only to avoid unapproved Vercel deployment.
