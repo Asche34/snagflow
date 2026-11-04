@@ -1,5 +1,7 @@
 # UI-INDEX
 
+Web branding: `apps/web/src/components/brand-mark.tsx` consumes canonical S/check paths from `apps/web/src/lib/brand.ts`. Login and workspace navigation use the white/orange mark on green. Six downloadable SVGs live in apps/web/public/branding/; `scripts/branding/export.mjs` regenerates these and browser/Apple icons. PDF footers and Excel summaries use the same geometry independently of company logos. See FEAT-BRANDING.
+
 ## Web (`apps/web`, Next.js 16 App Router)
 
 | Page | URL | Files | Module | API used | Permission | Status |

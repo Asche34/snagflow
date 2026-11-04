@@ -275,3 +275,20 @@ Every non-obvious choice made while building SnagFlow. Format: **Decision** — 
 ## 2026-11-03 — Constrain Android preview build parallelism
 
 The first replacement APK build completed Metro bundling but its Gradle daemon disappeared during native compilation, with no explicit source or heap error. Keep native dependencies and Expo's4GiB JVM default; reduce concurrent native/Java compilation by disabling Gradle project parallelism and limiting workers to2 through EAS preview GRADLE_OPTS. This tests resource pressure as the cause without a paid worker change or broad package upgrade. Do not claim the hypothesis proven until a native retry result is observed.
+
+## 2026-11-03 — Mobile photo review and snag filters
+
+- Hold a selected photo separately from the upload queue while the user reviews it. Done attaches the existing prepared original when there are no marks, or attaches the original and the rendered markup through the existing annotation pipeline. Keep the snag draft mounted behind the review so its fields survive.
+- Draft project filters in a collapsible panel and apply them together. Use the existing project query and reset pagination on apply or removal. The active selections remain visible above the results.
+
+## 2026-11-04 — Handover Mark SVG branding
+
+- Reconstruct the approved S/checkmark as canonical paths with forest green #192D25, burnt orange #C2410C and white. App tiles retain the orange terminal, following the user's correction. Export six self-contained SVGs including outlined Geist wordmarks; keep existing live wordmark text/accessibility labels in web screens.
+- Reuse the same geometry in web icons, PDF vector footers and Excel summary images. Excel requires a local PNG conversion; reuse Next's existing traced Sharp helper and preserve organisation logos separately. Give Excel's transparent green mark a white cell background after applying report header styling.
+- Existing saved reports remain immutable; only new reports/revisions receive the new branding. No native APK change, database migration, commit/push or deployment is included.
+
+## 2026-11-04 — Native branding and authorized release push
+
+- User explicitly authorized commit/push and launching a replacement APK with the approved app logo. Include the existing verified photo-review/filter changes so the committed source represents this APK; bump Android to1.0.3/code4 while keeping its package, signing identity and preview profile. This also authorizes the previously held main push linked to Vercel; no backend/Auth configuration change is involved.
+- Generate native PNGs from canonical SVG geometry with --mobile. Android adaptive layers use transparent padding inside the66dp safe circle and a separate forest-green background. Keep the orange terminal for regular icons; the optional Android themed icon is monochrome by platform convention. Native platforms supply icon masks, so the base icon is opaque with square corners.
+- A fresh branded APK does not establish a fix for the separately reported1.0.2 installation failure; device acceptance remains open.

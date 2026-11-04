@@ -7,11 +7,12 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally and on hosted project mtpmqnczwdbglebrakhw) |
 | Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
-| Last delivered | Mobile1.0.1 adjustments verified locally: Projects-first home, project side menu, retained location/category and optional priority. First replacement build failed after bundling (Gradle daemon disappeared); constrained retry cf113c7a-35d5-4d15-896a-f7181666c0df queued; hosted/device acceptance still in progress. |
+| Last delivered | Android 1.0.2 (version code 3) built successfully with photo review and revised snag filters. [Download APK](https://expo.dev/artifacts/eas/2FMMnx7o_G5-9ogtnoVXh-JRdO9KISLPTyyChwXvw0o.apk). Phone testing of these changes remains pending. The user confirmed the prior 1.0.1 checks worked. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 
 ## Features complete
 
+- SnagFlow identity (2026-11-04): approved S/checkmark in web login/navigation, SVG/ICO/Apple icons, six SVG exports with outlined wordmarks, PDF vector footers and Excel summary branding. Company logos remain intact; historical reports retain their saved branding. Canonical geometry: `apps/web/src/lib/brand.ts`; generator: `scripts/branding/export.mjs`. Android 1.0.3/code4 prepares the same white/orange mark for native/adaptive icons and splash; user authorized commit/push and an APK rebuild. See `docs/AI/BRANDING-APK-2026-11-04.md` for current build/verification status.
 - Monorepo scaffold + CI + quality gate (Phase 0)
 - Full DB schema, RLS on all tables, security helpers, guard triggers (Phase 1)
 - Workflow RPCs `assign_snag` / `transition_snag` / `soft_delete_snag` w/ activity + notifications (Phase 1)
@@ -50,7 +51,8 @@ Current mobile release evidence: `docs/AI/MOBILE-FIELD-ADJUSTMENTS-2026-11-03.md
 
 ## Features remaining (order per spec §15)
 
-- Phase 5 acceptance: authorized hosted deployment and physical-device auth/camera/markup/work/review/share verification
+- Phase 5 acceptance: the user reports the Android 1.0.1 release checks worked on their phone and requested mobile UI and photo markup improvements. The broader hosted and native acceptance matrix remains open.
+- Mobile follow-up: new photos open in a full-screen review with optional markup before attachment. Project snag filters apply together and can be removed from the results. Android bundle export, 50 unit checks and 12 production-preview browser checks passed. Native touch behavior still needs a phone check.
 - Phase 6: offline sync (expo-sqlite mirror, outbox, photo queue), push notifications (Edge Function)
 - Phase 7: PWA, dark mode, EAS profiles, E2E (Playwright) — **the E2E suite now exists; expand it to the full §14 golden path**
 - Edge function `push-send` (spec §12) — not yet created

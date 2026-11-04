@@ -4,6 +4,10 @@ Machine version: `.ai/index.json::features`. Statuses: **done** = delivered & te
 
 ## DELIVERED
 
+### FEAT-BRANDING (done locally, web)
+Approved Handover Mark with orange terminal: sign-in, navigation, browser/Apple icons and six standalone SVG exports. Canonical geometry and outlined export wordmark: `apps/web/src/lib/brand.ts`; web tile: `apps/web/src/components/brand-mark.tsx`; export generator: `scripts/branding/export.mjs`; assets: apps/web/public/branding/.
+PDF vector footer and Excel summary mark preserve organisation logos. Renderers: `apps/web/src/lib/reports/pdf.tsx`, `apps/web/src/lib/reports/excel.ts`. Tests: `packages/shared/tests/report-outputs.test.mjs`. Native launcher/adaptive/splash PNGs are generated with --mobile and configured in `apps/mobile/app.json`; Android1.0.3/code4 rebuild is authorized. Release status: `docs/AI/BRANDING-APK-2026-11-04.md`. Existing report artifacts remain unchanged.
+
 ### FEAT-PERM-MATRIX (done)
 Permission matrix + helpers. Impl: `packages/shared/src/permissions.ts::canAct,canEditSnagDetails,canWorkOnSnag,isReviewer`
 DB mirror: `supabase/migrations/20261019000005_security.sql::public.can` — Tests: `packages/shared/tests/permissions.test.ts`

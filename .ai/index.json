@@ -301,6 +301,18 @@
         "e2e/mobile-tests/app-url.spec.ts"
       ],
       "doc": "docs/AI/MOBILE-APP-URL-LAN-2026-11-02.md"
+    },
+    "FEAT-BRANDING": {
+      "module": "MOD-WEB",
+      "impl": [
+        "apps/web/src/lib/brand.ts",
+        "apps/web/src/components/brand-mark.tsx",
+        "scripts/branding/export.mjs",
+        "apps/web/src/lib/reports/pdf.tsx",
+        "apps/web/src/lib/reports/excel.ts"
+      ],
+      "test": "packages/shared/tests/report-outputs.test.mjs",
+      "doc": "apps/web/public/branding/README.md"
     }
   },
   "modules": {

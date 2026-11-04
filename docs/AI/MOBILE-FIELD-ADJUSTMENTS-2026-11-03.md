@@ -46,3 +46,24 @@ User explicitly confirmed Medium default with no required priority selection; th
 - Source:47f428d9150e44279ac97483bcbd419695cbed69, Android1.0.1/code2, existing remote keystore. Only the preview Gradle concurrency override changed; source UI/behavior and dependency lock are unchanged.
 - EAS archive inspection accepted the retry profile. Independent review found no configuration blocker and confirmed the override preserves JVM/worker-size defaults except project parallelism/worker count. Actual worker log must confirm the override and native outcome before calling the experiment successful.
 - Expo build list confirms first attempt ERRORED and this retry IN_QUEUE. No APK artifact exists yet; use this new build link rather than the failed attempt. No native success, physical acceptance, paid worker upgrade, Vercel deployment or repository push is claimed.
+
+## APK delivery
+
+- Expo now reports the retry as FINISHED for Android 1.0.1, version code 2, from commit `47f428d9150e44279ac97483bcbd419695cbed69`.
+- The [direct APK download](https://expo.dev/artifacts/eas/maqN7vTTbIZv2cu848EbUBevhPbCTQ4d2QC9IQ9qVI0.apk) returned HTTP 200. Physical-device acceptance remains pending.
+
+## Android feedback
+
+- The user reported that the Android 1.0.1 checks worked on their phone and asked for a better mobile interface, especially how photo markup looks and feels. The broader Phase 5 acceptance matrix remains open.
+
+## Photo review and filters APK — 2026-11-04
+
+- Requested follow-up APK submitted as Android 1.0.2, version code 3, using the existing preview signing key and constrained Gradle profile.
+- [Expo build eff8b347-8409-4168-a3be-08087ab1ce18](https://expo.dev/accounts/asche34/projects/snagflow/builds/eff8b347-8409-4168-a3be-08087ab1ce18) FINISHED successfully. Expo confirms version 1.0.2/code 3. [Download APK](https://expo.dev/artifacts/eas/2FMMnx7o_G5-9ogtnoVXh-JRdO9KISLPTyyChwXvw0o.apk). Native phone verification of these changes is pending.
+- The 319-file source archive excluded environment/signing files and contained the new version metadata. Source remains local with the existing worktree changes.
+
+## Android installation investigation
+
+- The user reports 1.0.2 fails with only “App not installed”, both over the existing app and after uninstalling it.
+- Downloaded both released APKs for comparison. Version codes are 2 and 3, package is com.snagflow.app, minimum SDK is 24, target SDK is 36 and all four packaged ABIs match. Signing certificate SHA-256 matches across both releases.
+- Both APK v2 RSA signatures and their complete chunked content digests verified. The 1.0.2 ZIP archive integrity check passed. Its exact size is 156357559 bytes. The cause on the phone remains unconfirmed, pending download and device details.

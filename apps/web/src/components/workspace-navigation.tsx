@@ -3,7 +3,8 @@
 import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Building2, ClipboardCheck, HardHat, LayoutDashboard, Menu } from 'lucide-react';
+import { Building2, ClipboardCheck, LayoutDashboard, Menu } from 'lucide-react';
+import { BrandMark } from '@/components/brand-mark';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -38,9 +39,7 @@ export function WorkspaceNavigation({
         className="flex min-h-11 items-center gap-3 px-2 pr-12"
         aria-label="SnagFlow overview"
       >
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          <HardHat className="size-5" aria-hidden />
-        </span>
+        <BrandMark className="size-10 shrink-0" />
         <span className="text-xl font-semibold tracking-tight">SnagFlow</span>
       </Link>
       <p className="mb-8 mt-3 px-2 text-xs text-navigation-muted">Built for a better handover.</p>

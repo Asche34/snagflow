@@ -1,4 +1,4 @@
-import { HardHat } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoginForm } from "./login-form";
 
@@ -18,9 +18,7 @@ export async function LoginPanel({ searchParams }: { searchParams: Promise<{ nex
   return (
     <div className="w-full max-w-md space-y-7">
       <div className="flex items-center gap-3">
-        <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          <HardHat className="size-5" aria-hidden />
-        </span>
+        <BrandMark className="size-10 shrink-0" />
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">SnagFlow</h1>
           <p className="text-sm text-muted-foreground">Your project workspace</p>

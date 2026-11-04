@@ -310,6 +310,21 @@ test('viewer sees project data with creation, reports and review controls gated'
   await expect(page.getByRole('button', { name: 'Save snag', exact: true })).toHaveCount(0);
 });
 
+test('project filters apply together and can be cleared from the results', async ({ page }) => {
+  await login(page, 'member1');
+  await page.goto(`/projects/${projectId}`);
+  await expect(page.getByText('Filter snags', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Filters', exact: true }).click();
+  await page.getByRole('radio', { name: 'Mobile plant room', exact: true }).click();
+  await page.getByRole('radio', { name: 'Mobile electrical', exact: true }).click();
+  await page.getByRole('button', { name: 'Apply filters', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Filters (2)', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Mobile plant room ×', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Filters (1)', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Clear all', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Filters', exact: true })).toBeVisible();
+});
+
 test('member and manager complete photo, editing, assignment, comment and reject/resubmit/approve loop', async ({
   page,
   browser,
@@ -319,12 +334,15 @@ test('member and manager complete photo, editing, assignment, comment and reject
   page.on('pageerror', (error) => errors.push(error.message));
   await login(page, 'member1');
   await page.goto(`/projects/${projectId}/capture`);
+  await page.getByLabel('Title', { exact: true }).fill('Mobile socket defect');
   await photo(page);
+  await expect(page.getByText('Review photo', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Captured issue photo', { exact: true })).toHaveCount(0);
   await expect(
     page.getByRole('button', { name: 'Continue with photo', exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Continue with photo', exact: true }).click();
-  await page.getByLabel('Title', { exact: true }).fill('Mobile socket defect');
+  await expect(page.getByLabel('Title', { exact: true })).toHaveValue('Mobile socket defect');
   await page
     .getByLabel('Description', { exact: true })
     .fill('Loose socket cover captured on site.');

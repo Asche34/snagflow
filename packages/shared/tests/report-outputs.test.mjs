@@ -159,6 +159,57 @@ function textPositions(pdf, includeImages = false) {
   return result;
 }
 describe('actual report output', () => {
+  it('brands new PDFs and Excel summaries while retaining company branding', async () => {
+    const output = new URL('../../../.superpowers/branding/', import.meta.url);
+    mkdirSync(output, { recursive: true });
+    const { getSharp } =
+      await import('../../../apps/web/node_modules/next/dist/server/image-optimizer/transform.js');
+    const companyLogo = await getSharp(
+      2,
+      false,
+    )({
+      create: { width: 80, height: 30, channels: 4, background: '#336699' },
+    })
+      .png()
+      .toBuffer();
+    for (const cover of [false, true]) {
+      const data = fixture();
+      data.snags = [];
+      data.request.options.cover = cover;
+      if (cover) data.logo = companyLogo;
+      const pdf = await renderReportPdf(data);
+      writeFileSync(new URL(`branded-${cover ? 'cover' : 'no-cover'}.pdf`, output), pdf);
+      const positions = textPositions(pdf, true);
+      const pages = new Set(positions.map((entry) => entry.page));
+      for (const page of pages) {
+        expect(positions.some((entry) => entry.page === page && entry.text === 'SnagFlow')).toBe(
+          true,
+        );
+        expect(
+          positions.some((entry) => entry.page === page && entry.text.includes('Test company')),
+        ).toBe(true);
+      }
+      expect(positions.filter((entry) => entry.text === '[image]')).toHaveLength(cover ? 1 : 0);
+      data.request.format = 'xlsx';
+      const bytes = await renderReportExcel(data);
+      writeFileSync(new URL(`branded-${cover ? 'company-logo' : 'default'}.xlsx`, output), bytes);
+      const ExcelJS = await import('../../../apps/web/node_modules/exceljs');
+      const workbook = new ExcelJS.default.Workbook();
+      await workbook.xlsx.load(bytes);
+      const summary = workbook.getWorksheet('Summary');
+      expect(summary.getCell('A1').value).toBe('Test company');
+      expect(summary.getCell('E1').value).toBe('SnagFlow');
+      const images = summary.getImages();
+      expect(images).toHaveLength(cover ? 2 : 1);
+      if (cover) {
+        expect(
+          images.some((image) =>
+            Buffer.from(workbook.getImage(image.imageId).buffer).equals(companyLogo),
+          ),
+        ).toBe(true);
+      }
+    }
+  });
   it('keeps text inside page bounds and gives each theme natural metadata height', async () => {
     for (const theme of ['classic', 'compact', 'photo_first']) {
       const data = fixture();

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -9,8 +10,10 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
   type GestureResponderEvent,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Canvas,
   ClipOp,
@@ -47,16 +50,18 @@ type Props = {
   document: AnnotationDocument;
   onSave: (document: AnnotationDocument, flattenedUri: string) => Promise<void>;
   onCancel: () => void;
+  onUseOriginal?: () => void;
+  fullScreen?: boolean;
 };
 type Tool = 'move' | MarkupTool;
 const tools: { value: Tool; label: string }[] = [
-  { value: 'move', label: 'Select / move' },
   { value: 'pen', label: 'Pen' },
   { value: 'arrow', label: 'Arrow' },
   { value: 'circle', label: 'Circle' },
   { value: 'rectangle', label: 'Rectangle' },
   { value: 'text', label: 'Text' },
-  { value: 'measurement', label: 'Measurement' },
+  { value: 'measurement', label: 'Measure' },
+  { value: 'move', label: 'Move' },
 ];
 const colours = [
   { hex: '#c2410c', name: 'Orange' },
@@ -177,13 +182,22 @@ function Control({
   );
 }
 
-export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
+export function MarkupEditor({
+  uri,
+  document,
+  onSave,
+  onCancel,
+  onUseOriginal,
+  fullScreen,
+}: Props) {
   const [initial] = useState(() => AnnotationDocumentSchema.safeParse(document));
   const [history, setHistory] = useState<MarkupHistory>(() => ({
     current: initial.success ? initial.data : { version: 1, width: 1, height: 1, objects: [] },
     undo: [],
     redo: [],
   }));
+  const [showColours, setShowColours] = useState(false);
+  const [showObjects, setShowObjects] = useState(false);
   const [tool, setTool] = useState<Tool>('pen');
   const [colour, setColour] = useState('#c2410c');
   const [customColour, setCustomColour] = useState('#c2410c');
@@ -206,7 +220,11 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
   const exported = useRef<{ signature: string; uri: string } | null>(null);
   const current = history.current;
   const shown = preview ?? current;
-  const scale = viewWidth / current.width;
+  const { height: windowHeight } = useWindowDimensions();
+  const scale = Math.min(
+    viewWidth / current.width,
+    Math.max(160, windowHeight * 0.58) / current.height,
+  );
   const active = current.objects.find((object) => object.id === selected);
   const image = loaded?.uri === uri && loaded.reload === reload ? loaded.image : null;
   const imageError = loaded?.uri === uri && loaded.reload === reload ? loaded.error : '';
@@ -272,7 +290,7 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
     return documentPoint(
       event.nativeEvent.locationX,
       event.nativeEvent.locationY,
-      viewWidth,
+      current.width * scale,
       current,
     );
   }
@@ -387,6 +405,7 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
     if (selected) checkedCommit(moveMarkup(current, selected, dx, dy).objects);
   }
   function cancel() {
+    if (pending.current) return;
     if (!history.undo.length) {
       onCancel();
       return;
@@ -397,7 +416,12 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
     ]);
   }
   async function save() {
-    if (locked || !image || pending.current) return;
+    if (saving || drawing || pending.current) return;
+    if (onUseOriginal && !current.objects.length) {
+      onUseOriginal();
+      return;
+    }
+    if (locked || !image) return;
     pending.current = true;
     setSaving(true);
     setError('');
@@ -437,19 +461,24 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
     }
   }
 
-  return (
+  const editor = (
     <ScrollView
       style={styles.root}
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       scrollEnabled={!drawing}
     >
-      <Text style={styles.title} accessibilityRole="header">
-        Mark up photo
-      </Text>
-      <Text style={styles.help}>
-        Choose a tool, then draw on the photo. Select an object to move, recolour or delete it.
-      </Text>
+      <View style={styles.header}>
+        <Text style={styles.title} accessibilityRole="header">
+          Review photo
+        </Text>
+        <Control
+          label={saving ? 'Preparing…' : 'Done'}
+          selected
+          disabled={saving || drawing || (locked && !(onUseOriginal && !current.objects.length))}
+          onPress={() => void save()}
+        />
+      </View>
       {!initial.success && (
         <Text accessibilityRole="alert" style={styles.error}>
           This saved markup format is unsupported. Close the editor to keep the original safe.
@@ -460,61 +489,6 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
           {error}
         </Text>
       ) : null}
-      <View style={styles.controls}>
-        {tools.map((item) => (
-          <Control
-            key={item.value}
-            label={item.label}
-            selected={tool === item.value}
-            disabled={locked}
-            onPress={() => {
-              setTool(item.value);
-              setSelected(null);
-            }}
-          />
-        ))}
-      </View>
-      <View style={styles.controls}>
-        {colours.map((item) => (
-          <Control
-            key={item.hex}
-            label={item.name}
-            colour={item.hex}
-            selected={colour === item.hex}
-            disabled={locked}
-            onPress={() => recolour(item.hex)}
-          />
-        ))}
-      </View>
-      <View style={styles.controls}>
-        <TextInput
-          accessibilityLabel="Custom markup colour in hexadecimal"
-          value={customColour}
-          onChangeText={setCustomColour}
-          autoCapitalize="none"
-          autoCorrect={false}
-          maxLength={7}
-          editable={!locked}
-          style={styles.colourInput}
-        />
-        <Control
-          label="Apply colour"
-          disabled={locked || !/^#[0-9a-f]{6}$/i.test(customColour)}
-          onPress={() => recolour(customColour)}
-        />
-      </View>
-      {(tool === 'text' || tool === 'measurement') && (
-        <TextInput
-          accessibilityLabel={tool === 'measurement' ? 'Measurement label' : 'Markup text'}
-          placeholder={tool === 'measurement' ? 'For example, 120 mm' : 'Enter a note'}
-          placeholderTextColor="#59675e"
-          value={label}
-          onChangeText={setLabel}
-          maxLength={200}
-          editable={!locked}
-          style={styles.input}
-        />
-      )}
       <View style={styles.controls}>
         <Control
           label="Undo"
@@ -534,7 +508,6 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
             setError('');
           }}
         />
-        <Control label="Insert object" disabled={locked || tool === 'move'} onPress={insert} />
       </View>
       {imageError ? (
         <View>
@@ -561,7 +534,8 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
             setPreview(null);
           }}
           style={{
-            width: viewWidth,
+            alignSelf: 'center',
+            width: current.width * scale,
             height: current.height * scale,
             backgroundColor: '#e4e8e2',
             overflow: 'hidden',
@@ -594,11 +568,87 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
               ))}
         </View>
       </View>
-      <Text style={styles.help}>
-        {current.objects.length}/200 objects · Saved at original {current.width} × {current.height}{' '}
-        pixels
-      </Text>
-      {current.objects.length > 0 && (
+      <View style={styles.controls}>
+        {tools.map((item) => (
+          <Control
+            key={item.value}
+            label={item.label}
+            selected={tool === item.value}
+            disabled={locked}
+            onPress={() => {
+              setTool(item.value);
+              setSelected(null);
+            }}
+          />
+        ))}
+      </View>
+      {(tool === 'text' || tool === 'measurement') && (
+        <TextInput
+          accessibilityLabel={tool === 'measurement' ? 'Measurement label' : 'Markup text'}
+          placeholder={tool === 'measurement' ? 'For example, 120 mm' : 'Enter a note'}
+          placeholderTextColor="#59675e"
+          value={label}
+          onChangeText={setLabel}
+          maxLength={200}
+          editable={!locked}
+          style={styles.input}
+        />
+      )}
+      <View style={styles.controls}>
+        <Control
+          label={showColours ? 'Hide colours' : 'Colour'}
+          colour={colour}
+          disabled={locked}
+          onPress={() => setShowColours(!showColours)}
+        />
+        <Control label="Insert object" disabled={locked || tool === 'move'} onPress={insert} />
+        {current.objects.length > 0 && (
+          <Control
+            label={showObjects ? 'Hide objects' : 'Objects'}
+            disabled={locked}
+            onPress={() => setShowObjects(!showObjects)}
+          />
+        )}
+        <Control
+          label={onUseOriginal ? 'Discard photo' : 'Cancel'}
+          disabled={saving}
+          onPress={cancel}
+        />
+      </View>
+      {showColours && (
+        <>
+          <View style={styles.controls}>
+            {colours.map((item) => (
+              <Control
+                key={item.hex}
+                label={item.name}
+                colour={item.hex}
+                selected={colour === item.hex}
+                disabled={locked}
+                onPress={() => recolour(item.hex)}
+              />
+            ))}
+          </View>
+          <View style={styles.controls}>
+            <TextInput
+              accessibilityLabel="Custom markup colour in hexadecimal"
+              value={customColour}
+              onChangeText={setCustomColour}
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={7}
+              editable={!locked}
+              style={styles.colourInput}
+            />
+            <Control
+              label="Apply colour"
+              disabled={locked || !/^#[0-9a-f]{6}$/i.test(customColour)}
+              onPress={() => recolour(customColour)}
+            />
+          </View>
+        </>
+      )}
+      {showObjects && current.objects.length > 0 && (
         <View style={styles.controls}>
           {current.objects.map((object, index) => (
             <Control
@@ -633,23 +683,23 @@ export function MarkupEditor({ uri, document, onSave, onCancel }: Props) {
           </View>
         </View>
       )}
-      <View style={styles.controls}>
-        <Control
-          label={saving ? 'Saving markup…' : 'Save markup'}
-          disabled={locked}
-          onPress={() => void save()}
-        />
-        <Control label="Cancel markup" disabled={saving} onPress={cancel} />
-      </View>
     </ScrollView>
+  );
+  return fullScreen ? (
+    <Modal animationType="slide" onRequestClose={cancel} visible>
+      <SafeAreaView style={styles.root}>{editor}</SafeAreaView>
+    </Modal>
+  ) : (
+    editor
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#f6f7f4' },
+  root: { flex: 1, backgroundColor: '#17241f' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 },
   content: { padding: 16, gap: 14, paddingBottom: 40 },
-  title: { fontSize: 24, fontWeight: '700', color: '#202b26' },
-  help: { fontSize: 15, lineHeight: 22, color: '#202b26' },
+  title: { fontSize: 24, fontWeight: '700', color: '#ffffff' },
+  help: { fontSize: 15, lineHeight: 22, color: '#eaf0e7' },
   controls: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   control: {
     minHeight: 48,
@@ -658,15 +708,15 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#b4bfb4',
-    backgroundColor: '#ffffff',
+    borderColor: '#44574e',
+    backgroundColor: '#273a31',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
   },
-  selected: { backgroundColor: '#192d25', borderColor: '#192d25' },
-  controlText: { color: '#202b26', fontSize: 15, fontWeight: '600' },
+  selected: { backgroundColor: '#a8380c', borderColor: '#e98056' },
+  controlText: { color: '#ffffff', fontSize: 15, fontWeight: '600' },
   selectedText: { color: '#ffffff' },
   disabled: { opacity: 0.45 },
   pressed: { opacity: 0.7 },
@@ -692,5 +742,5 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 16,
   },
-  error: { color: '#9a3412', fontSize: 16, lineHeight: 23 },
+  error: { color: '#ffb59a', fontSize: 16, lineHeight: 23 },
 });

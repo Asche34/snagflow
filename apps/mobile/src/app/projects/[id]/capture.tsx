@@ -27,6 +27,7 @@ function ProjectCapture({ id }: { id: string }) {
   const [clientId, setClientId] = useState(randomUUID);
   const [photos, setPhotos] = useState<QueuedPhoto[]>([]);
   const [editing, setEditing] = useState<string | null>(null);
+  const [pendingPhoto, setPendingPhoto] = useState<QueuedPhoto | null>(null);
   const [mode, setMode] = useState<'single' | 'continuous'>('single');
   const [another, setAnother] = useState<'open' | 'another'>('open');
   const [formKey, setFormKey] = useState(0);
@@ -42,10 +43,7 @@ function ProjectCapture({ id }: { id: string }) {
     setError(null);
     try {
       const photo = await pickPhoto(source, 'issue');
-      if (photo) {
-        setPhotos((items) => [...items, photo]);
-        if (mode === 'single') setEditing(photo.id);
-      }
+      if (photo) setPendingPhoto(photo);
     } catch (e) {
       setError(message(e));
     } finally {
@@ -113,20 +111,35 @@ function ProjectCapture({ id }: { id: string }) {
       setBusy(false);
     }
   };
-  const photo = photos.find((p) => p.id === editing);
-  const saveDraft = async (document: AnnotationDocument, uri: string) => {
-    setPhotos((items) =>
-      items.map((item) =>
-        item.id === editing
-          ? { ...item, annotation: document, flattenedUri: uri, annotationId: randomUUID() }
-          : item,
-      ),
-    );
+  const photo = pendingPhoto ?? photos.find((p) => p.id === editing);
+  const closeReview = () => {
+    setPendingPhoto(null);
     setEditing(null);
+  };
+  const attachOriginal = () => {
+    if (pendingPhoto) setPhotos((items) => [...items, pendingPhoto]);
+    closeReview();
+  };
+  const saveDraft = async (document: AnnotationDocument, uri: string) => {
+    if (!photo) return;
+    const annotated = {
+      ...photo,
+      annotation: document,
+      flattenedUri: uri,
+      annotationId: randomUUID(),
+    };
+    setPhotos((items) =>
+      pendingPhoto
+        ? [...items, annotated]
+        : items.map((item) => (item.id === photo.id ? annotated : item)),
+    );
+    closeReview();
   };
   return (
     <Screen title="Capture snag">
-      <Stack.Screen options={{ headerRight: () => <ProjectSwitcher disabled={busy} /> }} />
+      <Stack.Screen
+        options={{ headerRight: () => <ProjectSwitcher disabled={busy || !!photo} /> }}
+      />
       <ErrorText error={r.error ?? error} />
       {notice && (
         <Text accessibilityRole="alert" style={styles.text}>
@@ -203,6 +216,7 @@ function ProjectCapture({ id }: { id: string }) {
           {photo && (
             <MarkupEditor
               key={photo.id}
+              fullScreen
               uri={photo.originalUri}
               document={
                 photo.annotation ?? {
@@ -213,37 +227,37 @@ function ProjectCapture({ id }: { id: string }) {
                 }
               }
               onSave={saveDraft}
-              onCancel={() => setEditing(null)}
+              onCancel={closeReview}
+              onUseOriginal={pendingPhoto ? attachOriginal : undefined}
             />
           )}
-          {!editing &&
-            (mode === 'single' ? (
-              <>
-                <Choices
-                  label="After saving"
-                  value={another}
-                  options={[
-                    { value: 'open', label: 'Open snag' },
-                    { value: 'another', label: 'Save & add another' },
-                  ]}
-                  onChange={setAnother}
-                  disabled={busy}
-                />
-                <SnagForm
-                  key={formKey}
-                  context={r.data}
-                  defaults={defaults}
-                  busy={busy}
-                  onSave={(details) => void save(details)}
-                />
-              </>
-            ) : (
-              <Button
-                label={busy ? 'Saving captures…' : 'Save captured snags'}
-                disabled={busy || !photos.some((p) => p.status !== 'done')}
-                onPress={() => void saveContinuous()}
+          {mode === 'single' ? (
+            <>
+              <Choices
+                label="After saving"
+                value={another}
+                options={[
+                  { value: 'open', label: 'Open snag' },
+                  { value: 'another', label: 'Save & add another' },
+                ]}
+                onChange={setAnother}
+                disabled={busy}
               />
-            ))}
+              <SnagForm
+                key={formKey}
+                context={r.data}
+                defaults={defaults}
+                busy={busy}
+                onSave={(details) => void save(details)}
+              />
+            </>
+          ) : (
+            <Button
+              label={busy ? 'Saving captures…' : 'Save captured snags'}
+              disabled={busy || !photos.some((p) => p.status !== 'done')}
+              onPress={() => void saveContinuous()}
+            />
+          )}
         </>
       )}
       {r.data && !canAct(actor, r.data.role, 'snag:create') && (

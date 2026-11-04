@@ -2,28 +2,27 @@
   "expo": {
     "name": "SnagFlow",
     "slug": "snagflow",
-    "version": "1.0.1",
+    "version": "1.0.3",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/snagflow-icon.png",
     "scheme": "snagflow",
     "userInterfaceStyle": "light",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/images/snagflow-icon.png"
     },
     "android": {
       "package": "com.snagflow.app",
-      "versionCode": 2,
+      "versionCode": 4,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#192D25",
+        "foregroundImage": "./assets/images/snagflow-adaptive-foreground.png",
+        "monochromeImage": "./assets/images/snagflow-adaptive-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/snagflow-favicon.png"
     },
     "plugins": [
       "expo-router",
@@ -31,7 +30,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#192d25",
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/snagflow-splash.png",
           "imageWidth": 76
         }
       ],

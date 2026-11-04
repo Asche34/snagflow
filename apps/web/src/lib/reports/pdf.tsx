@@ -5,6 +5,8 @@ import {
   View,
   Text,
   Image,
+  Svg,
+  Path,
   Font,
   StyleSheet,
   renderToBuffer,
@@ -12,6 +14,7 @@ import {
 import { SNAG_PRIORITIES, SNAG_STATUSES, reportPhotoDimensions } from '@snagflow/shared';
 import { reportDate, type ReportData, type ReportSnag, type ReportPhoto } from './data';
 import { Fragment } from 'react';
+import { BRAND } from '../brand';
 // Accepted notes and URLs may contain no spaces. Give the renderer bounded
 // discretionary break points instead of letting a single token cross the page.
 Font.registerHyphenationCallback((word) => word.match(/.{1,16}/gu) ?? [word]);
@@ -50,6 +53,9 @@ const styles = StyleSheet.create({
     left: 36,
     right: 36,
     height: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     fontSize: 8,
     lineHeight: 1,
     color: '#586b73',
@@ -64,6 +70,13 @@ function Footer({ data }: { data: ReportData }) {
       <Text>
         {data.org.company_name} · {data.project.code}
       </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+        <Svg viewBox={BRAND.viewBox} width={16} height={14}>
+          <Path d={BRAND.body} fill={BRAND.green} />
+          <Path d={BRAND.check} fill={BRAND.orange} />
+        </Svg>
+        <Text style={{ color: BRAND.green, fontFamily: 'Helvetica-Bold' }}>SnagFlow</Text>
+      </View>
     </View>
   );
 }

@@ -12,6 +12,9 @@ out
 .git
 .gitignore
 .github
+.codex
+.pnpm-store
+Agents.chat
 .superpowers
 **/.expo
 **/credentials.json

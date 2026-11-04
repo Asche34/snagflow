@@ -1,6 +1,8 @@
 import ExcelJS from 'exceljs';
 import { SNAG_PRIORITIES, SNAG_STATUSES } from '@snagflow/shared';
 import { reportDate, type ReportData } from './data';
+import { getSharp } from 'next/dist/server/image-optimizer/transform';
+import { brandSvg } from '../brand';
 export async function renderReportExcel(data: ReportData) {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = data.preparedBy;
@@ -143,8 +145,16 @@ export async function renderReportExcel(data: ReportData) {
   }
   if (data.logo) {
     const id = workbook.addImage({ base64: data.logo.toString('base64'), extension: 'png' });
-    summary.addImage(id, { tl: { col: 3, row: 0 }, ext: { width: 180, height: 75 } });
+    summary.addImage(id, { tl: { col: 3, row: 4 }, ext: { width: 180, height: 75 } });
   }
+  // Excel cannot embed SVG; rasterize the same canonical paths locally, without a network fetch.
+  const mark = await getSharp(2, false)(Buffer.from(brandSvg())).resize(96, 84).png().toBuffer();
+  const brand = workbook.addImage({ base64: mark.toString('base64'), extension: 'png' });
+  summary.addImage(brand, { tl: { col: 3, row: 0 }, ext: { width: 32, height: 28 } });
+  summary.getColumn(4).width = 6;
+  summary.getColumn(5).width = 20;
+  summary.getRow(1).height = 25;
+  summary.getCell('E1').value = 'SnagFlow';
   for (const worksheet of workbook.worksheets) {
     worksheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
     worksheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF214C57' } };
@@ -154,5 +164,9 @@ export async function renderReportExcel(data: ReportData) {
         row.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF0F5F5' } };
     });
   }
+  summary.getCell('E1').font = { bold: true, color: { argb: 'FF192D25' }, size: 14 };
+  summary.getCell('D1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+  summary.getCell('E1').fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFFFFF' } };
+  summary.getCell('E1').alignment = { vertical: 'middle' };
   return Buffer.from(await workbook.xlsx.writeBuffer());
 }

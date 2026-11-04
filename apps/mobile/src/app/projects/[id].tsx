@@ -26,10 +26,12 @@ function ProjectScreen({ id }: { id: string }) {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(0);
   const [due, setDue] = useState('');
+  const [draft, setDraft] = useState<SnagFilters | null>(null);
   const set = (value: SnagFilters) => {
     setFilters((v) => ({ ...v, ...value }));
     setPage(0);
   };
+  const updateDraft = (value: SnagFilters) => setDraft((previous) => ({ ...previous, ...value }));
   const r = useResource(
     async () => ({
       context: await projectContext(id, session!.user.id, supabase),
@@ -40,6 +42,33 @@ function ProjectScreen({ id }: { id: string }) {
   );
   const actor =
     session && profile?.is_active ? { id: session.user.id, isAdmin: profile.is_admin } : null;
+  const context = r.data?.context;
+  const activeFilters: { key: keyof SnagFilters; label: string }[] = [];
+  if (filters.search) activeFilters.push({ key: 'search', label: filters.search });
+  if (filters.status) activeFilters.push({ key: 'status', label: human(filters.status) });
+  if (filters.priority) activeFilters.push({ key: 'priority', label: human(filters.priority) });
+  if (filters.location)
+    activeFilters.push({
+      key: 'location',
+      label: context?.locations.find((item) => item.id === filters.location)?.name ?? 'Location',
+    });
+  if (filters.category)
+    activeFilters.push({
+      key: 'category',
+      label: context?.categories.find((item) => item.id === filters.category)?.name ?? 'Category',
+    });
+  if (filters.assignee)
+    activeFilters.push({
+      key: 'assignee',
+      label:
+        context?.members.find((item) => item.user_id === filters.assignee)?.profiles?.full_name ??
+        'Assignee',
+    });
+  if (filters.createdBy) activeFilters.push({ key: 'createdBy', label: 'Created by me' });
+  if (filters.dueBefore)
+    activeFilters.push({ key: 'dueBefore', label: 'Due by ' + filters.dueBefore });
+  const filterCount = activeFilters.filter((item) => item.key !== 'search').length;
+
   return (
     <Screen
       title={r.data?.context.project.name ?? 'Project'}
@@ -74,70 +103,123 @@ function ProjectScreen({ id }: { id: string }) {
             value={query}
             onChangeText={setQuery}
             returnKeyType="search"
-            onSubmitEditing={() => set({ search: query })}
+            onSubmitEditing={() => set({ search: query.trim() })}
           />
-          <Button label="Search" secondary onPress={() => set({ search: query })} />
-          <Choices
-            label="Status"
-            value={filters.status ?? ''}
-            options={[
-              { value: '', label: 'All' },
-              ...SNAG_STATUSES.map((value) => ({ value, label: human(value) })),
-            ]}
-            onChange={(status) => set({ status })}
-          />
-          <Choices
-            label="Priority"
-            value={filters.priority ?? ''}
-            options={[
-              { value: '', label: 'All' },
-              ...SNAG_PRIORITIES.map((value) => ({ value, label: value })),
-            ]}
-            onChange={(priority) => set({ priority })}
-          />
-          <Choices
-            label="Location"
-            value={filters.location ?? ''}
-            options={[
-              { value: '', label: 'All' },
-              ...r.data.context.locations.map((l) => ({ value: l.id, label: l.name })),
-            ]}
-            onChange={(location) => set({ location })}
-          />
-          <Choices
-            label="Category"
-            value={filters.category ?? ''}
-            options={[
-              { value: '', label: 'All' },
-              ...r.data.context.categories.map((c) => ({ value: c.id, label: c.name })),
-            ]}
-            onChange={(category) => set({ category })}
-          />
-          <Choices
-            label="Assignee"
-            value={filters.assignee ?? ''}
-            options={[
-              { value: '', label: 'All' },
-              ...r.data.context.members.map((m) => ({
-                value: m.user_id,
-                label: m.profiles?.full_name ?? m.user_id,
-              })),
-            ]}
-            onChange={(assignee) => set({ assignee })}
-          />
-          <Button
-            label={filters.createdBy ? 'Show all creators' : 'Created by me'}
-            secondary
-            onPress={() => set({ createdBy: filters.createdBy ? undefined : session!.user.id })}
-          />
-          <Field label="Due on or before (YYYY-MM-DD)" value={due} onChangeText={setDue} />
-          <Button
-            label="Apply due filter"
-            secondary
-            onPress={() => {
-              if (!due || /^\d{4}-\d{2}-\d{2}$/.test(due)) set({ dueBefore: due });
-            }}
-          />
+          <View style={styles.row}>
+            <Button label="Search" secondary onPress={() => set({ search: query.trim() })} />
+            <Button
+              label={
+                draft ? 'Hide filters' : filterCount ? 'Filters (' + filterCount + ')' : 'Filters'
+              }
+              secondary
+              onPress={() => {
+                setDue(filters.dueBefore ?? '');
+                setDraft(draft ? null : filters);
+              }}
+            />
+          </View>
+          {activeFilters.length > 0 && (
+            <View style={styles.row}>
+              {activeFilters.map(({ key, label }) => (
+                <Button
+                  key={key}
+                  label={label + ' ×'}
+                  secondary
+                  onPress={() => {
+                    if (key === 'search') setQuery('');
+                    if (key === 'dueBefore') setDue('');
+                    setDraft(null);
+                    set({ [key]: undefined });
+                  }}
+                />
+              ))}
+              <Button
+                label="Clear all"
+                secondary
+                onPress={() => {
+                  setFilters({});
+                  setDraft(null);
+                  setQuery('');
+                  setDue('');
+                  setPage(0);
+                }}
+              />
+            </View>
+          )}
+          {draft && (
+            <View style={styles.card}>
+              <Text accessibilityRole="header" style={styles.title}>
+                Filter snags
+              </Text>
+              <Choices
+                label="Status"
+                value={draft.status ?? ''}
+                options={[
+                  { value: '', label: 'All' },
+                  ...SNAG_STATUSES.map((value) => ({ value, label: human(value) })),
+                ]}
+                onChange={(status) => updateDraft({ status })}
+              />
+              <Choices
+                label="Priority"
+                value={draft.priority ?? ''}
+                options={[
+                  { value: '', label: 'All' },
+                  ...SNAG_PRIORITIES.map((value) => ({ value, label: value })),
+                ]}
+                onChange={(priority) => updateDraft({ priority })}
+              />
+              <Choices
+                label="Location"
+                value={draft.location ?? ''}
+                options={[
+                  { value: '', label: 'All' },
+                  ...r.data.context.locations.map((l) => ({ value: l.id, label: l.name })),
+                ]}
+                onChange={(location) => updateDraft({ location })}
+              />
+              <Choices
+                label="Category"
+                value={draft.category ?? ''}
+                options={[
+                  { value: '', label: 'All' },
+                  ...r.data.context.categories.map((c) => ({ value: c.id, label: c.name })),
+                ]}
+                onChange={(category) => updateDraft({ category })}
+              />
+              <Choices
+                label="Assignee"
+                value={draft.assignee ?? ''}
+                options={[
+                  { value: '', label: 'All' },
+                  ...r.data.context.members.map((m) => ({
+                    value: m.user_id,
+                    label: m.profiles?.full_name ?? 'Project member',
+                  })),
+                ]}
+                onChange={(assignee) => updateDraft({ assignee })}
+              />
+              <Button
+                label={draft.createdBy ? 'Show all creators' : 'Created by me'}
+                secondary
+                onPress={() =>
+                  updateDraft({ createdBy: draft.createdBy ? undefined : session!.user.id })
+                }
+              />
+              <Field label="Due on or before (YYYY-MM-DD)" value={due} onChangeText={setDue} />
+              <View style={styles.row}>
+                <Button label="Cancel filters" secondary onPress={() => setDraft(null)} />
+                <Button
+                  label="Apply filters"
+                  disabled={!!due && !/^\d{4}-\d{2}-\d{2}$/.test(due)}
+                  onPress={() => {
+                    set({ ...draft, search: filters.search, dueBefore: due || undefined });
+                    setDraft(null);
+                  }}
+                />
+              </View>
+            </View>
+          )}
           <SnagList rows={r.data.snags.rows} />
           <View style={styles.row}>
             <Button
