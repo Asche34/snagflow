@@ -48,6 +48,8 @@ Run touched-package lint/typecheck/tests, local DB and focused browser checks, A
 
 ## Execution ledger
 
+- Final local release verification complete: Android1.0.5/code6 build3db4ce92-98c6-4c25-a47c-71bd81f79937 FINISHED from3451001. Native SQLite C++/Kotlin source compilation passed. Download163567316bytes and signing certificate match verified. Actual APK DEX check is RED on installed1.0.4's unresolved four-argument registration call and GREEN on1.0.5.90 mobile units/typecheck/lint pass again. User chooses manual phone login/restart testing; physical/hosted acceptance remains pending. Do not use the superseded1.0.4 artifacts.
+
 - Release blocker update: actual1.0.4/code5 USB crash reproduced; incompatible precompiled SQLite58.0.15 registration ABI confirmed against runtime0.2.5. Source-build SQLite through supported Expo autolinking; prepare1.0.5/code6 native rebuild, then retain-data phone login/restart verification.90 units/typecheck/lint pass again. Repack98666 finished before cancellation; do not deliver it as a fix.
 
 - Initial Git status clean at d4d58fb (the user's earlier dirty changes are now committed). Local branch codex/phase6-offline-push created; no push.

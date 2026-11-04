@@ -6,10 +6,10 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | -------------------- | ----- |
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261104000019_push_delivery.sql` applied/recorded locally; hosted remains17 (no Phase6 deployment authorized) |
-| Phase (spec §15)     | **6 — local offline/push implementation verified, including expired-session restart/reconnect; final APK delivery pending.** Hosted activation and physical acceptance remain separate; broader Phase5 acceptance is not inferred. |
-| Last delivered | Android1.0.2/code3 installed and worked on the user's phone (explicit confirmation2026-11-04); installation failure resolved. This does not imply all broader acceptance cases passed. Subsequent branded1.0.3/code4 build also FINISHED; see branding handoff. |
+| Phase (spec §15)     | **6 — local offline/push implementation verified; Android1.0.5/code6 APK ready for the user's manual phone acceptance.** Hosted activation and physical acceptance remain separate; broader Phase5 acceptance is not inferred. |
+| Last delivered | [Android1.0.5/code6 APK](https://expo.dev/artifacts/eas/eoIN-4qApdhM7i7mA1GvXgxlsbWHjzqkNTEbq2lJFBw.apk), phone login/restart retest pending. Earlier Android1.0.2/code3 installed and worked on the user's phone (explicit confirmation2026-11-04); that installation failure is resolved. No broader acceptance inference. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
-| New APK build | Android1.0.5/code6 [3db4ce92-98c6-4c25-a47c-71bd81f79937](https://expo.dev/accounts/asche34/projects/snagflow/builds/3db4ce92-98c6-4c25-a47c-71bd81f79937) queued from `3451001`, SQLite compiled from source to address the confirmed1.0.4 login crash. Same package/remote signing key; fresh native build and phone verification pending. Obsolete1.0.4 native base/repack are superseded. All90 mobile units/typecheck/lint pass again; prior18 browser checks do not establish native acceptance. Branch `codex/phase6-offline-push`; no Phase6 push/deployment/live push authorized. Evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`. |
+| New APK build | Android1.0.5/code6 [3db4ce92-98c6-4c25-a47c-71bd81f79937](https://expo.dev/accounts/asche34/projects/snagflow/builds/3db4ce92-98c6-4c25-a47c-71bd81f79937) FINISHED from `3451001`, SQLite compiled from source.163567316-byte APK download/signing certificate verified against installed1.0.4; exact unresolved native registration call fails the old APK check and is absent from the new APK. All90 mobile units/typecheck/lint pass again. User chooses manual phone testing; no physical success claimed. Obsolete1.0.4 artifacts superseded. Branch `codex/phase6-offline-push`; no Phase6 push/deployment/live push authorized. Evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`. |
 
 ## Features complete
 
@@ -48,7 +48,7 @@ Current mobile release evidence: `docs/AI/MOBILE-FIELD-ADJUSTMENTS-2026-11-03.md
 
 ## Features in progress
 
-- Release blocker: Android1.0.4/code5 closes after login on the user's USB-connected phone. ExpoSQLite's prebuilt58.0.15 calls a four-argument shared-class registration API absent from the app's Expo Modules v2 runtime0.2.5. Configure Android SQLite compilation from source with the app's matching compiler/runtime; prepare1.0.5/code6. All90 mobile units, typecheck and lint pass; native rebuild and retained-data phone verification remain pending. The finished1.0.4 repack cannot fix a native ABI mismatch and must not be delivered as the correction.
+- Native acceptance pending: Android1.0.4/code5 login crash was diagnosed through USB logs and binary inspection as an incompatible precompiled SQLite registration call. Android1.0.5/code6 compiles SQLite against the app's runtime; native build, matching signing identity and APK-level regression pass. User will install/test manually over the existing app; login and close/reopen success remain unconfirmed. No app data was cleared.
 
 - Phase6 SQLite mirror, durable drafts/photos, outbox replay/conflicts and disabled-by-default push. Local migrations18/19 preserve existing data. Focused implementation/evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`.
 
@@ -58,7 +58,7 @@ Current mobile release evidence: `docs/AI/MOBILE-FIELD-ADJUSTMENTS-2026-11-03.md
 
 - Phase 5 acceptance: the user reports the Android 1.0.1 release checks worked on their phone and requested mobile UI and photo markup improvements. The broader hosted and native acceptance matrix remains open.
 - Mobile follow-up: new photos open in a full-screen review with optional markup before attachment. Project snag filters apply together and can be removed from the results. Android bundle export, 50 unit checks and 12 production-preview browser checks passed. Native touch behavior still needs a phone check.
-- Phase6: finish release checks/APK delivery, then separately authorize hosted migrations and native push credentials/activation; physical airplane-mode acceptance remains pending.
+- Phase6: user manual1.0.5 login/restart retest and broader physical offline acceptance; separately authorize hosted migrations and native push credentials/activation. Local release checks/APK packaging are complete.
 - Phase 7: PWA, dark mode, EAS profiles, E2E (Playwright) — **the E2E suite now exists; expand it to the full §14 golden path**
 - Edge function `push-send` implemented locally; delivery gates remain disabled. No hosted function/webhook/receipt schedule or FCM/APNs configuration has been activated.
 
@@ -203,4 +203,4 @@ Brevo initially rejected an unvalidated sender. User changed to a personal sende
 
 ## Next step recommended
 
-Complete Phase6 local release verification and Android1.0.4/code5 APK delivery. Hosted rollout (migrations18/19, Edge function, FCM/APNs and explicit delivery enablement) requires separate authorization. Keep invite-only Auth and broader native acceptance open; do not block the authorized local Phase6 implementation on them. Do not push main/deploy Vercel or reset the preserved local stack.
+Collect the user's manual Android1.0.5/code6 login/restart result, then continue the scoped physical offline acceptance when the target backend supports it. Hosted rollout (migrations18/19, Edge function, FCM/APNs and explicit delivery enablement) requires separate authorization. Keep invite-only Auth and broader native acceptance open. Do not push main/deploy Vercel or reset the preserved local stack.
