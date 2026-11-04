@@ -43,7 +43,7 @@ Physical Android airplane-mode/restart/reconnect and real notification delivery/
 
 ## APK
 
-Android 1.0.4/code 5 uses the same remote keystore/package/preview concurrency profile, without a paid worker change. Native base source: `4b77363fcc8dcf973e5f6843b211ca9afad5dc29`. Native build [b5689550-dab9-49db-9613-16e038595284](https://expo.dev/accounts/asche34/projects/snagflow/builds/b5689550-dab9-49db-9613-16e038595284) is FINISHED (about 23 minutes queued, then native compilation). A direct startup test then reproduced initial connection cleanup erasing a cold-start OS tap. The one-line JavaScript guard and regression pass; final APK packaging uses the manual `apps/mobile/.eas/workflows/phase6-repack.yml` workflow with the same native fingerprint `3d7a13e86fd5a435272f95ed7935b0b2537910cc`. The native base alone is not the final delivered artifact; final repack ID/source/APK will be recorded when available. No OTA update or store submission is involved.
+Superseded Android1.0.4/code5 native base b5689550-dab9-49db-9613-16e038595284 (source4b77363) and repack98666aa3-3566-4a46-8cd5-8be618a7d275 (source4f8660e) both finished using the existing remote keystore. The repack includes the verified cold-start tap guard, but retains the native SQLite ABI mismatch found on the phone. Neither is a corrected release. The temporary repack workflow was removed. Android1.0.5/code6 requires a fresh native build as recorded above; no OTA or store submission is involved.
 
 After the cache correction, all three targeted browser cases passed again: complete online member/manager photo workflow, durable offline photo/restart/interrupted-upload recovery, and schema 17 compatibility. Evidence: `e2e/.playwright/phase6-photo-cache-final`.
 
