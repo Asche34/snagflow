@@ -1,5 +1,7 @@
 # Phase 6 offline and push — 2026-11-04
 
+Current field correction supersedes the release status below: the user reports1.0.5 fails offline on the hosted schema17 deployment and rejects the top status block. See `docs/AI/MOBILE-OFFLINE-FEEDBACK-2026-11-04.md` for confirmed missing hosted RPCs, verified client timing/UI corrections,1.0.6 packaging and the pending explicit18/19 rollout approval. Do not infer hosted offline acceptance from this earlier local implementation evidence.
+
 ## Scope and release boundaries
 
 Spec §§11,12,15; implementation plan `docs/superpowers/plans/2026-11-04-phase6-offline-push.md`. Work stays on `codex/phase6-offline-push`, starting at d4d58fb with clean Git status. Earlier branding/mobile changes remain intact. No main push, hosted Supabase/Vercel modification, live notification, or local database reset.
