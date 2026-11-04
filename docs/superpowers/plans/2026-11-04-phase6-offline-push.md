@@ -48,6 +48,8 @@ Run touched-package lint/typecheck/tests, local DB and focused browser checks, A
 
 ## Execution ledger
 
+- Release blocker update: actual1.0.4/code5 USB crash reproduced; incompatible precompiled SQLite58.0.15 registration ABI confirmed against runtime0.2.5. Source-build SQLite through supported Expo autolinking; prepare1.0.5/code6 native rebuild, then retain-data phone login/restart verification.90 units/typecheck/lint pass again. Repack98666 finished before cancellation; do not deliver it as a fix.
+
 - Initial Git status clean at d4d58fb (the user's earlier dirty changes are now committed). Local branch codex/phase6-offline-push created; no push.
 - User expressly delegates routine design/implementation decisions; follow existing architecture without an extra approval round.
 - Android1.0.2/code3 installed and worked on user's phone; installation failure resolved. Broader acceptance remains unconfirmed.

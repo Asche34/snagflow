@@ -48,6 +48,8 @@ Current mobile release evidence: `docs/AI/MOBILE-FIELD-ADJUSTMENTS-2026-11-03.md
 
 ## Features in progress
 
+- Release blocker: Android1.0.4/code5 closes after login on the user's USB-connected phone. ExpoSQLite's prebuilt58.0.15 calls a four-argument shared-class registration API absent from the app's Expo Modules v2 runtime0.2.5. Configure Android SQLite compilation from source with the app's matching compiler/runtime; prepare1.0.5/code6. All90 mobile units, typecheck and lint pass; native rebuild and retained-data phone verification remain pending. The finished1.0.4 repack cannot fix a native ABI mismatch and must not be delivered as the correction.
+
 - Phase6 SQLite mirror, durable drafts/photos, outbox replay/conflicts and disabled-by-default push. Local migrations18/19 preserve existing data. Focused implementation/evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`.
 
 - Phase 5 hosted Supabase / physical-device acceptance. Native online implementation is present; see `docs/AI/PHASE5-MOBILE-2026-11-02.md` for deployment approval, access requirements, evidence and acceptance matrix.

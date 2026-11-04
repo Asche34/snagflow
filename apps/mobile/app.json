@@ -2,7 +2,7 @@
   "expo": {
     "name": "SnagFlow",
     "slug": "snagflow",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "orientation": "portrait",
     "icon": "./assets/images/snagflow-icon.png",
     "scheme": "snagflow",
@@ -12,7 +12,7 @@
     },
     "android": {
       "package": "com.snagflow.app",
-      "versionCode": 5,
+      "versionCode": 6,
       "adaptiveIcon": {
         "backgroundColor": "#192D25",
         "foregroundImage": "./assets/images/snagflow-adaptive-foreground.png",
