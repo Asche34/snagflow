@@ -65,6 +65,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setProfileLoading(true);
     try {
+      // Restore the verified local profile before a network refresh can stall.
+      // This permits local work only; every replay still rechecks server access.
+      try {
+        const retained = (await accountEngine(client, userId)).state.profile;
+        if (request !== profileRequest.current || currentUser.current !== userId) return;
+        if (retained?.id === userId && retained.is_active)
+          setProfile((previous) => previous?.id === userId ? previous : retained);
+      } catch {
+        // An unavailable cache must not prevent an online account refresh.
+      }
       // A recovered local identity is never sent as anonymous/expired backend authorization.
       if (localSessionFor(client, userId)) {
         const local = await accountEngine(client, userId);

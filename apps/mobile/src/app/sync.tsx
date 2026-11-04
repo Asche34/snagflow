@@ -29,6 +29,19 @@ export default function Sync() {
       refresh={() => void offline.sync()}
       refreshing={offline.syncing}
     >
+      <View style={styles.card}>
+        <Text style={styles.title}>
+          {offline.capability === 'unsupported' ? 'Internet connection required' : offline.online ? 'Online' : 'Working offline'}
+        </Text>
+        <Text style={styles.text}>
+          {offline.capability === 'unsupported'
+            ? 'Offline working is not enabled for this team yet. Your administrator needs to enable it before you can work without a connection.'
+            : `${offline.projects.length} projects saved on this phone · ${state?.queue.length ?? 0} changes waiting to send`}
+        </Text>
+        <Text style={styles.muted}>
+          Last synced {state?.lastSynced ? new Date(state.lastSynced).toLocaleString() : 'never'}
+        </Text>
+      </View>
       <ErrorText error={error ?? offline.error} />
       <Text style={styles.text}>
         Queued work stays with this account and app URL. Reconnecting rechecks access before sending

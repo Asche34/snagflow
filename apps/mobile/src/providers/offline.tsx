@@ -1,10 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { AppState, Text, View } from 'react-native';
-import { router } from 'expo-router';
 import { useAuth } from './auth';
 import { bindOffline, revokeOffline, type OfflineRuntime } from '../lib/offline/runtime';
 import type { OfflineState } from '../lib/offline/engine';
-import { Button, styles } from '../components/ui';
+import { styles } from '../components/ui';
 const Context = createContext<{
   runtime: OfflineRuntime | null;
   revision: number;
@@ -46,7 +45,11 @@ function OfflineScope({ children }: { children: ReactNode }) {
           const { addNetworkStateListener } = await import('expo-network');
           if (!alive) return;
           network = addNetworkStateListener((state) => {
-            if (state.isConnected) void current?.sync();
+            if (!alive || !current?.active) return;
+            if (state.isConnected === false || state.isInternetReachable === false) {
+              current.online = false;
+              current.onChange();
+            } else if (state.isConnected) void current.sync();
           });
         } catch {
           if (alive)
@@ -83,31 +86,6 @@ function OfflineScope({ children }: { children: ReactNode }) {
     );
   return (
     <Context.Provider value={{ runtime, revision, state: runtime?.engine.state ?? null }}>
-      {runtime && (
-        <View style={{ backgroundColor: '#e7eee5', padding: 8, gap: 4 }}>
-          <Text style={styles.muted}>
-            {runtime.syncing ? 'Syncing' : runtime.online ? 'Online' : 'Offline'} ·{' '}
-            {runtime.engine.state.queue.length} queued · Last synced{' '}
-            {runtime.engine.state.lastSynced
-              ? new Date(runtime.engine.state.lastSynced).toLocaleString()
-              : 'never'}
-          </Text>
-          {runtime.error && (
-            <Text accessibilityRole="alert" style={styles.muted}>
-              {runtime.error}
-            </Text>
-          )}
-          <Button
-            label={
-              runtime.engine.state.queue.some((q) => q.state === 'attention')
-                ? 'Sync needs attention'
-                : 'Sync and queued work'
-            }
-            secondary
-            onPress={() => router.push('/sync' as import('expo-router').Href)}
-          />
-        </View>
-      )}
       {children}
     </Context.Provider>
   );

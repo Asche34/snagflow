@@ -194,6 +194,12 @@ export class OfflineRuntime {
   ) {
     await this.guard();
     const { randomUUID } = await import('expo-crypto');
+    // Online metadata can arrive before the initial snapshot. Complete that
+    // first download once; previously cached projects never wait here.
+    if (!this.engine.state.mirrors[projectId] && this.online) {
+      await this.sync();
+      await this.guard();
+    }
     const local = localSnags(this.engine.state, projectId, this.userId).find(
       (s) => s.id === snagId,
     );
@@ -211,8 +217,9 @@ export class OfflineRuntime {
       );
     await this.guard();
     const createdAt = Date.now();
+    const operationId = id ?? randomUUID();
     await this.engine.enqueue({
-      id: id ?? randomUUID(),
+      id: operationId,
       projectId,
       snagId,
       kind,
@@ -235,8 +242,16 @@ export class OfflineRuntime {
             annotatedPath: p.annotationId ? `${projectId}/${snagId}/${p.annotationId}.jpg` : null,
           };
       });
-    if (!this.online || localSessionFor(this.client, this.userId)) void this.sync();
-    else await this.sync();
+    // A save completes when its local transaction is durable, even if a radio
+    // drop leaves the server request pending instead of rejecting immediately.
+    const alreadyRunning = this.pending !== null;
+    void this.sync().then(() => {
+      // A pull already in progress may have passed its flush before this save.
+      // Give this new operation one immediate turn, respecting retry backoff.
+      if (alreadyRunning && this.active && isCurrentClient(this.client) &&
+          this.engine.state.queue.some((q) => q.id === operationId && q.state === 'queued' && q.nextAttemptAt <= Date.now()))
+        void this.sync();
+    });
   }
   sync(): Promise<void> {
     if (this.pending) return this.pending;

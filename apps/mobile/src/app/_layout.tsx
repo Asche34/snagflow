@@ -8,6 +8,7 @@ import { ConnectionProvider, useConnection } from '../providers/connection';
 import { ProjectSwitcher } from '../components/project-switcher';
 import { OfflineProvider } from '../providers/offline';
 import { PushProvider } from '../providers/push';
+import { SyncStatus } from '../components/sync-status';
 
 function Navigation() {
   const connection = useConnection();
@@ -118,6 +119,7 @@ function Navigation() {
           <Stack.Screen name="sync" options={{ title: 'Sync and queued work' }} />
         </Stack.Protected>
       </Stack>
+      {session && profile?.is_active && <SyncStatus />}
       {loading && !profile && (
         <View
           style={styles.loading}

@@ -166,6 +166,61 @@ beforeEach(() => {
 });
 
 describe('offline runtime recovery boundaries', () => {
+  it('finishes the first online project download before accepting its first queued save', async () => {
+    const runtime = await boundRuntime();
+    delete runtime.engine.state.mirrors[projectId];
+    vi.mocked(runtime.sync).mockImplementation(async () => {
+      await runtime.engine.change((s) => { s.mirrors[projectId] = mirror(); });
+    });
+    await expect(runtime.queue('comment', projectId, snagId, { body: 'First project save' })).resolves.toBeUndefined();
+    expect(runtime.engine.state.queue[0]?.payload.body).toBe('First project save');
+  });
+
+  it('sends a change queued after the current sync has already passed its flush stage', async () => {
+    let release: (() => void) | undefined;
+    let reached: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => { release = resolve; });
+    const pulling = new Promise<void>((resolve) => { reached = resolve; });
+    let held = false;
+    const rpc = vi.fn(async (name: string) => name === 'mobile_sync_snapshot'
+      ? { data: { ...mirror(), snag_ids: [snagId], comment_ids: [], photo_ids: [], activity_ids: [] }, error: null }
+      : { data: { snag: mirror().snags[0] }, error: null });
+    const query = projectsQuery();
+    query.range = async () => {
+      if (!held) { held = true; reached?.(); await gate; }
+      return { data: [{ id: projectId, status: 'active' }], error: null };
+    };
+    environment.scoped = { from: (table: string) => table === 'profiles' ? profileQuery() : query, rpc };
+    const runtime = new OfflineRuntime(environment.client as Client, environment.user, new OfflineEngine(memory, 'during-pull'));
+    runtime.engine.state.mirrors[projectId] = mirror();
+    const initial = runtime.sync();
+    await pulling;
+    await runtime.queue('comment', projectId, snagId, { body: 'Queued during pull' });
+    release?.();
+    await initial;
+    await vi.waitFor(() => expect(runtime.engine.state.queue).toHaveLength(0), { timeout: 300 });
+    expect(rpc.mock.calls.some(([name]) => name === 'apply_offline_mutation')).toBe(true);
+  });
+
+  it('finishes a durable local save while the background sync request is still waiting', async () => {
+    const runtime = await boundRuntime();
+    let release: (() => void) | undefined;
+    const stalled = new Promise<void>((resolve) => { release = resolve; });
+    vi.mocked(runtime.sync).mockReturnValue(stalled);
+    let saved = false;
+    const save = runtime.queue('comment', projectId, snagId, { body: 'Saved without signal' })
+      .then(() => { saved = true; });
+    try {
+      await vi.waitFor(() => expect(saved).toBe(true), { timeout: 300 });
+      expect(runtime.engine.state.queue).toHaveLength(1);
+      const retained = environment.saved.get(runtime.engine.scope) as { queue: OfflineOperation[] };
+      expect(retained.queue[0]?.payload.body).toBe('Saved without signal');
+    } finally {
+      release?.();
+      await save;
+    }
+  });
+
   it('binds and durably queues expired offline identity without waiting for repeated SDK refreshes', async () => {
     const client = environment.client as Client;
     const retained = {

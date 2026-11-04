@@ -35,7 +35,10 @@ async function login(page: Page, role: 'manager' | 'member1' | 'viewer' = 'manag
   await page.getByLabel('Password', { exact: true }).fill('Password123!');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Sync and queued work', exact: true }).click();
   await expect.poll(async () => (await page.getByText(/Last synced/).textContent()) ?? '').not.toContain('never');
+  await expect(page.getByRole('button', { name: 'Sync now', exact: true })).toBeEnabled();
+  await page.goto('/');
 }
 
 /** A backend partition lets the app process reload from the preview server without adding PWA shell caching. */
@@ -114,6 +117,40 @@ test.afterAll(async () => {
   if (removed.error) throw removed.error;
 });
 
+test('cached capture and local save remain usable when network requests never complete', async ({ page }, info) => {
+  await login(page);
+  await page.goto(`/projects/${projectId}/capture`);
+  await expect(page.getByLabel('Title', { exact: true })).toBeVisible();
+  await expect(page.getByText('Sync ›', { exact: true })).toBeVisible();
+  let release: (() => void) | undefined;
+  const stalled = new Promise<void>((resolve) => { release = resolve; });
+  const handler = async (route: Route) => { await stalled; await route.abort().catch(() => {}); };
+  await page.route(`${api}/rest/v1/**`, handler);
+  const title = `No-signal capture ${crypto.randomUUID()}`;
+  try {
+    await page.reload();
+    await expect(page.getByLabel('Title', { exact: true })).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText(/Last synced/)).toHaveCount(0);
+    const footer = await page.getByRole('button', { name: 'Sync and queued work', exact: true }).boundingBox();
+    expect(footer).not.toBeNull();
+    expect(footer!.y).toBeGreaterThan(page.viewportSize()!.height * 0.75);
+    await page.screenshot({ path: info.outputPath('capture-compact-status.png') });
+    await page.getByLabel('Title', { exact: true }).fill(title);
+    await page.getByRole('button', { name: 'Save snag', exact: true }).click();
+    await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/, { timeout: 5000 });
+    await expect(page.getByText(title, { exact: true })).toBeVisible({ timeout: 5000 });
+    const rows = await backend.from('snags').select('id').eq('title', title);
+    if (rows.error) throw rows.error;
+    expect(rows.data).toHaveLength(0);
+    await page.setViewportSize({ width: 320, height: 640 });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(320);
+    await page.screenshot({ path: info.outputPath('pending-small-phone.png') });
+  } finally {
+    release?.();
+    await page.unroute(`${api}/rest/v1/**`, handler);
+  }
+});
+
 test('offline capture, photo, edit, comment and transition survive reload and reconnect exactly once', async ({ page }, info) => {
   test.setTimeout(180_000);
   const network = await partition(page);
@@ -121,7 +158,7 @@ test('offline capture, photo, edit, comment and transition survive reload and re
   await login(page);
   await page.goto(`/projects/${projectId}/capture`);
   await expect(page.getByLabel('Title', { exact: true })).toBeVisible();
-  await expect(page.getByText(/^Online · 0 queued · Last synced/)).toBeVisible();
+  await expect(page.getByText('Online · 0 waiting', { exact: true })).toBeVisible();
   network.rest = network.auth = network.storage = true;
   await page.getByLabel('Title', { exact: true }).fill(title);
   await page.getByLabel('Description', { exact: true }).fill('Prepared offline, including the original photo.');
@@ -230,7 +267,7 @@ test('lost committed create response replays one stable identity without duplica
   await page.getByLabel('Title', { exact: true }).fill(title);
   await page.getByRole('button', { name: 'Save snag', exact: true }).click();
   await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
-  expect(interrupted).toBe(true);
+  await expect.poll(() => interrupted, { timeout: 30_000 }).toBe(true);
   const id = page.url().split('/').pop()!;
   await page.goto('/sync');
   const retry = page.getByRole('button', { name: 'Retry now', exact: true });
@@ -250,7 +287,7 @@ test('queued capture remains isolated when switching accounts and deployment URL
   await login(page);
   await page.goto(`/projects/${projectId}/capture`);
   await expect(page.getByLabel('Title', { exact: true })).toBeVisible();
-  await expect(page.getByText(/^Online · 0 queued · Last synced/)).toBeVisible();
+  await expect(page.getByText('Online · 0 waiting', { exact: true })).toBeVisible();
   network.rest = network.storage = true;
   await page.getByLabel('Title', { exact: true }).fill(title);
   await page.getByRole('button', { name: 'Save snag', exact: true }).click();
@@ -323,7 +360,7 @@ test('a server without Phase6 RPCs preserves online capture, photos and workflow
   await page.getByLabel('Password', { exact: true }).fill('Password123!');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
-  await expect(page.getByText('Offline sync needs a server update. Online changes remain available.', { exact: true })).toBeVisible();
+  await expect(page.getByText('Online only · 0 waiting', { exact: true })).toBeVisible();
   await page.goto(`/projects/${projectId}/capture`);
   await expect(page.getByText('Changes require a connection. Your draft stays on this screen if saving fails.', { exact: true })).toBeVisible();
   await page.getByLabel('Title', { exact: true }).fill(title);
@@ -408,7 +445,7 @@ test('an expired local session restores cached field work offline and waits for 
   await page.getByRole('button', { name: 'Save snag', exact: true }).click();
   await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
   const id = page.url().split('/').pop()!;
-  await expect(page.getByText(title, { exact: true })).toBeVisible();
+  await expect(page.getByText(title, { exact: true }).filter({ visible: true })).toBeVisible();
   expect(writesWhileRefreshBlocked).toBe(0);
   const absent = await backend.from('snags').select('id').eq('id', id);
   if (absent.error) throw absent.error;

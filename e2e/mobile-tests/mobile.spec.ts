@@ -220,6 +220,12 @@ test('save and add another retains location/category but resets snag-specific in
   await page.getByLabel('Title', { exact: true }).fill('Second repeated capture');
   await page.getByRole('button', { name: 'Save snag', exact: true }).click();
   await expect(page.getByLabel('Title', { exact: true })).toHaveValue('');
+  await expect.poll(async () => {
+    const result = await backend.from('snags').select('id').eq('project_id', projectId)
+      .in('title', ['First repeated capture', 'Second repeated capture']);
+    if (result.error) throw result.error;
+    return result.data.length;
+  }, { timeout: 30_000 }).toBe(2);
   const rows = await backend
     .from('snags')
     .select('id,title,location_id,category_id,priority')
@@ -241,35 +247,39 @@ test('save and add another retains location/category but resets snag-specific in
   await expect(page.getByRole('radio', { name: 'No category', exact: true })).toBeChecked();
 });
 
-test('project switching is blocked while a capture save is pending', async ({ page }) => {
+test('project switching remains available after a durable save while its upload is pending', async ({ page }) => {
   await login(page, 'member1');
   await page.goto(`/projects/${projectId}/capture`);
   await page.getByLabel('Title', { exact: true }).fill('Delayed capture project guard');
   let release!: () => void;
-  let started!: () => void;
+  let dispatched = false;
   const gate = new Promise<void>((resolve) => {
     release = resolve;
-  });
-  const pending = new Promise<void>((resolve) => {
-    started = resolve;
   });
   await page.route('**/rest/v1/rpc/apply_offline_mutation', async (route) => {
     const payload = route.request().postDataJSON() as { p_kind?: string };
     if (route.request().method() === 'POST' && payload.p_kind === 'create') {
-      started();
+      dispatched = true;
       await gate;
     }
     await route.continue();
   });
   await page.getByRole('button', { name: 'Save snag', exact: true }).click();
-  await pending;
   try {
-    await expect(page.getByRole('button', { name: 'Switch project', exact: true })).toBeDisabled();
+    await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
+    await expect.poll(() => dispatched).toBe(true);
+    await expect(page.getByRole('button', { name: 'Switch project', exact: true })).toBeEnabled();
+    await page.getByRole('button', { name: 'Switch project', exact: true }).click();
+    await page.getByRole('button', { name: `Switch to ${secondProjectName}`, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`/projects/${secondProjectId}$`));
   } finally {
     release();
   }
-  await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
-  await expect(page.getByRole('button', { name: 'Switch project', exact: true })).toBeEnabled();
+  await expect.poll(async () => {
+    const result = await backend.from('snags').select('project_id').eq('title', 'Delayed capture project guard').eq('project_id', projectId);
+    if (result.error) throw result.error;
+    return result.data.length;
+  }, { timeout: 30_000 }).toBe(1);
 });
 
 test('phone login reports invalid credentials, signs in and signs out', async ({ page }, info) => {
@@ -354,6 +364,11 @@ test('member and manager complete photo, editing, assignment, comment and reject
   await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
   const id = page.url().split('/').pop()!;
   await expect(page.getByText('Mobile socket defect', { exact: true })).toBeVisible();
+  await expect.poll(async () => {
+    const result = await backend.from('snag_photos').select('id').eq('snag_id', id);
+    if (result.error) throw result.error;
+    return result.data.length;
+  }, { timeout: 30_000 }).toBe(1);
   const photos = await backend.from('snag_photos').select('*').eq('snag_id', id);
   if (photos.error) throw photos.error;
   expect(photos.data).toHaveLength(1);

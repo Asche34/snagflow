@@ -6,7 +6,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | -------------------- | ----- |
 | Version              | 0.1.0 |
 | DB schema version    | migration `20261104000019_push_delivery.sql` applied/recorded locally; hosted remains17 (no Phase6 deployment authorized) |
-| Phase (spec §15)     | **6 — local offline/push implementation verified; Android1.0.5/code6 APK ready for the user's manual phone acceptance.** Hosted activation and physical acceptance remain separate; broader Phase5 acceptance is not inferred. |
+| Phase (spec §15)     | **6 — corrective work after failed hosted offline field acceptance.** User reports1.0.5 stops working without internet and rejects the top status block. Hosted offline endpoint is confirmed absent; reviewed18/19 rollout approval requested. Client blocked-network and compact-status corrections are in local verification;1.0.6/code7 packaging follows. |
 | Last delivered | [Android1.0.5/code6 APK](https://expo.dev/artifacts/eas/eoIN-4qApdhM7i7mA1GvXgxlsbWHjzqkNTEbq2lJFBw.apk), phone login/restart retest pending. Earlier Android1.0.2/code3 installed and worked on the user's phone (explicit confirmation2026-11-04); that installation failure is resolved. No broader acceptance inference. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
 | New APK build | Android1.0.5/code6 [3db4ce92-98c6-4c25-a47c-71bd81f79937](https://expo.dev/accounts/asche34/projects/snagflow/builds/3db4ce92-98c6-4c25-a47c-71bd81f79937) FINISHED from `3451001`, SQLite compiled from source.163567316-byte APK download/signing certificate verified against installed1.0.4; exact unresolved native registration call fails the old APK check and is absent from the new APK. All90 mobile units/typecheck/lint pass again. User chooses manual phone testing; no physical success claimed. Obsolete1.0.4 artifacts superseded. Branch `codex/phase6-offline-push`; no Phase6 push/deployment/live push authorized. Evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`. |
@@ -47,6 +47,8 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 Current mobile release evidence: `docs/AI/MOBILE-FIELD-ADJUSTMENTS-2026-11-03.md`.
 
 ## Features in progress
+
+- Current field correction: `docs/AI/MOBILE-OFFLINE-FEEDBACK-2026-11-04.md`. Hosted ledger confirms17/no offline RPC; dry run lists exactly18/19 with no seed/role changes. Approval is pending; do not deploy without it. Cached profile/reads and durable saves no longer wait on network requests; first online save completes project preparation, and a compact bottom control replaces the top block.101 mobile unit/API,70 DB and19/19 browser checks pass, along with types/lint. Focused review and1.0.6/code7 signed packaging are in progress.
 
 - Native acceptance pending: Android1.0.4/code5 login crash was diagnosed through USB logs and binary inspection as an incompatible precompiled SQLite registration call. Android1.0.5/code6 compiles SQLite against the app's runtime; native build, matching signing identity and APK-level regression pass. User will install/test manually over the existing app; login and close/reopen success remain unconfirmed. No app data was cleared.
 
