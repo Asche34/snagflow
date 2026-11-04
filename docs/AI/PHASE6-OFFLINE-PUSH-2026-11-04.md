@@ -4,7 +4,7 @@ Current field correction supersedes the release status below: the user reported1
 
 ## Scope and release boundaries
 
-Spec §§11,12,15; implementation plan `docs/superpowers/plans/2026-11-04-phase6-offline-push.md`. Work stays on `codex/phase6-offline-push`, starting at d4d58fb with clean Git status. Earlier branding/mobile changes remain intact. No main push, hosted Supabase/Vercel modification, live notification, or local database reset.
+Spec §§11,12,15; implementation plan `docs/superpowers/plans/2026-11-04-phase6-offline-push.md`. Work stays on `codex/phase6-offline-push`, starting at d4d58fb with clean Git status. Earlier branding/mobile changes remain intact. Initial local work left hosted services unchanged; the later explicitly approved hosted18/19 rollout is recorded in the field-correction handoff. No main push, Vercel deployment, live push notification or local database reset occurred.
 
 User confirms Android1.0.2/code3 installed and worked; reported installation failure resolved. No broader acceptance inference. Branded1.0.3/code4 finished separately. Android1.0.4/code5 later exposed a native SQLite crash; the corrected package is1.0.5/code6 with the same signing identity and branding.
 
@@ -47,7 +47,7 @@ An unrelated untracked web branding PNG appeared during the work and was left un
 
 ## APK
 
-Current deliverable: [Android1.0.5/code6](https://expo.dev/artifacts/eas/eoIN-4qApdhM7i7mA1GvXgxlsbWHjzqkNTEbq2lJFBw.apk), package com.snagflow.app. Native compile, matching APK v2 signing identity, download and binary registration regression passed. Manual phone acceptance is pending.
+Current deliverable: [Android1.0.6/code7](https://expo.dev/artifacts/eas/gCgV0Qi8aJyFb9v2fV6Fp87HBndVVvYTNHhv7TZJ0Fw.apk), package com.snagflow.app, with the compact status and responsive offline corrections. Full APK integrity/signature and unchanged native-content checks pass. Hosted18/19 are approved/applied/verified; manual native field acceptance remains pending. See the current field-correction handoff for exact evidence.
 
 Superseded Android1.0.4/code5 native base b5689550-dab9-49db-9613-16e038595284 (source4b77363) and repack98666aa3-3566-4a46-8cd5-8be618a7d275 (source4f8660e) both finished using the existing remote keystore. The repack includes the verified cold-start tap guard, but retains the native SQLite ABI mismatch found on the phone. Neither is a corrected release. The temporary repack workflow was removed. Android1.0.5/code6 requires a fresh native build as recorded above; no OTA or store submission is involved.
 

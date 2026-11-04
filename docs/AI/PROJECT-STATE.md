@@ -60,7 +60,7 @@ Current mobile release evidence: `docs/AI/MOBILE-FIELD-ADJUSTMENTS-2026-11-03.md
 
 - Phase 5 acceptance: the user reports the Android 1.0.1 release checks worked on their phone and requested mobile UI and photo markup improvements. The broader hosted and native acceptance matrix remains open.
 - Mobile follow-up: new photos open in a full-screen review with optional markup before attachment. Project snag filters apply together and can be removed from the results. Android bundle export, 50 unit checks and 12 production-preview browser checks passed. Native touch behavior still needs a phone check.
-- Phase6: user manual1.0.5 login/restart retest and broader physical offline acceptance; separately authorize hosted migrations and native push credentials/activation. Local release checks/APK packaging are complete.
+- Phase6: manual1.0.6 physical offline acceptance after project download. Hosted18/19 and local release/APK checks are complete. Native push credentials, Edge delivery setup and live activation still require separate authorization.
 - Phase 7: PWA, dark mode, EAS profiles, E2E (Playwright) — **the E2E suite now exists; expand it to the full §14 golden path**
 - Edge function `push-send` implemented locally; delivery gates remain disabled. No hosted function/webhook/receipt schedule or FCM/APNs configuration has been activated.
 
@@ -201,7 +201,7 @@ Brevo initially rejected an unvalidated sender. User changed to a personal sende
 
 ## Blockers
 
-- Phase5 hosted acceptance needs hosted project/canonical API details and explicit deployment authorization. User reports local Android16 testing works, without enumerating all acceptance cases. APK build36b6a885-d543-4bea-8809-2063b4947f6d finished. User configured/redeployed Vercel: login/health/discovery200. Hosted schema through17 and first administrator/private password verification are complete. Public signup remains enabled; invite-only Auth/redirects/SMTP and full hosted/native acceptance remain pending. See `HOSTED-VERCEL-2026-11-03.md`.
+- Phase5 broader hosted/native acceptance remains open. Hosted schema is now19 after the approved Phase6 rollout; first-administrator/private-password verification and public login/health/discovery checks were recorded previously. Public signup remains enabled; invite-only Auth/redirects/SMTP and full native acceptance remain separate. See `HOSTED-VERCEL-2026-11-03.md` and the current field-correction handoff.
 
 ## Next step recommended
 
