@@ -650,6 +650,7 @@
       "apps/mobile/tests/offline.test.ts",
       "apps/mobile/tests/online.test.ts",
       "apps/mobile/tests/photos.test.ts",
+      "apps/mobile/tests/push-coldstart.test.ts",
       "apps/mobile/tests/push-core.test.ts",
       "apps/mobile/tests/push-delivery.test.ts",
       "apps/mobile/tests/push-toggle.test.ts",

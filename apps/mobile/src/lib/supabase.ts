@@ -96,7 +96,8 @@ async function performInstallation(
   const { revokeOffline } = await import('./offline/runtime');
   revokeOffline();
   const { deactivatePushRegistration } = await import('./push-registration');
-  await deactivatePushRegistration(previous);
+  // A fresh process has no previous connection; preserve its OS launch tap for validated navigation.
+  if (previousKey !== null) await deactivatePushRegistration(previous);
   activeStorageKey = null;
   activeConnection = null;
   supabaseSetupError = 'Reconnect to your SnagFlow app before signing in.';
