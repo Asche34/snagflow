@@ -106,7 +106,9 @@ export default function Home() {
         />
       </View>
       <Text style={styles.text}>
-        Pull to sync. Previously opened projects and saved drafts are available offline.
+        {offline
+          ? 'Pull to sync. Previously opened projects and saved drafts are available offline.'
+          : 'Online mode. Pull to refresh; changes require a connection.'}
       </Text>
       <PushSettings />
       <ErrorText error={resource.error} />

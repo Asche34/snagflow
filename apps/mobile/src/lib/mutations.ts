@@ -8,18 +8,24 @@ import {
 } from '@snagflow/shared';
 import { supabase } from './supabase';
 import { stableWrite } from './online';
-import { assertConnectionClient } from './connection';
+import { assertConnectionClient, scopedActor } from './connection';
 import { offlineFor } from './offline/runtime';
 async function userId(client: typeof supabase) {
   assertConnectionClient(client, supabase);
+  const pinnedActor = scopedActor(client);
+  if (pinnedActor) return pinnedActor;
   const { data, error } = await client.auth.getUser();
   assertConnectionClient(client, supabase);
   if (error || !data.user) throw Error('Sign in again before saving.');
   return data.user.id;
 }
-export async function saveSnag(input: SnagCreate, client = supabase) {
+export async function saveSnag(
+  input: SnagCreate,
+  client = supabase,
+): Promise<import('./data').Row<'snags'>> {
   const value = SnagCreateSchema.parse(input);
   const offline = offlineFor(client);
+  if (offline?.capability === 'unsupported') return saveSnag(input, await offline.requestClient());
   if (offline) {
     const existing =
       offline.snags(value.projectId, {}, 0).rows.find((r) => r.client_id === value.clientId) ??
@@ -111,10 +117,12 @@ export async function updateSnag(
   input: unknown,
   client = supabase,
   base?: import('./data').Row<'snags'>,
-) {
+): Promise<void> {
   assertConnectionClient(client, supabase);
   const v = SnagUpdateSchema.parse(input);
   const offline = offlineFor(client);
+  if (offline?.capability === 'unsupported')
+    return updateSnag(id, input, await offline.requestClient(), base);
   if (offline) {
     const row = base ?? offline.detail(id).snag;
     const fields = {
@@ -163,10 +171,12 @@ export async function assignSnag(
   assigneeId: string | null,
   client = supabase,
   expectedUpdatedAt?: string,
-) {
+): Promise<void> {
   assertConnectionClient(client, supabase);
   const v = SnagAssignSchema.parse({ snagId, assigneeId });
   const offline = offlineFor(client);
+  if (offline?.capability === 'unsupported')
+    return assignSnag(snagId, assigneeId, await offline.requestClient(), expectedUpdatedAt);
   if (offline) {
     await offline.queue(
       'assign',
@@ -193,10 +203,18 @@ export async function transitionSnag(
   comment: string,
   client = supabase,
   expectedUpdatedAt?: string,
-) {
+): Promise<void> {
   assertConnectionClient(client, supabase);
   const v = SnagTransitionSchema.parse({ snagId, toStatus, comment });
   const offline = offlineFor(client);
+  if (offline?.capability === 'unsupported')
+    return transitionSnag(
+      snagId,
+      toStatus,
+      comment,
+      await offline.requestClient(),
+      expectedUpdatedAt,
+    );
   if (offline) {
     await offline.queue(
       'transition',
@@ -217,9 +235,16 @@ export async function transitionSnag(
   if (r.error) throw r.error;
   assertConnectionClient(client, supabase);
 }
-export async function addComment(id: string, snagId: string, body: string, client = supabase) {
+export async function addComment(
+  id: string,
+  snagId: string,
+  body: string,
+  client = supabase,
+): Promise<{ saved: true } | { saved: false; previousBody: string }> {
   const v = CommentCreateSchema.parse({ snagId, body });
   const offline = offlineFor(client);
+  if (offline?.capability === 'unsupported')
+    return addComment(id, snagId, body, await offline.requestClient());
   if (offline) {
     await offline.queue(
       'comment',

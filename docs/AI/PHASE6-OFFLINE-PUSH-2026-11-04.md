@@ -16,22 +16,25 @@ User confirms Android1.0.2/code3 installed and worked; reported installation fai
 - Pull/replay runs at start, foreground, connectivity regain, refresh and periodic foreground reconciliation. Uploads run asynchronously while the app is active and recover on restart/foreground; no promise of uninterrupted OS execution while force-closed. Queue status, last sync and needs-attention screen remain visible. Pending snags have no invented server number.
 - Revoked project access removes its mirror and private drafts while preserving queued user intent for review. Different accounts/deployments cannot see or send each other's work. Retained media files are private app files; automatic garbage collection/retention quotas are not implemented yet.
 - Push is explicit opt-in, permission/channel-aware, account/deployment/installation-bound, refreshed/leased and unlinked on logout/change. Delivery reads authoritative persisted recipients and rechecks current access; generic OS text and validated tap navigation limit stale-account exposure. Ticket/receipt DeviceNotRegistered cleanup cannot delete a newer registration.
+- A server without the Phase 6 snapshot RPC explicitly uses the existing online mutation paths with pinned account clients, including photo/markup writes. The UI explains that offline sync needs a server update and does not promise durable offline saves. Existing queues remain paused in their original scope until support is available. This preserves online use on hosted schema 17 without authorizing any hosted migration.
 
 ## Verification
 
--81 mobile unit checks including actual SQLite close/reopen, interrupted retry, immutable photos, pinned-account requests, stale form/workflow base, binder race, acknowledged-data recovery and pending fix evidence.
--70 preserved-local database checks (existing RLS/workflow/security plus10 offline and5 push).
--90 shared/actual-report checks. Configured shared lint targets src; an extra ad-hoc lint of tests found18 existing style/global errors and is not the package lint command.
--16 browser checks:12 existing mobile/App URL regressions,4 new offline acceptance cases. Final new suite covers text/photo draft restart, queued create/edit/comment/transition restart, committed upload/create response loss, exact-once rows/activity, conflict review/restart/discard, and account/deployment switching. Artifacts `e2e/.playwright/phase6-offline-final`.
--Local late-commit pull regression RED with strict timestamp filter, GREEN with bounded full snapshots. All disposable fixtures cleaned; preserved data retained.
--Mobile and E2E typechecks pass; mobile lint has zero errors and six existing generated/test import warnings. Final exports/archive/native build status recorded below when observed.
+- 82 mobile unit checks including actual SQLite close/reopen, interrupted retry, immutable photos, pinned-account requests, stale form/workflow base, binder race, acknowledged-data recovery, pending fix evidence and legacy-server capability detection. All 8 existing mobile API/service checks pass against the preserved local stack.
+- 70 preserved-local database checks (existing RLS/workflow/security plus 10 offline and 5 push).
+- 90 shared/actual-report checks. Configured shared lint targets src and passes; an extra ad-hoc lint of tests found 18 existing style/global errors outside that configured target.
+- 17 browser checks: 12 existing mobile/App URL regressions and 5 offline/compatibility cases. Final suite covers text/photo draft restart, queued create/edit/comment/transition restart, committed upload/create response loss, exact-once rows/activity, conflict review/restart/discard, account/deployment switching, and schema 17 online create/photo/edit/comment/workflow fallback. The legacy-server case asserts zero Phase 6 mutation RPC calls and no false offline-save promise. Artifacts: `e2e/.playwright/phase6-browser-final` and `phase6-compat-ui`.
+- Local late-commit pull regression RED with strict timestamp filter, GREEN with bounded full snapshots. All disposable fixtures cleaned; preserved data retained.
+- Mobile/shared/database/E2E typechecks and configured lint pass; mobile lint has six existing generated/test import warnings. Android and web exports pass; the 366-file release archive excludes private environment/signing/runtime paths and contains no local private key literal. Final native build status is recorded below when observed.
 
 ## External activation and acceptance pending
 
-Hosted stays at migration17. Phase6 offline RPCs require migrations18/19 on the target deployment before native offline use; no hosted rollout is implied by APK delivery. Native FCM/google-services.json (and APNs for iOS), Edge deployment/webhook secret, receipt scheduling and explicit delivery gates require external setup/authorization. See `supabase/functions/push-send/README.md`.
+Hosted stays at migration 17, where this APK preserves online use through the checked compatibility fallback. Phase 6 offline RPCs require migrations 18/19 on the target deployment before native offline use; no hosted rollout is implied by APK delivery. Native FCM/google-services.json (and APNs for iOS), Edge deployment/webhook secret, receipt scheduling and explicit delivery gates require external setup/authorization. See `supabase/functions/push-send/README.md`.
 
 Physical Android airplane-mode/restart/reconnect and real notification delivery/tap acceptance remain pending. Browser/SQLite tests and native compilation do not replace those cases.
 
 ## APK
 
 Android1.0.4/code5 preparation in progress. Do not claim a new APK exists until EAS reports FINISHED and provides its actual artifact.
+
+The first submission `b97de024-4c57-42ee-a739-b4fe8cdae6db` (source 6354a5b) was canceled before delivery to include the schema 17 compatibility correction. It is not the release artifact.

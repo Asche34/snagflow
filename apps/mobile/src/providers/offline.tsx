@@ -113,6 +113,10 @@ function OfflineScope({ children }: { children: ReactNode }) {
   );
 }
 export function useOffline() {
+  const runtime = useContext(Context).runtime;
+  return runtime?.capability === 'unsupported' ? null : runtime;
+}
+export function useOfflineRuntime() {
   return useContext(Context).runtime;
 }
 export function useOfflineState() {

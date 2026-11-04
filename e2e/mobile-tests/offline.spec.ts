@@ -299,3 +299,63 @@ test('queued capture remains isolated when switching accounts and deployment URL
   await page.getByRole('button', { name: 'Discard queued change', exact: true }).click();
   await expect(page.getByText('No queued changes.', { exact: true })).toBeVisible();
 });
+
+test('a server without Phase6 RPCs preserves online capture, photos and workflow without claiming queued sync', async ({ page }) => {
+  const title = `Phase17 online compatibility ${crypto.randomUUID()}`;
+  let phase6Writes = 0;
+  let directCreates = 0;
+  page.on('request', (request) => {
+    const path = new URL(request.url()).pathname;
+    if (path === '/rest/v1/rpc/apply_offline_mutation') phase6Writes++;
+    if (path === '/rest/v1/snags' && request.method() === 'POST') directCreates++;
+  });
+  await page.route('**/rest/v1/rpc/mobile_sync_snapshot', (route) => route.fulfill({
+    status: 404,
+    contentType: 'application/json',
+    body: JSON.stringify({ code: 'PGRST202', message: 'Could not find the function public.mobile_sync_snapshot in the schema cache' }),
+  }));
+  await page.goto('/login');
+  await page.getByLabel('Email', { exact: true }).fill('manager@snagflow.test');
+  await page.getByLabel('Password', { exact: true }).fill('Password123!');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Sign out', exact: true })).toBeVisible();
+  await expect(page.getByText('Offline sync needs a server update. Online changes remain available.', { exact: true })).toBeVisible();
+  await page.goto(`/projects/${projectId}/capture`);
+  await expect(page.getByText('Changes require a connection. Your draft stays on this screen if saving fails.', { exact: true })).toBeVisible();
+  await page.getByLabel('Title', { exact: true }).fill(title);
+  await page.getByLabel('Description', { exact: true }).fill('Online capture remains available before the offline migration is deployed.');
+  await page.getByRole('radio', { name: managerName, exact: true }).click();
+  await addPhoto(page);
+  await expect(page.getByText('Draft saved on this device', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Saving draft on this device…', { exact: true })).toHaveCount(0);
+  await expect(page.getByText(/queued uploads resume when connected/)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Save snag', exact: true }).click();
+  await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
+  const id = page.url().split('/').pop()!;
+  const created = await backend.from('snags').select('id,number,assignee_id').eq('id', id).single();
+  if (created.error) throw created.error;
+  expect(created.data.number).toBeGreaterThan(0);
+  await expect(page.getByText(/pending sync/i)).toHaveCount(0);
+  expect(created.data.assignee_id).toBe(users.manager);
+  await expect(page.getByRole('img', { name: 'issue photo', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Edit details', exact: true }).click();
+  await page.getByLabel('Title', { exact: true }).fill(`${title} revised`);
+  await page.getByRole('button', { name: 'Save snag', exact: true }).click();
+  await expect(page.getByText(`${title} revised`, { exact: true })).toBeVisible();
+  await page.getByLabel('Comment', { exact: true }).fill('Online comment before server upgrade');
+  await page.getByRole('button', { name: 'Post comment', exact: true }).click();
+  await expect(page.getByText('Online comment before server upgrade', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Start work', exact: true }).click();
+  await expect.poll(() => status(id)).toBe('in_progress');
+  const photos = await backend.from('snag_photos').select('id').eq('snag_id', id);
+  const comments = await backend.from('comments').select('id').eq('snag_id', id).eq('body', 'Online comment before server upgrade');
+  const updated = await backend.from('snags').select('title').eq('id', id).single();
+  if (photos.error || comments.error || updated.error) throw photos.error ?? comments.error ?? updated.error;
+  expect(photos.data).toHaveLength(1); expect(comments.data).toHaveLength(1);
+  expect(updated.data.title).toBe(`${title} revised`);
+  expect(phase6Writes).toBe(0);
+  expect(directCreates).toBe(1);
+  await page.goto('/sync');
+  await expect(page.getByText('No queued changes.', { exact: true })).toBeVisible();
+  await expect(page.getByText(/create · Pending|photos · Pending|transition · Pending/)).toHaveCount(0);
+});

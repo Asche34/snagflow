@@ -253,8 +253,9 @@ function ProjectCapture({ id }: { id: string }) {
             />
           </View>
           <Text style={styles.muted}>
-            Capture several photos in a row. Drafts and attached photos are retained on this device;
-            queued uploads resume when connected.
+            {offline
+              ? 'Capture several photos in a row. Drafts and attached photos are retained on this device; queued uploads resume when connected.'
+              : 'Capture several photos in a row. Keep this screen open until all photos finish.'}
           </Text>
           {photos.map((item) => (
             <View key={item.id} style={styles.card}>

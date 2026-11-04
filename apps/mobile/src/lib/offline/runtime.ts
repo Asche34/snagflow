@@ -55,6 +55,7 @@ export async function bindOffline(client: Client, userId: string): Promise<Offli
 }
 export class OfflineRuntime {
   active = true;
+  capability: 'unknown' | 'supported' | 'unsupported' = 'unknown';
   online = true;
   syncing = false;
   error: string | null = null;
@@ -213,32 +214,33 @@ export class OfflineRuntime {
     });
     return this.pending;
   }
+  async requestClient(): Promise<Client> {
+    await this.guard();
+    const { data: session } = await this.client.auth.getSession();
+    await this.guard();
+    const connection = getActiveConnection();
+    if (!connection || session.session?.user.id !== this.userId) throw new AccessUnavailableError();
+    const token = session.session.access_token;
+    const active = () => this.active && isCurrentClient(this.client);
+    const client = createClient<Database>(connection.supabaseUrl, connection.supabaseAnonKey, {
+      accessToken: async () => {
+        if (!active()) throw Error('Account changed.');
+        return token;
+      },
+      global: { fetch: guardedFetch(fetch, active) },
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    registerScopedClient(client, this.client, active, this.userId);
+    return client;
+  }
   private async performSync() {
     this.syncing = true;
     this.onChange();
     try {
       await this.guard();
-      const { data: session } = await this.client.auth.getSession();
-      await this.guard();
-      const connection = getActiveConnection();
-      if (!connection || session.session?.user.id !== this.userId)
-        throw new AccessUnavailableError();
       // Pin every replay to the originating JWT. SDK auth cannot replace it with another account mid-chain.
-      const token = session.session.access_token;
       const active = () => this.active && isCurrentClient(this.client);
-      const requestClient = createClient<Database>(
-        connection.supabaseUrl,
-        connection.supabaseAnonKey,
-        {
-          accessToken: async () => {
-            if (!active()) throw Error('Account changed.');
-            return token;
-          },
-          global: { fetch: guardedFetch(fetch, active) },
-          auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-        },
-      );
-      registerScopedClient(requestClient, this.client, active);
+      const requestClient = await this.requestClient();
       const actor = await requestClient
         .from('profiles')
         .select('id,is_active')
@@ -256,7 +258,8 @@ export class OfflineRuntime {
         throw new AccessUnavailableError();
       }
       this.online = true;
-      await this.engine.flush((op) => this.execute(op, requestClient), active);
+      if (this.capability !== 'unsupported')
+        await this.engine.flush((op) => this.execute(op, requestClient), active);
       await this.guard();
       const projects = await readPages(async (from, to) => {
         await this.guard();
@@ -285,6 +288,12 @@ export class OfflineRuntime {
           ...(previous ? { p_since: previous.synced_at } : {}),
         });
         if (r.error) {
+          if (r.error.code === 'PGRST202') {
+            this.capability = 'unsupported';
+            this.online = true;
+            this.error = 'Offline sync needs a server update. Online changes remain available.';
+            return;
+          }
           if (
             r.error.code === '42501' ||
             /OFFLINE_UNAVAILABLE|OFFLINE_FORBIDDEN/.test(r.error.message)
@@ -299,6 +308,7 @@ export class OfflineRuntime {
         if (!snapshot || snapshot.project?.id !== project.id || !Array.isArray(snapshot.snag_ids))
           throw Error('Offline sync requires the Phase 6 database migration.');
         await this.engine.change((s) => applySnapshot(s, snapshot));
+        this.capability = 'supported';
       }
       this.error = null;
     } catch (error) {

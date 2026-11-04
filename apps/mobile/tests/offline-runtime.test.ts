@@ -161,6 +161,26 @@ beforeEach(() => {
 });
 
 describe('offline runtime recovery boundaries', () => {
+  it('recognizes a schema17 server without treating reachable online APIs as offline', async () => {
+    environment.scoped = {
+      from: (table: string) => (table === 'profiles' ? profileQuery() : projectsQuery()),
+      rpc: async () => ({
+        data: null,
+        error: { code: 'PGRST202', message: 'Could not find public.mobile_sync_snapshot' },
+      }),
+    };
+    const runtime = new OfflineRuntime(
+      environment.client as Client,
+      environment.user,
+      new OfflineEngine(memory, 'legacy-capability'),
+    );
+    await runtime.sync();
+    expect(runtime.capability).toBe('unsupported');
+    expect(runtime.online).toBe(true);
+    expect(runtime.error).toBe(
+      'Offline sync needs a server update. Online changes remain available.',
+    );
+  });
   it('retains an ambiguous committed gateway failure under its original replay identity', async () => {
     const engine = new OfflineEngine(memory, 'ambiguous');
     await engine.enqueue(operation());

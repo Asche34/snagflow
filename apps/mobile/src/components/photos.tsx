@@ -13,7 +13,7 @@ import { message } from '../lib/mutations';
 import { pickPhoto, uploadPhotos, uploadImmutable, type QueuedPhoto } from '../lib/photos';
 import { Button, Choices, ErrorText, styles } from './ui';
 import { MarkupEditor } from './markup-editor';
-import { useOffline } from '../providers/offline';
+import { useOffline, useOfflineRuntime } from '../providers/offline';
 import { useDurableDraft } from '../lib/offline/use-draft';
 import { persistPhotos, retainRemote } from '../lib/offline/files';
 type Edit = {
@@ -42,6 +42,7 @@ export function Photos({
 }) {
   const { client: supabase, session, profile } = useAuth();
   const offline = useOffline();
+  const accountRuntime = useOfflineRuntime();
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -228,8 +229,10 @@ export function Photos({
       await onSaved();
       return;
     }
-    await uploadImmutable(path, uri, supabase);
-    const r = await supabase.rpc('save_photo_annotation', {
+    if (!accountRuntime) throw Error('Your account changed. Reopen this photo before saving.');
+    const writeClient = await accountRuntime.requestClient();
+    await uploadImmutable(path, uri, writeClient);
+    const r = await writeClient.rpc('save_photo_annotation', {
       p_photo_id: current.photo.id,
       p_expected_updated_at: current.expected,
       p_annotated_path: path,
@@ -237,13 +240,13 @@ export function Photos({
     });
     if (r.error) {
       if (r.error.message.includes('ANNOTATION_CONFLICT')) {
-        const latest = await supabase
+        const latest = await writeClient
           .from('snag_photos')
           .select('*')
           .eq('id', current.photo.id)
           .single();
         if (latest.error) throw latest.error;
-        const signed = await supabase.storage
+        const signed = await writeClient.storage
           .from('snag-photos')
           .createSignedUrl(latest.data.annotated_path ?? latest.data.storage_path, 300);
         if (signed.error) throw signed.error;

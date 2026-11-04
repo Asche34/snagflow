@@ -2,11 +2,11 @@ import { Text, View } from 'react-native';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import { randomUUID } from 'expo-crypto';
-import { useOffline, useOfflineState } from '../providers/offline';
+import { useOfflineRuntime, useOfflineState } from '../providers/offline';
 import { Button, ErrorText, Screen, styles } from '../components/ui';
 import { definitiveConflict } from '../lib/offline/engine';
 export default function Sync() {
-  const offline = useOffline();
+  const offline = useOfflineRuntime();
   const state = useOfflineState();
   const [error, setError] = useState<string | null>(null);
   if (!offline)

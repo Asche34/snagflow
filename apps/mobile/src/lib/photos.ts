@@ -357,6 +357,17 @@ export async function uploadPhotos(
     throw Error('The account changed. Your photos stay with the original account.');
   if (!replay && actorId && offline && offline.userId !== actorId)
     throw Error('The account changed. Your photos stay with the original account.');
+  if (offline?.capability === 'unsupported')
+    return uploadPhotos(
+      projectId,
+      snagId,
+      items,
+      onChange,
+      sortOffset,
+      await offline.requestClient(),
+      true,
+      actorId ?? offline.userId,
+    );
   if (offline && items.length) {
     const { digestStringAsync, CryptoDigestAlgorithm } = await import('expo-crypto');
     const hash = await digestStringAsync(

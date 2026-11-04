@@ -4,6 +4,7 @@ import { SNAG_PRIORITIES, canAct, type SnagCreate, type SnagPriority } from '@sn
 import { useAuth } from '../providers/auth';
 import type { ProjectContext, Row } from '../lib/data';
 import { Button, Choices, Field, styles } from './ui';
+import { useOffline } from '../providers/offline';
 export function SnagForm({
   context,
   initial,
@@ -26,6 +27,7 @@ export function SnagForm({
   onDraftChange?: (value: Omit<SnagCreate, 'clientId' | 'projectId'>) => void;
 }) {
   const { session, profile } = useAuth();
+  const offline = useOffline();
   const [title, setTitle] = useState(draft?.title ?? initial?.title ?? defaultTitle);
   const [description, setDescription] = useState(draft?.description ?? initial?.description ?? '');
   const [priority, setPriority] = useState<SnagPriority | ''>(
@@ -120,8 +122,9 @@ export function SnagForm({
         />
       )}
       <Text style={styles.muted}>
-        Saved changes are queued on this device when offline. Check Sync for progress and any
-        changes needing attention.
+        {offline
+          ? 'Saved changes are queued on this device when offline. Check Sync for progress and any changes needing attention.'
+          : 'Changes require a connection. Your draft stays on this screen if saving fails.'}
       </Text>
       <Button
         label={busy ? 'Saving…' : label}

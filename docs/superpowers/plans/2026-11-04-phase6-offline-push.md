@@ -51,3 +51,11 @@ Run touched-package lint/typecheck/tests, local DB and focused browser checks, A
 - Initial Git status clean at d4d58fb (the user's earlier dirty changes are now committed). Local branch codex/phase6-offline-push created; no push.
 - User expressly delegates routine design/implementation decisions; follow existing architecture without an extra approval round.
 - Android1.0.2/code3 installed and worked on user's phone; installation failure resolved. Broader acceptance remains unconfirmed.
+- Task 1 complete: additive local migrations 18/19, generated types, 70/70 full DB checks; no reset/hosted changes.
+- Task 2 complete: actual SQLite persistence and recovery tests; captured account/deployment JWTs and identity checks; acknowledged-data preservation.
+- Task 3 complete: durable field/photo drafts, pending evidence, visible conflicts; 17/17 browser checks including existing online behavior and legacy-server fallback.
+- Task 4 complete locally: disabled-by-default push, scoped opt-in/lifecycle/navigation and authorized receipts; native credentials and hosted activation remain external.
+- Review fixes verified: ambiguous replay identity, binder race, private draft purge, acknowledged comment/photo retention, stale edit/workflow base, pending fix evidence, continuous photo-batch identity, account switch during upload/draft persistence, legacy-server mutation compatibility and legacy markup account pinning.
+- Task 5 in progress: 82 units, 8 mobile API checks, 90 shared/report checks, configured lint/typechecks, Android/web exports and archive scan pass. First EAS build canceled to include the compatibility correction; replacement APK/native result still required.
+- Ruling: full bounded snapshots replace strict timestamp deltas for this release, preventing late-commit loss without global workflow locks; cost is transfer volume and a 20,000-row/table limit.
+- Deferred minor: conservative private-media retention has no orphan-file garbage collector or disk quota yet. Uploads resume on foreground/restart; no claim of execution while force-closed.
