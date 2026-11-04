@@ -165,7 +165,7 @@ Tests: connection/shared public-response tests, `apps/mobile/tests/connection-mu
 
 ### FEAT-OFFLINE-SYNC (implemented locally; native/hosted acceptance pending)
 Native SQLite mirror, atomic outbox and durable capture/edit/comment/workflow/photo drafts, document-directory original/thumbnail/markup files, pinned-account replay, stable identities, server receipts, field merge and workflow attention/retry/discard. Full bounded authorized snapshot reconciliation includes tombstones/removals.
-Impl: `apps/mobile/src/lib/offline/`, `apps/mobile/src/providers/offline.tsx`, `apps/mobile/src/app/sync.tsx`; adapters in data/mutations/photos and capture/detail screens. DB: migration18 (`apply_offline_mutation`, `mobile_sync_snapshot`). Tests: mobile offline*.test.ts, `e2e/mobile-tests/offline.spec.ts`, `supabase/tests/offline.test.ts`, `supabase/tests/offline-late-commit.mjs`.
+Impl: `apps/mobile/src/lib/offline/`, `apps/mobile/src/lib/offline-session.ts`, `apps/mobile/src/providers/offline.tsx`, `apps/mobile/src/app/sync.tsx`; adapters in auth/data/mutations/photos and capture/detail screens. Secure local identity survives expired-token offline refresh failure; server replay always requires a fresh session. DB: migration18 (`apply_offline_mutation`, `mobile_sync_snapshot`). Tests: mobile offline*.test.ts, `e2e/mobile-tests/offline.spec.ts`, `supabase/tests/offline.test.ts`, `supabase/tests/offline-late-commit.mjs`.
 Handoff: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`; DB contract: `PHASE6-OFFLINE-DB-2026-11-04.md`.
 
 ### FEAT-PUSH (implemented locally; disabled pending authorized activation)

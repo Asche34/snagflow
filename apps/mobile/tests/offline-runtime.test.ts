@@ -6,6 +6,11 @@ import { OfflineEngine, type Mirror, type OfflineOperation } from '../src/lib/of
 import { bindOffline, offlineFor, OfflineRuntime, revokeOffline } from '../src/lib/offline/runtime';
 import { uploadPhotos, type QueuedPhoto } from '../src/lib/photos';
 import { assignSnag, transitionSnag, updateSnag } from '../src/lib/mutations';
+import {
+  OfflineSessionRecovery,
+  localSessionFor,
+  registerOfflineSession,
+} from '../src/lib/offline-session';
 
 const environment = vi.hoisted(() => ({
   client: null as unknown,
@@ -161,6 +166,89 @@ beforeEach(() => {
 });
 
 describe('offline runtime recovery boundaries', () => {
+  it('binds and durably queues expired offline identity without waiting for repeated SDK refreshes', async () => {
+    const client = environment.client as Client;
+    const retained = {
+      ...session().data.session,
+      refresh_token: 'fake-retained-refresh',
+      token_type: 'bearer',
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) - 3600,
+    } as unknown as import('@supabase/supabase-js').Session;
+    const recovery = new OfflineSessionRecovery(environment.deployment, {
+      namespace: () => environment.deployment,
+      active: () => true,
+      readStored: async () => retained,
+      profile: async () => ({ id: environment.user, is_active: true }),
+    });
+    registerOfflineSession(client, recovery);
+    await recovery.recover({ name: 'AuthRetryableFetchError', status: 0 });
+    let refreshes = 0;
+    environment.session = () => {
+      refreshes++;
+      return new Promise(() => {});
+    };
+    const runtime = await bindOffline(client, environment.user);
+    runtime.engine.state.mirrors[projectId] = mirror();
+    expect(runtime.online).toBe(false);
+    expect(refreshes).toBe(0);
+    await runtime.queue(
+      'comment',
+      projectId,
+      snagId,
+      { body: 'Queued after token expiry' },
+      operation().id,
+    );
+    await runtime.queue('edit', projectId, snagId, { priority: 'high' });
+    expect(runtime.engine.state.queue).toHaveLength(2);
+    expect(refreshes).toBe(1);
+    expect(JSON.stringify(runtime.engine.state)).not.toContain('fake-retained-refresh');
+    runtime.active = false;
+    recovery.revoke();
+  });
+  it('refuses network replay with expired fallback and uses the newly refreshed JWT on reconnect', async () => {
+    const client = environment.client as Client;
+    const retained = {
+      ...session().data.session,
+      refresh_token: 'fake-retained-refresh',
+      token_type: 'bearer',
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) - 3600,
+    } as unknown as import('@supabase/supabase-js').Session;
+    const recovery = new OfflineSessionRecovery(environment.deployment, {
+      namespace: () => environment.deployment,
+      active: () => true,
+      readStored: async () => retained,
+      profile: async () => ({ id: environment.user, is_active: true }),
+    });
+    registerOfflineSession(client, recovery);
+    const failed = {
+      name: 'AuthRetryableFetchError',
+      status: 0,
+      message: 'Offline refresh failed',
+    };
+    await recovery.recover(failed);
+    environment.session = async () => ({ data: { session: null }, error: failed });
+    const runtime = await bindOffline(client, environment.user);
+    await expect(runtime.requestClient()).rejects.toMatchObject({
+      name: 'AuthRetryableFetchError',
+    });
+    expect(environment.options).toBeNull();
+    environment.session = async () => ({
+      data: {
+        session: {
+          ...retained,
+          access_token: 'fresh-reconnected-jwt',
+          expires_at: Math.floor(Date.now() / 1000) + 3600,
+        },
+      },
+      error: null,
+    });
+    await runtime.requestClient();
+    const options = environment.options as { accessToken: () => Promise<string> };
+    expect(await options.accessToken()).toBe('fresh-reconnected-jwt');
+    expect(localSessionFor(client)).toBeNull();
+  });
   it('invalidates a cached flattened image when the server has a different immutable annotation path', () => {
     const engine = new OfflineEngine(memory, 'photo-cache-version');
     engine.state.mirrors[projectId] = mirror();

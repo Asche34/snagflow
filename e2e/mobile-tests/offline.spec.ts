@@ -121,6 +121,7 @@ test('offline capture, photo, edit, comment and transition survive reload and re
   await login(page);
   await page.goto(`/projects/${projectId}/capture`);
   await expect(page.getByLabel('Title', { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Online · 0 queued · Last synced/)).toBeVisible();
   network.rest = network.auth = network.storage = true;
   await page.getByLabel('Title', { exact: true }).fill(title);
   await page.getByLabel('Description', { exact: true }).fill('Prepared offline, including the original photo.');
@@ -248,6 +249,8 @@ test('queued capture remains isolated when switching accounts and deployment URL
   const network = await partition(page);
   await login(page);
   await page.goto(`/projects/${projectId}/capture`);
+  await expect(page.getByLabel('Title', { exact: true })).toBeVisible();
+  await expect(page.getByText(/^Online · 0 queued · Last synced/)).toBeVisible();
   network.rest = network.storage = true;
   await page.getByLabel('Title', { exact: true }).fill(title);
   await page.getByRole('button', { name: 'Save snag', exact: true }).click();
@@ -268,6 +271,7 @@ test('queued capture remains isolated when switching accounts and deployment URL
   expect(absent.data).toHaveLength(0);
   await page.goto('/');
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page.getByLabel('Email', { exact: true })).toBeVisible();
   network.rest = network.storage = true;
   await login(page);
   await page.goto('/sync');
@@ -358,4 +362,68 @@ test('a server without Phase6 RPCs preserves online capture, photos and workflow
   await page.goto('/sync');
   await expect(page.getByText('No queued changes.', { exact: true })).toBeVisible();
   await expect(page.getByText(/create · Pending|photos · Pending|transition · Pending/)).toHaveCount(0);
+});
+
+test('an expired local session restores cached field work offline and waits for refresh before sending queued changes', async ({ page }) => {
+  test.setTimeout(150_000);
+  const title = `Expired-session offline capture ${crypto.randomUUID()}`;
+  await login(page);
+  await expect(page.getByRole('button', { name: `Open ${projectName}`, exact: true })).toBeVisible();
+  let refreshBlocked = true;
+  let refreshAttempts = 0;
+  let writesWhileRefreshBlocked = 0;
+  page.on('request', (request) => {
+    const path = new URL(request.url()).pathname;
+    if (refreshBlocked && path.startsWith('/rest/v1/') && request.method() !== 'GET' && request.method() !== 'HEAD' && path !== '/rest/v1/rpc/mobile_sync_snapshot')
+      writesWhileRefreshBlocked++;
+  });
+  await page.route('**/auth/v1/token*', async (route) => {
+    if (refreshBlocked) { refreshAttempts++; await route.abort('internetdisconnected'); }
+    else await route.continue();
+  });
+  const expired = await page.evaluate(() => {
+    let changed = 0;
+    for (const key of Object.keys(sessionStorage)) {
+      if (!key.startsWith('snagflow.auth.')) continue;
+      const raw = sessionStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const session = JSON.parse(raw) as Record<string, unknown>;
+        if (typeof session['expires_at'] !== 'number' || typeof session['refresh_token'] !== 'string' || typeof session['access_token'] !== 'string') continue;
+        session['expires_at'] = Math.floor(Date.now() / 1000) - 3600;
+        sessionStorage.setItem(key, JSON.stringify(session));
+        changed++;
+      } catch { /* Connection preferences and PKCE storage are not session records. */ }
+    }
+    return changed;
+  });
+  expect(expired).toBe(1);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: 'Projects', exact: true })).toBeVisible({ timeout: 60_000 });
+  expect(refreshAttempts).toBeGreaterThan(0);
+  await page.getByRole('button', { name: `Open ${projectName}`, exact: true }).click();
+  await expect(page.getByRole('heading', { name: projectName, exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Capture snag', exact: true }).click();
+  await page.getByLabel('Title', { exact: true }).fill(title);
+  await page.getByRole('button', { name: 'Save snag', exact: true }).click();
+  await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
+  const id = page.url().split('/').pop()!;
+  await expect(page.getByText(title, { exact: true })).toBeVisible();
+  expect(writesWhileRefreshBlocked).toBe(0);
+  const absent = await backend.from('snags').select('id').eq('id', id);
+  if (absent.error) throw absent.error;
+  expect(absent.data).toHaveLength(0);
+  await page.getByRole('button', { name: 'Sync and queued work', exact: true }).click();
+  await expect(page.getByText('create · Pending', { exact: true })).toBeVisible();
+  refreshBlocked = false;
+  await page.getByRole('button', { name: 'Sync now', exact: true }).click();
+  // SDK 2.118 retains a failed refresh for 60s; foreground polling retries after its cooldown.
+  await expect(page.getByText('No queued changes.', { exact: true })).toBeVisible({ timeout: 90_000 });
+  const saved = await backend.from('snags').select('id,client_id,title').eq('client_id', id);
+  if (saved.error) throw saved.error;
+  expect(saved.data).toEqual([{ id, client_id: id, title }]);
+  await page.getByRole('button', { name: 'Sync now', exact: true }).click();
+  const repeated = await backend.from('snags').select('id').eq('client_id', id);
+  if (repeated.error) throw repeated.error;
+  expect(repeated.data).toHaveLength(1);
 });

@@ -8,6 +8,12 @@ import { guardedFetch, registerScopedClient } from '../connection';
 import type { Row, SnagFilters } from '../data';
 import type { QueuedPhoto } from '../photos';
 import { AnnotationDocumentSchema } from '@snagflow/shared';
+import {
+  acceptOnlineSession,
+  localSessionFor,
+  recoverLocalSession,
+  revokeLocalSession,
+} from '../offline-session';
 
 type Client = SupabaseClient<Database>;
 const engines = new Map<string, Promise<OfflineEngine>>();
@@ -42,14 +48,16 @@ export async function bindOffline(client: Client, userId: string): Promise<Offli
   revokeOffline();
   const generation = bindingGeneration;
   const engine = await accountEngine(client, userId);
-  const { data } = await client.auth.getSession();
-  if (
-    generation !== bindingGeneration ||
-    !isCurrentClient(client) ||
-    data.session?.user.id !== userId
-  )
+  const retained = localSessionFor(client, userId);
+  const { data, error } = retained
+    ? { data: { session: retained }, error: null }
+    : await client.auth.getSession();
+  const identity =
+    data.session ?? (error ? await recoverLocalSession(client, error, userId) : null);
+  if (generation !== bindingGeneration || !isCurrentClient(client) || identity?.user.id !== userId)
     throw Error('Session changed.');
   const runtime = new OfflineRuntime(client, userId, engine);
+  if (localSessionFor(client, userId)) runtime.online = false;
   binding = runtime;
   return runtime;
 }
@@ -69,8 +77,11 @@ export class OfflineRuntime {
   private async guard() {
     if (!this.active || !isCurrentClient(this.client))
       throw Error('The account or app connection changed.');
-    const { data } = await this.client.auth.getSession();
-    if (!this.active || !isCurrentClient(this.client) || data.session?.user.id !== this.userId)
+    if (localSessionFor(this.client, this.userId)) return;
+    const { data, error } = await this.client.auth.getSession();
+    const identity =
+      data.session ?? (error ? await recoverLocalSession(this.client, error, this.userId) : null);
+    if (!this.active || !isCurrentClient(this.client) || identity?.user.id !== this.userId)
       throw Error('The account or app connection changed.');
   }
   get projects() {
@@ -224,7 +235,8 @@ export class OfflineRuntime {
             annotatedPath: p.annotationId ? `${projectId}/${snagId}/${p.annotationId}.jpg` : null,
           };
       });
-    await this.sync();
+    if (!this.online || localSessionFor(this.client, this.userId)) void this.sync();
+    else await this.sync();
   }
   sync(): Promise<void> {
     if (this.pending) return this.pending;
@@ -235,10 +247,19 @@ export class OfflineRuntime {
   }
   async requestClient(): Promise<Client> {
     await this.guard();
-    const { data: session } = await this.client.auth.getSession();
+    const { data: session, error } = await this.client.auth.getSession();
+    if (error) {
+      await recoverLocalSession(this.client, error, this.userId);
+      throw error;
+    }
     await this.guard();
     const connection = getActiveConnection();
     if (!connection || session.session?.user.id !== this.userId) throw new AccessUnavailableError();
+    if (session.session.expires_at && session.session.expires_at * 1000 <= Date.now()) {
+      revokeLocalSession(this.client);
+      throw new AccessUnavailableError();
+    }
+    acceptOnlineSession(this.client, session.session);
     const token = session.session.access_token;
     const active = () => this.active && isCurrentClient(this.client);
     const client = createClient<Database>(connection.supabaseUrl, connection.supabaseAnonKey, {
@@ -268,6 +289,7 @@ export class OfflineRuntime {
       await this.guard();
       if (actor.error) throw actor.error;
       if (!actor.data?.is_active) {
+        revokeLocalSession(this.client);
         await this.engine.change((s) => {
           s.profile = null;
           for (const id of Object.keys(s.mirrors)) purgeProject(s, id);

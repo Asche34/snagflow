@@ -194,6 +194,8 @@ The web app emits a standalone build and includes a Dockerfile for self-hosting.
 
 The native app now keeps project mirrors, capture/edit/comment/workflow drafts and queued mutations in SQLite, and retains prepared photo/markup files in private document storage. Open/sync a project online before field use. Saved offline changes show pending numbers until server sync; use **Sync and queued work** to review conflicts, retry or discard. Queues belong to one account and App URL. Reconnect/foreground resumes uploads with the original identities.
 
+Cached field work can reopen after access-token expiry when refresh is temporarily unreachable, using only that account's secure stored identity and previously verified profile. Queued work is sent only after fresh authentication succeeds; the installed SDK's refresh-failure cooldown can delay reconnect sync by about a minute. Signing out removes the secure session while retaining isolated drafts for a later explicit sign-in.
+
 Apply numbered migrations 18–19 to an authorized target deployment before using Phase 6 offline RPCs. The existing local stack was migrated without resetting data; hosted deployment has not been changed. Pull uses complete bounded snapshots (20,000 rows per table) for reliable removal/late-commit recovery. Media cleanup quotas and uninterrupted upload while force-closed are not implemented.
 
 Push is opt-in and disabled on the server by default. Native FCM/APNs credentials, Edge deployment, webhook secret, receipt scheduling and explicit delivery activation are separate setup steps in [the push function README](supabase/functions/push-send/README.md). Never put service-role or Expo push credentials in mobile public environment variables.

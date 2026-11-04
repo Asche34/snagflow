@@ -321,14 +321,16 @@
         "apps/mobile/src/lib/offline",
         "apps/mobile/src/providers/offline.tsx",
         "apps/mobile/src/app/sync.tsx",
-        "supabase/migrations/20261104000018_offline_sync.sql"
+        "supabase/migrations/20261104000018_offline_sync.sql",
+        "apps/mobile/src/lib/offline-session.ts"
       ],
       "test": [
         "apps/mobile/tests/offline.test.ts",
         "apps/mobile/tests/offline-mirror.test.ts",
         "apps/mobile/tests/offline-runtime.test.ts",
         "supabase/tests/offline.test.ts",
-        "e2e/mobile-tests/offline.spec.ts"
+        "e2e/mobile-tests/offline.spec.ts",
+        "apps/mobile/tests/offline-session.test.ts"
       ],
       "doc": "docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md"
     },
@@ -644,6 +646,7 @@
       "apps/mobile/tests/mobile-live.test.ts",
       "apps/mobile/tests/offline-mirror.test.ts",
       "apps/mobile/tests/offline-runtime.test.ts",
+      "apps/mobile/tests/offline-session.test.ts",
       "apps/mobile/tests/offline.test.ts",
       "apps/mobile/tests/online.test.ts",
       "apps/mobile/tests/photos.test.ts",
