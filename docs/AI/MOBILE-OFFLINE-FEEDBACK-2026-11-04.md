@@ -17,17 +17,19 @@ The user reports1.0.5 is not useful offline and rejects the large top status blo
 - Cached resource reads run immediately, and local-state changes refresh the visible data without starting another network cycle. Local saves complete after durable persistence; network replay runs separately and remains bound to account/project/deployment.
 - Network-loss events update offline status immediately. No native dependency/plugin change; SQLite source compilation remains enabled.
 
-## Hosted change ready for explicit approval
+## Approved hosted rollout completed
 
 Target: existing Snagflow Project, ref mtpmqnczwdbglebrakhw, used by https://snagflow.vercel.app.
 
-The CLI dry run lists exactly `supabase/migrations/20261104000018_offline_sync.sql` and `supabase/migrations/20261104000019_push_delivery.sql`, with empty seed/role lists. Both are already applied/tested on preserved local data; all70 database security/workflow checks pass again. No hosted migration has been applied during this correction. The user's original instruction explicitly requires approval before modifying hosted Supabase; approval has been requested and is pending.
+The user explicitly replied “Apply18–19; keep live push disabled” and confirmed that projects/snags stopped loading without internet. A fresh CLI dry run listed exactly `supabase/migrations/20261104000018_offline_sync.sql` and `supabase/migrations/20261104000019_push_delivery.sql`, with empty seed/role lists. Both then applied successfully to the intended hosted project using --linked, the explicit project reference, --skip-vault and --yes, without reset or seed. The same SQL had passed70 preserved-local database checks.
 
 Read-only ledger/count preflight confirms17 migrations/latest20261102000017 and no offline RPC. Preservation baseline:2 profiles,1 project,1 snag,1 photo,0 comments. No business row or setting was changed by this inspection.
 
-On approval: recheck the pending migration set, apply exactly18/19 without reset/seed/role/Vault changes, verify ledger and RPCs, verify RLS/private receipt protections and that push_delivery_config.enabled is false, and compare business-data counts before/after. No Vercel deployment, main push, Edge deployment/webhook/scheduler, FCM/APNs setup or live delivery activation is included. Keep live push disabled. Use a forward repair if an unexpected failure occurs; do not reset or drop user data.
+Postflight:19 recorded migrations/latest20261104000019; snapshot/mutation RPCs exist. Business counts are unchanged from the immediately preceding baseline. Every public table has RLS; authenticated clients have no direct receipt/field-clock privileges. Anonymous snapshot execution is revoked, authenticated execution is granted, and push_delivery_config.enabled is false. A read-only authenticated-role probe successfully fetched an authorized project snapshot and rejected an invalid identity. The public REST API now recognizes the endpoint and denies anonymous execution with401/42501, replacing the previous404/PGRST202. Existing soft-deleted data remains preserved and excluded from active photo snapshots as intended. No hosted test rows/accounts were created.
 
-The existing1.0.5 APK can obtain authorized offline snapshots after this activation. Connect once and let the project finish saving on the phone before airplane-mode testing. Hosted activation alone does not prove native field acceptance.
+No Vercel deployment, main push, Edge deployment/webhook/scheduler, FCM/APNs setup or live delivery activation was performed. Live push remains disabled. The SQL-role/API probes establish backend setup and access checks, not actual phone JWT/offline acceptance. Ignored evidence: approved dry run/apply/preflight/postflight/access-probe logs under .superpowers.
+
+The existing1.0.5 and corrected1.0.6 APKs can now obtain authorized offline snapshots. Use1.0.6, connect once and let the project finish saving on the phone before airplane-mode testing. Hosted activation alone does not prove native field acceptance.
 
 ## Verification and release
 
@@ -39,8 +41,8 @@ The existing1.0.5 APK can obtain authorized offline snapshots after this activat
 
 All work remains on codex/phase6-offline-push. The unrelated untracked web branding PNG remains untouched. No main push or local database reset.
 
-## Signed update ready; hosted approval pending
+## Signed update ready; manual field acceptance pending
 
 Source1da8fc3. Manual workflow01a1a86d-dbc5-7508-abe4-df793594155c and Android repack [64dee654-6c06-4eb3-a089-9626d848d9a0](https://expo.dev/accounts/asche34/projects/snagflow/builds/64dee654-6c06-4eb3-a089-9626d848d9a0) FINISHED. [Android1.0.6/code7 APK](https://expo.dev/artifacts/eas/gCgV0Qi8aJyFb9v2fV6Fp87HBndVVvYTNHhv7TZJ0Fw.apk), package com.snagflow.app.164485390 bytes; SHA256222ac115a3f7ea5e1d667e1d1e2b54b60a246bc788865305b7f727ef20d11cd5. Actual Android manifest confirms version/name/code/package and the same SDK24/36/four ABIs. APK v2 signing certificate matches1.0.5; RSA signature and complete chunked content digest verify; ZIP integrity passes. All122 DEX/native-library entries are byte-for-byte identical to verified1.0.5. The faulty1.0.4 native base was not reused.
 
-Install over the existing app without uninstalling/clearing data. Native manual field acceptance remains pending. Hosted18/19 approval is still pending: this new APK is not sufficient to enable hosted offline working by itself. Once the reviewed backend is activated, connect online, open the project and let its download finish, then test capture/photo/restart in airplane mode and reconnect for exactly-once delivery. No live push activation is included.
+Install over the existing app without uninstalling/clearing data. Native manual field acceptance remains pending. Hosted18/19 are now activated with explicit approval. Connect online, open the project and let Sync now finish, then test project access/capture/photo/restart in airplane mode and reconnect for exactly-once delivery. Live push remains disabled.

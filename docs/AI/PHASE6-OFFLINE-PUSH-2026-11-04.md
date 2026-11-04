@@ -1,6 +1,6 @@
 # Phase 6 offline and push — 2026-11-04
 
-Current field correction supersedes the release status below: the user reports1.0.5 fails offline on the hosted schema17 deployment and rejects the top status block. See `docs/AI/MOBILE-OFFLINE-FEEDBACK-2026-11-04.md` for confirmed missing hosted RPCs, verified client timing/UI corrections,1.0.6 packaging and the pending explicit18/19 rollout approval. Do not infer hosted offline acceptance from this earlier local implementation evidence.
+Current field correction supersedes the release status below: the user reported1.0.5 failed offline on hosted schema17 and rejected the top status block. See `docs/AI/MOBILE-OFFLINE-FEEDBACK-2026-11-04.md` for verified client corrections/1.0.6 delivery and the explicitly approved hosted18/19 rollout, now applied and checked with live push disabled. Manual native field acceptance remains pending.
 
 ## Scope and release boundaries
 
@@ -39,7 +39,7 @@ Replacement native build: [3db4ce92-98c6-4c25-a47c-71bd81f79937](https://expo.de
 
 ## External activation and acceptance pending
 
-Hosted stays at migration 17, where this APK preserves online use through the checked compatibility fallback. Phase 6 offline RPCs require migrations 18/19 on the target deployment before native offline use; no hosted rollout is implied by APK delivery. Native FCM/google-services.json (and APNs for iOS), Edge deployment/webhook secret, receipt scheduling and explicit delivery gates require external setup/authorization. See `supabase/functions/push-send/README.md`.
+Hosted now has migrations18/19, explicitly approved and verified in the field-correction handoff. RPC/access checks and data preservation pass; project download must finish online before offline use. Native FCM/google-services.json (and APNs for iOS), Edge deployment/webhook secret, receipt scheduling and explicit delivery gates still require separate setup/authorization. Live push remains disabled. See `supabase/functions/push-send/README.md`.
 
 Physical Android airplane-mode/restart/reconnect and real notification delivery/tap acceptance remain pending. Browser/SQLite tests and native compilation do not replace those cases.
 
