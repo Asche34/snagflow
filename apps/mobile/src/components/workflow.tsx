@@ -5,6 +5,7 @@ import { useAuth } from '../providers/auth';
 import { assignSnag, message, transitionSnag } from '../lib/mutations';
 import type { ProjectContext, Row } from '../lib/data';
 import { Button, Choices, ErrorText, Field, styles } from './ui';
+import { useDurableDraft } from '../lib/offline/use-draft';
 export function Workflow({
   snag,
   context,
@@ -17,8 +18,11 @@ export function Workflow({
   onSaved: () => Promise<void>;
 }) {
   const { client: supabase, session, profile } = useAuth();
-  const [comment, setComment] = useState('');
-  const [assignee, setAssignee] = useState<string | null>(null);
+  const [comment, setComment, draftError] = useDurableDraft(`workflow-reason:${snag.id}`, '');
+  const [assignee, setAssignee, assigneeError] = useDurableDraft<string | null>(
+    `workflow-assignee:${snag.id}`,
+    null,
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const actor =
@@ -50,6 +54,7 @@ export function Workflow({
     <View style={styles.card}>
       <Text style={styles.title}>Workflow</Text>
       <ErrorText error={error} />
+      <ErrorText error={draftError ?? assigneeError} />
       {canAct(actor, context.role, 'snag:assign') && (
         <>
           <Choices
@@ -69,7 +74,14 @@ export function Workflow({
             disabled={busy}
             secondary
             onPress={() =>
-              void run(() => assignSnag(snag.id, (assignee ?? snag.assignee_id) || null, supabase))
+              void run(() =>
+                assignSnag(
+                  snag.id,
+                  (assignee ?? snag.assignee_id) || null,
+                  supabase,
+                  snag.updated_at,
+                ),
+              )
             }
           />
         </>
@@ -99,7 +111,9 @@ export function Workflow({
                 (rule.fixPhotoRequired && context.project.require_fix_photo && !fixCount) ||
                 (rule.action === 'start_work' && !snag.assignee_id)
               }
-              onPress={() => void run(() => transitionSnag(snag.id, rule.to, comment, supabase))}
+              onPress={() =>
+                void run(() => transitionSnag(snag.id, rule.to, comment, supabase, snag.updated_at))
+              }
             />
           </View>
         ))}

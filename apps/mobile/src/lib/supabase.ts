@@ -56,6 +56,12 @@ export function getApiBaseUrl(): string {
 export function isCurrentClient(client: typeof supabase): boolean {
   return client === supabase && activeStorageKey !== null;
 }
+export function getDeploymentKey(): string | null {
+  return activeStorageKey;
+}
+export function getActiveConnection(): MobileConnection | null {
+  return activeConnection;
+}
 let pendingInstallation: Promise<unknown> = Promise.resolve();
 export function installConnection(value: MobileConnection, resetSession = false): Promise<string> {
   const result = pendingInstallation.then(() => performInstallation(value, resetSession));
@@ -73,6 +79,10 @@ async function performInstallation(
   if (activeStorageKey === key && !resetSession) return key;
   const previous = supabase;
   const previousKey = activeStorageKey;
+  const { revokeOffline } = await import('./offline/runtime');
+  revokeOffline();
+  const { deactivatePushRegistration } = await import('./push-registration');
+  await deactivatePushRegistration(previous);
   activeStorageKey = null;
   activeConnection = null;
   supabaseSetupError = 'Reconnect to your SnagFlow app before signing in.';

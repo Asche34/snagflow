@@ -11,6 +11,8 @@ import { Button, ErrorText, Field, human, Loading, Screen, styles } from '../../
 import { SnagForm } from '../../components/snag-form';
 import { Workflow } from '../../components/workflow';
 import { Photos } from '../../components/photos';
+import { useDurableDraft } from '../../lib/offline/use-draft';
+import { useOffline } from '../../providers/offline';
 export default function Snag() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { client: supabase, session, profile } = useAuth();
@@ -23,8 +25,15 @@ export default function Snag() {
   ]);
   const [notice, setNotice] = useState('');
   const [edit, setEdit] = useState(false);
-  const [body, setBody] = useState('');
-  const [commentId, setCommentId] = useState(randomUUID);
+  const offline = useOffline();
+  const [body, setBody, draftError] = useDurableDraft(`comment:${id}`, '');
+  const [commentId, setCommentId] = useDurableDraft(`comment-id:${id}`, randomUUID());
+  const [editDraft, setEditDraft, editDraftError] = useDurableDraft<
+    Parameters<typeof SnagForm>[0]['draft']
+  >(`edit:${id}`, undefined);
+  const [editBase, setEditBase] = useDurableDraft<
+    import('../../lib/data').Row<'snags'> | undefined
+  >(`edit-base:${id}`, undefined);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const actor =
@@ -61,11 +70,18 @@ export default function Snag() {
   };
   return (
     <Screen
-      title={r.data ? `Snag #${r.data.snag.number}` : 'Snag'}
+      title={
+        r.data
+          ? r.data.snag.number
+            ? `Snag #${r.data.snag.number}`
+            : 'Snag · pending sync'
+          : 'Snag'
+      }
       refresh={() => void r.refresh()}
       refreshing={r.loading && !!r.data}
     >
       <ErrorText error={r.error ?? error} />
+      <ErrorText error={draftError ?? editDraftError} />
       {r.error && <Button label="Retry" onPress={() => void r.refresh()} />}
       {r.loading && !r.data && <Loading />}
       {r.data && (
@@ -102,7 +118,10 @@ export default function Snag() {
               <Button
                 label={edit ? 'Hide edit form' : 'Edit details'}
                 secondary
-                onPress={() => setEdit((v) => !v)}
+                onPress={() => {
+                  if (!edit && !editBase) setEditBase(r.data!.snag);
+                  setEdit((v) => !v);
+                }}
               />
             )}
           {edit &&
@@ -115,11 +134,16 @@ export default function Snag() {
             }) && (
               <SnagForm
                 context={r.data.context}
-                initial={r.data.snag}
+                initial={editBase ?? r.data.snag}
+                draft={editDraft}
+                onDraftChange={setEditDraft}
                 busy={busy}
                 onSave={(value) =>
                   void run(async () => {
-                    await updateSnag(id, value, supabase);
+                    await updateSnag(id, value, supabase, editBase);
+                    setEditDraft(undefined);
+                    setEditBase(undefined);
+                    await offline?.engine.setDraft(`edit:${id}`, undefined);
                     setEdit(false);
                   })
                 }
@@ -172,7 +196,7 @@ export default function Snag() {
                     setCommentId(randomUUID());
                     if (receipt.saved) {
                       setBody('');
-                      setNotice('Comment posted.');
+                      setNotice('Comment saved. Check Sync for delivery status.');
                     } else {
                       setNotice(
                         'Your previous comment was already saved. Your edited draft is retained; press Post comment to send it as a new comment.',

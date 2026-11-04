@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Text, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { randomUUID } from 'expo-crypto';
@@ -12,30 +12,76 @@ import { Button, Choices, ErrorText, Loading, Screen, styles } from '../../../co
 import { SnagForm } from '../../../components/snag-form';
 import { MarkupEditor } from '../../../components/markup-editor';
 import { ProjectSwitcher } from '../../../components/project-switcher';
+import { useOffline } from '../../../providers/offline';
+import { persistPhotos } from '../../../lib/offline/files';
+type CaptureDraft = {
+  clientId: string;
+  photos: QueuedPhoto[];
+  details?: Omit<SnagCreate, 'clientId' | 'projectId'>;
+  mode: 'single' | 'continuous';
+  defaults: Pick<SnagCreate, 'locationId' | 'categoryId'>;
+};
 export default function Capture() {
   const { id } = useLocalSearchParams<{ id: string }>();
   return <ProjectCapture key={id} id={id} />;
 }
 function ProjectCapture({ id }: { id: string }) {
   const { client: supabase, session, profile } = useAuth();
+  const offline = useOffline();
+  const [restored] = useState(
+    () => offline?.engine.state.drafts[`capture:${id}`] as CaptureDraft | undefined,
+  );
   const r = useResource(() => projectContext(id, session!.user.id, supabase), `capture:${id}`, [
     'project_members',
     'projects',
     'locations',
     'categories',
   ]);
-  const [clientId, setClientId] = useState(randomUUID);
-  const [photos, setPhotos] = useState<QueuedPhoto[]>([]);
+  const [clientId, setClientId] = useState(restored?.clientId ?? randomUUID);
+  const [photos, setPhotos] = useState<QueuedPhoto[]>(restored?.photos ?? []);
+  const [details, setDetails] = useState<CaptureDraft['details']>(restored?.details);
+  const onDraftChange = useCallback(
+    (value: NonNullable<CaptureDraft['details']>) => setDetails(value),
+    [],
+  );
   const [editing, setEditing] = useState<string | null>(null);
   const [pendingPhoto, setPendingPhoto] = useState<QueuedPhoto | null>(null);
-  const [mode, setMode] = useState<'single' | 'continuous'>('single');
+  const [mode, setMode] = useState<'single' | 'continuous'>(restored?.mode ?? 'single');
   const [another, setAnother] = useState<'open' | 'another'>('open');
   const [formKey, setFormKey] = useState(0);
-  const [defaults, setDefaults] = useState<Pick<SnagCreate, 'locationId' | 'categoryId'>>({});
+  const [defaults, setDefaults] = useState<Pick<SnagCreate, 'locationId' | 'categoryId'>>(
+    restored?.defaults ?? {},
+  );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState('');
   const [createdIds, setCreatedIds] = useState<Record<string, string>>({});
+  const [draftSaved, setDraftSaved] = useState(false);
+  const draftWrites = useRef<Promise<unknown>>(Promise.resolve());
+  const draftGeneration = useRef(0);
+  const completed = useRef(false);
+  useEffect(() => {
+    if (!offline || completed.current) return;
+    const generation = ++draftGeneration.current;
+    setDraftSaved(false);
+    draftWrites.current = draftWrites.current
+      .catch(() => {})
+      .then(async () => {
+        const durable = await persistPhotos(offline.engine.scope, photos);
+        if (completed.current || !offline.active) return;
+        await offline.engine.setDraft(`capture:${id}`, {
+          clientId,
+          photos: durable,
+          details,
+          mode,
+          defaults,
+        } satisfies CaptureDraft);
+        if (generation === draftGeneration.current) setDraftSaved(true);
+      })
+      .catch(() => {
+        setError('Draft could not be saved on this device. Retry and keep this screen open.');
+      });
+  }, [offline, id, clientId, photos, details, mode, defaults]);
   const actor =
     session && profile?.is_active ? { id: session.user.id, isAdmin: profile.is_admin } : null;
   const pick = async (source: 'camera' | 'library') => {
@@ -54,17 +100,40 @@ function ProjectCapture({ id }: { id: string }) {
     setBusy(true);
     setError(null);
     try {
+      await draftWrites.current;
+      if (offline && !offline.active)
+        throw Error(
+          'Your account or app connection changed. This draft stays with the original account.',
+        );
       const row = await saveSnag({ ...details, clientId, projectId: id }, supabase);
-      const results = await uploadPhotos(id, row.id, photos, setPhotos, 0, supabase);
-      if (results.some((p) => p.status !== 'done'))
+      if (offline && !offline.active) throw Error('Your account or app connection changed.');
+      const results = await uploadPhotos(
+        id,
+        row.id,
+        photos,
+        setPhotos,
+        0,
+        supabase,
+        false,
+        session!.user.id,
+      );
+      if (!offline && results.some((p) => p.status !== 'done'))
         throw Error('Snag saved. Some photos need retry; keep this screen open and save again.');
       if (another === 'another') {
         setDefaults({ locationId: details.locationId, categoryId: details.categoryId });
         setPhotos([]);
+        setDetails(undefined);
         setClientId(randomUUID());
         setFormKey((v) => v + 1);
-        setNotice(`Snag #${row.number} saved. Ready for the next capture.`);
-      } else router.replace({ pathname: '/snags/[id]', params: { id: row.id } });
+        setNotice(
+          `Snag ${row.number ? `#${row.number}` : 'pending sync'} saved. Ready for the next capture.`,
+        );
+      } else {
+        completed.current = true;
+        await draftWrites.current;
+        await offline?.engine.setDraft(`capture:${id}`, undefined);
+        router.replace({ pathname: '/snags/[id]', params: { id: row.id } });
+      }
     } catch (e) {
       setError(message(e));
     } finally {
@@ -77,6 +146,7 @@ function ProjectCapture({ id }: { id: string }) {
     let items = [...photos];
     try {
       for (const photo of photos) {
+        if (offline && !offline.active) throw Error('Your account or app connection changed.');
         if (photo.status === 'done') continue;
         const row = await saveSnag(
           {
@@ -88,6 +158,7 @@ function ProjectCapture({ id }: { id: string }) {
           supabase,
         );
         setCreatedIds((ids) => ({ ...ids, [photo.id]: row.id }));
+        if (offline && !offline.active) throw Error('Your account or app connection changed.');
         const result = await uploadPhotos(
           id,
           row.id,
@@ -98,8 +169,10 @@ function ProjectCapture({ id }: { id: string }) {
           },
           0,
           supabase,
+          false,
+          session!.user.id,
         );
-        if (result[0]?.status !== 'done')
+        if (!offline && result[0]?.status !== 'done')
           throw Error(
             'Capture stopped at an unfinished photo. Retry keeps the same snag identity.',
           );
@@ -150,7 +223,12 @@ function ProjectCapture({ id }: { id: string }) {
       {r.error && <Button label="Retry project access" onPress={() => void r.refresh()} />}
       {r.data && canAct(actor, r.data.role, 'snag:create') && (
         <>
-          <Text style={styles.muted}>{r.data.project.name} · online capture</Text>
+          <Text style={styles.muted}>{r.data.project.name} · field capture</Text>
+          {offline && (
+            <Text accessibilityRole="status" style={styles.muted}>
+              {draftSaved ? 'Draft saved on this device' : 'Saving draft on this device…'}
+            </Text>
+          )}
           <Choices
             label="Capture mode"
             value={mode}
@@ -175,8 +253,8 @@ function ProjectCapture({ id }: { id: string }) {
             />
           </View>
           <Text style={styles.muted}>
-            Capture several photos in a row. Keep this screen open; unfinished photos are not stored
-            in an offline queue.
+            Capture several photos in a row. Drafts and attached photos are retained on this device;
+            queued uploads resume when connected.
           </Text>
           {photos.map((item) => (
             <View key={item.id} style={styles.card}>
@@ -247,6 +325,8 @@ function ProjectCapture({ id }: { id: string }) {
                 key={formKey}
                 context={r.data}
                 defaults={defaults}
+                draft={details}
+                onDraftChange={onDraftChange}
                 busy={busy}
                 onSave={(details) => void save(details)}
               />

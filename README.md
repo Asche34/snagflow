@@ -189,3 +189,13 @@ See [testing instructions](docs/AI/TESTING.md) for SQL checks and the separate U
 - [Agent instructions](AGENTS.md): start here when working on the repository with an AI coding agent.
 
 The web app emits a standalone build and includes a Dockerfile for self-hosting. Hosted Supabase configuration, production rollout, and mobile distribution remain separate deployment work; the local verification above did not deploy a release.
+
+## Phase 6 offline and push (local implementation)
+
+The native app now keeps project mirrors, capture/edit/comment/workflow drafts and queued mutations in SQLite, and retains prepared photo/markup files in private document storage. Open/sync a project online before field use. Saved offline changes show pending numbers until server sync; use **Sync and queued work** to review conflicts, retry or discard. Queues belong to one account and App URL. Reconnect/foreground resumes uploads with the original identities.
+
+Apply numbered migrations 18–19 to an authorized target deployment before using Phase 6 offline RPCs. The existing local stack was migrated without resetting data; hosted deployment has not been changed. Pull uses complete bounded snapshots (20,000 rows per table) for reliable removal/late-commit recovery. Media cleanup quotas and uninterrupted upload while force-closed are not implemented.
+
+Push is opt-in and disabled on the server by default. Native FCM/APNs credentials, Edge deployment, webhook secret, receipt scheduling and explicit delivery activation are separate setup steps in [the push function README](supabase/functions/push-send/README.md). Never put service-role or Expo push credentials in mobile public environment variables.
+
+See [the Phase 6 handoff](docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md) for checks, APK status and pending physical-device acceptance.

@@ -5,11 +5,11 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Field                | Value |
 | -------------------- | ----- |
 | Version              | 0.1.0 |
-| DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally and on hosted project mtpmqnczwdbglebrakhw) |
-| Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
-| Last delivered | Android 1.0.2 (version code 3) built successfully with photo review and revised snag filters. [Download APK](https://expo.dev/artifacts/eas/2FMMnx7o_G5-9ogtnoVXh-JRdO9KISLPTyyChwXvw0o.apk). Phone testing of these changes remains pending. The user confirmed the prior 1.0.1 checks worked. |
+| DB schema version    | migration `20261104000019_push_delivery.sql` applied/recorded locally; hosted remains17 (no Phase6 deployment authorized) |
+| Phase (spec §15)     | **6 — offline and push implementation/verification in progress locally.** Phases0–4 complete locally; broader Phase5 hosted/device acceptance remains separate. |
+| Last delivered | Android1.0.2/code3 installed and worked on the user's phone (explicit confirmation2026-11-04); installation failure resolved. This does not imply all broader acceptance cases passed. Subsequent branded1.0.3/code4 build also FINISHED; see branding handoff. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
-| New APK build | Android1.0.3/code4 with the new white/orange app icon submitted as [94c6cc86-5873-4c97-b46c-d5addc591c79](https://expo.dev/accounts/asche34/projects/snagflow/builds/94c6cc86-5873-4c97-b46c-d5addc591c79). Last observed NEW; APK/native outcome pending. Source b7012c9 is pushed to main. See `docs/AI/BRANDING-APK-2026-11-04.md`. |
+| New APK build | Phase6 prepares Android1.0.4/code5 on local branch `codex/phase6-offline-push`. No Phase6 push/deployment/live push authorized. Release evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`. |
 
 ## Features complete
 
@@ -48,15 +48,17 @@ Current mobile release evidence: `docs/AI/MOBILE-FIELD-ADJUSTMENTS-2026-11-03.md
 
 ## Features in progress
 
+- Phase6 SQLite mirror, durable drafts/photos, outbox replay/conflicts and disabled-by-default push. Local migrations18/19 preserve existing data. Focused implementation/evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`.
+
 - Phase 5 hosted Supabase / physical-device acceptance. Native online implementation is present; see `docs/AI/PHASE5-MOBILE-2026-11-02.md` for deployment approval, access requirements, evidence and acceptance matrix.
 
 ## Features remaining (order per spec §15)
 
 - Phase 5 acceptance: the user reports the Android 1.0.1 release checks worked on their phone and requested mobile UI and photo markup improvements. The broader hosted and native acceptance matrix remains open.
 - Mobile follow-up: new photos open in a full-screen review with optional markup before attachment. Project snag filters apply together and can be removed from the results. Android bundle export, 50 unit checks and 12 production-preview browser checks passed. Native touch behavior still needs a phone check.
-- Phase 6: offline sync (expo-sqlite mirror, outbox, photo queue), push notifications (Edge Function)
+- Phase6: finish release checks/APK delivery, then separately authorize hosted migrations and native push credentials/activation; physical airplane-mode acceptance remains pending.
 - Phase 7: PWA, dark mode, EAS profiles, E2E (Playwright) — **the E2E suite now exists; expand it to the full §14 golden path**
-- Edge function `push-send` (spec §12) — not yet created
+- Edge function `push-send` implemented locally; delivery gates remain disabled. No hosted function/webhook/receipt schedule or FCM/APNs configuration has been activated.
 
 ## Tests current
 
@@ -199,4 +201,4 @@ Brevo initially rejected an unvalidated sender. User changed to a personal sende
 
 ## Next step recommended
 
-Finish the remaining invite-only Auth/redirect configuration with authorization, sign in privately as the first admin at https://snagflow.vercel.app and verify the APK against hosted services before Phase6. Hold further pushes until the linked Vercel deployment behavior/rollout is authorized. Local schema remains migration17. Preserve local data; do not reset an existing stack.
+Complete Phase6 local release verification and Android1.0.4/code5 APK delivery. Hosted rollout (migrations18/19, Edge function, FCM/APNs and explicit delivery enablement) requires separate authorization. Keep invite-only Auth and broader native acceptance open; do not block the authorized local Phase6 implementation on them. Do not push main/deploy Vercel or reset the preserved local stack.

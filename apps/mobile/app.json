@@ -2,7 +2,7 @@
   "expo": {
     "name": "SnagFlow",
     "slug": "snagflow",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/images/snagflow-icon.png",
     "scheme": "snagflow",
@@ -12,7 +12,7 @@
     },
     "android": {
       "package": "com.snagflow.app",
-      "versionCode": 4,
+      "versionCode": 5,
       "adaptiveIcon": {
         "backgroundColor": "#192D25",
         "foregroundImage": "./assets/images/snagflow-adaptive-foreground.png",
@@ -42,7 +42,9 @@
           "microphonePermission": false
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-sqlite",
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,

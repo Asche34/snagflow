@@ -3,3 +3,7 @@ packages:
   - "packages/*"
   - "supabase"
   - "e2e"
+minimumReleaseAgeExclude:
+  - '@expo/env@2.5.4'
+  - expo-constants@58.0.15
+  - expo-notifications@58.1.8

@@ -348,7 +348,40 @@ export async function uploadPhotos(
   onChange: (items: QueuedPhoto[]) => void,
   sortOffset: number,
   client: PhotoClient,
+  replay = false,
+  actorId?: string,
 ): Promise<QueuedPhoto[]> {
+  const { offlineFor } = await import('./offline/runtime');
+  const offline = !replay ? offlineFor(client) : null;
+  if (!replay && actorId && !offline)
+    throw Error('The account changed. Your photos stay with the original account.');
+  if (!replay && actorId && offline && offline.userId !== actorId)
+    throw Error('The account changed. Your photos stay with the original account.');
+  if (offline && items.length) {
+    const { digestStringAsync, CryptoDigestAlgorithm } = await import('expo-crypto');
+    const hash = await digestStringAsync(
+      CryptoDigestAlgorithm.SHA256,
+      JSON.stringify(['photo-batch', snagId, items.map((p) => p.id)]),
+    );
+    const operationId = `${hash.slice(0, 8)}-${hash.slice(8, 12)}-5${hash.slice(13, 16)}-8${hash.slice(17, 20)}-${hash.slice(20, 32)}`;
+    if (!offline.active || (actorId && offline.userId !== actorId))
+      throw Error('The account changed.');
+    await offline.queue(
+      'photos',
+      projectId,
+      snagId,
+      { photo_ids: items.map((p) => p.id) },
+      operationId,
+      items,
+    );
+    const pending = offline.engine.state.queue.some((q) => q.id === operationId);
+    const result = items.map((p) => ({
+      ...p,
+      status: pending ? ('queued' as const) : ('done' as const),
+    }));
+    onChange(result);
+    return result;
+  }
   const namespace = await import('./supabase');
   assertConnectionClient(client, namespace.supabase);
   const { randomUUID } = await import('expo-crypto');
@@ -357,6 +390,7 @@ export async function uploadPhotos(
     upload: (path, uri) => uploadImmutable(path, uri, client),
     currentUser: async () => {
       assertConnectionClient(client, namespace.supabase);
+      if (actorId) return actorId;
       const result = await client.auth.getUser();
       if (result.error || !result.data.user)
         throw new Error('Sign in again before saving photos. Your draft is retained.');

@@ -253,8 +253,9 @@ test('project switching is blocked while a capture save is pending', async ({ pa
   const pending = new Promise<void>((resolve) => {
     started = resolve;
   });
-  await page.route('**/rest/v1/snags*', async (route) => {
-    if (route.request().method() === 'POST') {
+  await page.route('**/rest/v1/rpc/apply_offline_mutation', async (route) => {
+    const payload = route.request().postDataJSON() as { p_kind?: string };
+    if (route.request().method() === 'POST' && payload.p_kind === 'create') {
       started();
       await gate;
     }
@@ -428,7 +429,7 @@ test('member and manager complete photo, editing, assignment, comment and reject
   }
 });
 
-test('failed create transport retains text and saves exactly once on retry', async ({ page }) => {
+test('failed create transport retains durable details and syncs exactly once on retry', async ({ page }) => {
   await login(page, 'member1');
   await page.goto(`/projects/${projectId}/capture`);
   const title = `Retained mobile draft ${crypto.randomUUID()}`;
@@ -437,20 +438,22 @@ test('failed create transport retains text and saves exactly once on retry', asy
     .getByLabel('Description', { exact: true })
     .fill('Keep this draft through a failed request.');
   let blocked = false;
-  await page.route('**/rest/v1/snags*', async (route) => {
-    if (!blocked && route.request().method() === 'POST') {
+  await page.route('**/rest/v1/rpc/apply_offline_mutation', async (route) => {
+    const payload = route.request().postDataJSON() as { p_kind?: string };
+    if (!blocked && route.request().method() === 'POST' && payload.p_kind === 'create') {
       blocked = true;
       await route.abort('failed');
     } else await route.continue();
   });
   await page.getByRole('button', { name: 'Save snag', exact: true }).click();
-  await expect(page.getByRole('alert')).toBeVisible();
-  await expect(page.getByLabel('Title', { exact: true })).toHaveValue(title);
-  await expect(page.getByLabel('Description', { exact: true })).toHaveValue(
-    'Keep this draft through a failed request.',
-  );
-  await page.getByRole('button', { name: 'Save snag', exact: true }).click();
   await expect(page).toHaveURL(/\/snags\/[0-9a-f-]+$/);
+  await expect(page.getByText(title, { exact: true })).toBeVisible();
+  await expect(page.getByText('Keep this draft through a failed request.', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Sync and queued work', exact: true }).click();
+  const retry = page.getByRole('button', { name: 'Retry now', exact: true });
+  await expect(retry.or(page.getByText('No queued changes.', { exact: true }))).toBeVisible();
+  if (await retry.isVisible()) await retry.click();
+  await expect(page.getByText('No queued changes.', { exact: true })).toBeVisible();
   const rows = await backend
     .from('snags')
     .select('id')

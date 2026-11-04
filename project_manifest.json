@@ -2,7 +2,7 @@
   "project": "snagflow",
   "description": "Collaborative snag/punch-list/defect tracking: Next.js web + Expo mobile on Supabase",
   "version": "0.1.0",
-  "database_schema_version": "20261102000017",
+  "database_schema_version": "20261104000019",
   "stack": {
     "web": "Next.js 16 App Router + TS strict + Tailwind v4",
     "mobile": "Expo SDK 58 + Expo Router",

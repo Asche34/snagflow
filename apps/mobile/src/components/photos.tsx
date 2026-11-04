@@ -13,6 +13,9 @@ import { message } from '../lib/mutations';
 import { pickPhoto, uploadPhotos, uploadImmutable, type QueuedPhoto } from '../lib/photos';
 import { Button, Choices, ErrorText, styles } from './ui';
 import { MarkupEditor } from './markup-editor';
+import { useOffline } from '../providers/offline';
+import { useDurableDraft } from '../lib/offline/use-draft';
+import { persistPhotos, retainRemote } from '../lib/offline/files';
 type Edit = {
   photo: Row<'snag_photos'>;
   uri: string;
@@ -38,11 +41,12 @@ export function Photos({
   onSaved: () => Promise<void>;
 }) {
   const { client: supabase, session, profile } = useAuth();
+  const offline = useOffline();
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
   const [kind, setKind] = useState<'issue' | 'fix'>('fix');
-  const [queue, setQueue] = useState<QueuedPhoto[]>([]);
+  const [queue, setQueue, queueError] = useDurableDraft<QueuedPhoto[]>(`photos:${snagId}`, []);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [edit, setEdit] = useState<Edit | null>(null);
@@ -56,11 +60,31 @@ export function Photos({
       const next: Record<string, string> = {};
       try {
         for (const photo of photos) {
+          const local = offline?.photoUri(photo.id);
+          if (local) {
+            next[photo.id] = local;
+            continue;
+          }
           const signed = await supabase.storage
             .from('snag-photos')
             .createSignedUrl(photo.annotated_path ?? photo.storage_path, 300);
           if (signed.error) throw signed.error;
-          next[photo.id] = signed.data.signedUrl;
+          const uri = offline
+            ? await retainRemote(
+                offline.engine.scope,
+                signed.data.signedUrl,
+                photo.annotated_path?.split('/').pop()?.replace('.jpg', '') ?? photo.id,
+              )
+            : signed.data.signedUrl;
+          next[photo.id] = uri;
+          if (offline?.active)
+            await offline.engine.change((s) => {
+              s.files ??= {};
+              s.files[photo.id] = {
+                originalUri: s.files[photo.id]?.originalUri ?? (photo.annotated_path ? '' : uri),
+                ...(photo.annotated_path ? { flattenedUri: uri } : {}),
+              };
+            });
         }
         if (current) {
           setUrls(next);
@@ -76,13 +100,16 @@ export function Photos({
       current = false;
       clearInterval(timer);
     };
-  }, [photos, retry, supabase]);
+  }, [photos, retry, supabase, offline]);
   const pick = async (source: 'camera' | 'library') => {
     setBusy(true);
     setError(null);
     try {
       const item = await pickPhoto(source, kind);
-      if (item) setQueue((q) => [...q, item]);
+      if (item) {
+        const durable = offline ? await persistPhotos(offline.engine.scope, [item]) : [item];
+        setQueue([...queue, ...durable]);
+      }
     } catch (e) {
       setError(message(e));
     } finally {
@@ -93,8 +120,17 @@ export function Photos({
     setBusy(true);
     setError(null);
     try {
-      const next = await uploadPhotos(projectId, snagId, queue, setQueue, 0, supabase);
-      setQueue(next.filter((p) => p.status !== 'done'));
+      const next = await uploadPhotos(
+        projectId,
+        snagId,
+        queue,
+        setQueue,
+        0,
+        supabase,
+        false,
+        session!.user.id,
+      );
+      setQueue(offline ? [] : next.filter((p) => p.status !== 'done'));
       await onSaved();
     } catch (e) {
       setError(message(e));
@@ -105,6 +141,24 @@ export function Photos({
   const openEditor = async (photo: Row<'snag_photos'>) => {
     setError(null);
     try {
+      const local = offline?.photoUri(photo.id, true);
+      const draft = offline?.engine.state.queue.find(
+        (q) => q.kind === 'annotation' && q.photos?.[0]?.id === photo.id,
+      )?.photos?.[0];
+      if (local) {
+        const parsed = AnnotationDocumentSchema.safeParse(
+          draft?.annotation ?? photo.annotation_json,
+        );
+        setEdit({
+          photo,
+          uri: local,
+          expected: photo.updated_at,
+          document: parsed.success
+            ? parsed.data
+            : { version: 1, width: photo.width, height: photo.height, objects: [] },
+        });
+        return;
+      }
       const signed = await supabase.storage
         .from('snag-photos')
         .createSignedUrl(photo.storage_path, 300);
@@ -114,9 +168,17 @@ export function Photos({
         throw Error(
           'This saved markup version is unsupported. Open the original or use the web app for recovery.',
         );
+      const originalUri = offline
+        ? await retainRemote(offline.engine.scope, signed.data.signedUrl, photo.id)
+        : signed.data.signedUrl;
+      if (offline?.active)
+        await offline.engine.change((s) => {
+          s.files ??= {};
+          s.files[photo.id] = { ...s.files[photo.id], originalUri };
+        });
       setEdit({
         photo,
-        uri: signed.data.signedUrl,
+        uri: originalUri,
         expected: photo.updated_at,
         document: parsed.success
           ? parsed.data
@@ -138,6 +200,34 @@ export function Photos({
     const intent = { ...current, content, path };
     editRef.current = intent;
     setEdit(intent);
+    if (offline) {
+      const annotationId = path.split('/').pop()!.replace('.jpg', '');
+      const item: QueuedPhoto = {
+        id: current.photo.id,
+        thumbnailId: randomUUID(),
+        kind: current.photo.kind,
+        originalUri: current.uri,
+        thumbnailUri: current.uri,
+        width: current.photo.width,
+        height: current.photo.height,
+        takenAt: current.photo.taken_at,
+        status: 'queued',
+        annotation: document,
+        annotationId,
+        flattenedUri: uri,
+      };
+      await offline.queue(
+        'annotation',
+        projectId,
+        snagId,
+        { expected_updated_at: current.expected },
+        annotationId,
+        [item],
+      );
+      setEdit(null);
+      await onSaved();
+      return;
+    }
     await uploadImmutable(path, uri, supabase);
     const r = await supabase.rpc('save_photo_annotation', {
       p_photo_id: current.photo.id,
@@ -173,6 +263,7 @@ export function Photos({
     <View style={{ gap: 16 }}>
       <Text style={styles.title}>Photos · {photos.length}/8</Text>
       <ErrorText error={error} />
+      <ErrorText error={queueError} />
       {failed && (
         <>
           <ErrorText error="A private photo could not load." />
@@ -278,7 +369,7 @@ export function Photos({
                 label="Remove pending photo"
                 secondary
                 disabled={busy || q.status === 'done'}
-                onPress={() => setQueue((items) => items.filter((i) => i.id !== q.id))}
+                onPress={() => setQueue(queue.filter((i) => i.id !== q.id))}
               />
             </View>
           ))}

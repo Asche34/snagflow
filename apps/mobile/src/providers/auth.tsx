@@ -13,6 +13,9 @@ import type { Database } from '@snagflow/shared/db-types';
 import { supabase, supabaseSetupError } from '../lib/supabase';
 import { clearAuthCallbackState, retainedAuthProfile } from '../lib/auth-callback';
 import { AccessUnavailableError } from '../lib/online';
+import { accountEngine, revokeOffline } from '../lib/offline/runtime';
+import { transientFailure } from '../lib/offline/engine';
+import { deactivatePushRegistration } from '../lib/push-registration';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type AuthContextValue = {
@@ -55,10 +58,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (readError) throw readError;
       if (!data) throw new AccessUnavailableError();
       setProfile(data.is_active ? data : null);
+      const local = await accountEngine(client, userId);
+      if (request !== profileRequest.current || currentUser.current !== userId) return;
+      await local.change((s) => {
+        s.profile = data.is_active ? data : null;
+        if (!data.is_active) {
+          s.mirrors = {};
+          s.drafts = {};
+          s.files = {};
+        }
+      });
       setError(data.is_active ? null : 'Your account is inactive. Contact your administrator.');
     } catch (failure) {
       if (request !== profileRequest.current || currentUser.current !== userId) return;
-      setProfile((previous) => retainedAuthProfile(previous, userId, failure));
+      if (transientFailure(failure)) {
+        try {
+          const local = await accountEngine(client, userId);
+          if (request !== profileRequest.current || currentUser.current !== userId) return;
+          if (local.state.profile?.id === userId && local.state.profile.is_active)
+            setProfile(local.state.profile);
+          else setProfile((previous) => retainedAuthProfile(previous, userId, failure));
+        } catch {
+          setProfile((previous) => retainedAuthProfile(previous, userId, failure));
+        }
+      } else {
+        setProfile((previous) => retainedAuthProfile(previous, userId, failure));
+        if (
+          failure instanceof AccessUnavailableError ||
+          (failure as { code?: string })?.code === '42501'
+        ) {
+          try {
+            const local = await accountEngine(client, userId);
+            await local.change((s) => {
+              s.profile = null;
+              s.mirrors = {};
+              s.drafts = {};
+              s.files = {};
+            });
+          } catch {
+            /* Retain the failed storage operation for explicit recovery. */
+          }
+        }
+      }
       setError('Unable to refresh your account. Check your connection and retry.');
     } finally {
       if (request === profileRequest.current) setProfileLoading(false);
@@ -73,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!mounted) return;
       const userId = next?.user.id ?? null;
       if (currentUser.current !== userId) {
+        revokeOffline();
         if (!userId) clearAuthCallbackState();
         ++profileRequest.current;
         currentUser.current = userId;
@@ -139,6 +181,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshProfile, client]);
 
   const signOut = useCallback(async () => {
+    revokeOffline();
+    await deactivatePushRegistration(client);
     const { error: signOutError } = await client.auth.signOut({ scope: 'local' });
     if (signOutError) {
       setError('Unable to sign out. Please retry.');

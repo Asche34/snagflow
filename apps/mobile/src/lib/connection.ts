@@ -5,8 +5,15 @@ import {
   type MobileConnection,
 } from '@snagflow/shared';
 import type { SessionStorage } from './session-storage';
+const scopedClients = new WeakMap<object, { origin: unknown; active: () => boolean }>();
+export function registerScopedClient(client: object, origin: unknown, active: () => boolean) {
+  scopedClients.set(client, { origin, active });
+}
 export function assertConnectionClient(expected: unknown, current: unknown): void {
-  if (expected !== current) throw Error('The app connection changed. Retry in the selected app.');
+  if (expected === current) return;
+  const scoped = typeof expected === 'object' && expected ? scopedClients.get(expected) : undefined;
+  if (!scoped || scoped.origin !== current || !scoped.active())
+    throw Error('The app connection changed. Retry in the selected app.');
 }
 export function guardedFetch(fetcher: typeof fetch, active: () => boolean): typeof fetch {
   return async (input, options) => {

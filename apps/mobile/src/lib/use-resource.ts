@@ -3,6 +3,7 @@ import { AppState } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { supabase } from './supabase';
 import { retainedResource } from './online';
+import { offlineFor } from './offline/runtime';
 /** Reconcile current authorized reads, including removals that cannot safely use DELETE payloads. */
 export function useResource<T>(
   loader: () => Promise<T>,
@@ -22,6 +23,7 @@ export function useResource<T>(
     const current = ++generation.current;
     setLoading(true);
     try {
+      await offlineFor(client)?.sync();
       const next = await loaderRef.current();
       if (current === generation.current) {
         setData(next);
@@ -37,7 +39,7 @@ export function useResource<T>(
     } finally {
       if (current === generation.current) setLoading(false);
     }
-  }, []);
+  }, [client]);
   useFocusEffect(
     useCallback(() => {
       // A changed resource identity must not expose the previous route/filter's records.
