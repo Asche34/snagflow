@@ -161,6 +161,25 @@ beforeEach(() => {
 });
 
 describe('offline runtime recovery boundaries', () => {
+  it('invalidates a cached flattened image when the server has a different immutable annotation path', () => {
+    const engine = new OfflineEngine(memory, 'photo-cache-version');
+    engine.state.mirrors[projectId] = mirror();
+    engine.state.mirrors[projectId]!.photos = [
+      { id: snagId, annotated_path: 'project/snag/new.jpg' },
+    ] as Mirror['photos'];
+    engine.state.files = {
+      [snagId]: { originalUri: 'file:///original.jpg', flattenedUri: 'file:///old-markup.jpg' },
+    };
+    const runtime = new OfflineRuntime(environment.client as Client, environment.user, engine);
+    expect(runtime.photoUri(snagId)).toBeUndefined();
+    expect(runtime.photoUri(snagId, true)).toBe('file:///original.jpg');
+    engine.state.files[snagId] = {
+      originalUri: 'file:///original.jpg',
+      flattenedUri: 'file:///new-markup.jpg',
+      annotatedPath: 'project/snag/new.jpg',
+    };
+    expect(runtime.photoUri(snagId)).toBe('file:///new-markup.jpg');
+  });
   it('recognizes a schema17 server without treating reachable online APIs as offline', async () => {
     environment.scoped = {
       from: (table: string) => (table === 'profiles' ? profileQuery() : projectsQuery()),

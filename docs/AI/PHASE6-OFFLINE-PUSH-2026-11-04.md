@@ -20,7 +20,7 @@ User confirms Android1.0.2/code3 installed and worked; reported installation fai
 
 ## Verification
 
-- 82 mobile unit checks including actual SQLite close/reopen, interrupted retry, immutable photos, pinned-account requests, stale form/workflow base, binder race, acknowledged-data recovery, pending fix evidence and legacy-server capability detection. All 8 existing mobile API/service checks pass against the preserved local stack.
+- 83 mobile unit checks including actual SQLite close/reopen, interrupted retry, immutable photos, pinned-account requests, stale form/workflow base, binder race, acknowledged-data recovery, pending fix evidence, legacy-server capability detection and revision-aware photo-cache invalidation. All 8 existing mobile API/service checks pass against the preserved local stack.
 - 70 preserved-local database checks (existing RLS/workflow/security plus 10 offline and 5 push).
 - 90 shared/actual-report checks. Configured shared lint targets src and passes; an extra ad-hoc lint of tests found 18 existing style/global errors outside that configured target.
 - 17 browser checks: 12 existing mobile/App URL regressions and 5 offline/compatibility cases. Final suite covers text/photo draft restart, queued create/edit/comment/transition restart, committed upload/create response loss, exact-once rows/activity, conflict review/restart/discard, account/deployment switching, and schema 17 online create/photo/edit/comment/workflow fallback. The legacy-server case asserts zero Phase 6 mutation RPC calls and no false offline-save promise. Artifacts: `e2e/.playwright/phase6-browser-final` and `phase6-compat-ui`.
@@ -35,6 +35,7 @@ Physical Android airplane-mode/restart/reconnect and real notification delivery/
 
 ## APK
 
-Android1.0.4/code5 preparation in progress. Do not claim a new APK exists until EAS reports FINISHED and provides its actual artifact.
+Android 1.0.4/code 5 uses the same remote keystore/package/preview concurrency profile, without a paid worker change. Final source/build/artifact will be recorded after the last cache regression correction. Do not claim a new APK exists until EAS reports FINISHED and provides its actual artifact.
 
 The first submission `b97de024-4c57-42ee-a739-b4fe8cdae6db` (source 6354a5b) was canceled before delivery to include the schema 17 compatibility correction. It is not the release artifact.
+The next queued submission `d1ae433f-8c74-4e0b-983b-530def77fbd0` (source 7e8d2a7) was canceled before delivery to include the reproduced photo-cache revision fix. Neither canceled build is the replacement APK.

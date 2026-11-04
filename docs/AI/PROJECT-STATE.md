@@ -9,7 +9,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Phase (spec §15)     | **6 — offline/push implemented and verified locally; Android release, hosted activation and physical acceptance tracked separately.** Phases0–4 complete locally; broader Phase5 hosted/device acceptance remains separate. |
 | Last delivered | Android1.0.2/code3 installed and worked on the user's phone (explicit confirmation2026-11-04); installation failure resolved. This does not imply all broader acceptance cases passed. Subsequent branded1.0.3/code4 build also FINISHED; see branding handoff. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
-| New APK build | Phase6 prepares Android1.0.4/code5 on local branch `codex/phase6-offline-push`. No Phase6 push/deployment/live push authorized. Release evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`. |
+| New APK build | Android 1.0.4/code 5 final submission pending after revision-aware photo-cache correction; earlier queued builds canceled before delivery. Branch `codex/phase6-offline-push`; no Phase6 push/deployment/live push authorized. Evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`. |
 
 ## Features complete
 

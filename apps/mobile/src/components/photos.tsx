@@ -84,6 +84,7 @@ export function Photos({
               s.files[photo.id] = {
                 originalUri: s.files[photo.id]?.originalUri ?? (photo.annotated_path ? '' : uri),
                 ...(photo.annotated_path ? { flattenedUri: uri } : {}),
+                annotatedPath: photo.annotated_path,
               };
             });
         }
@@ -92,7 +93,10 @@ export function Photos({
           setFailed(false);
         }
       } catch {
-        if (current) setFailed(true);
+        if (current) {
+          setUrls(next);
+          setFailed(true);
+        }
       }
     }
     void load();

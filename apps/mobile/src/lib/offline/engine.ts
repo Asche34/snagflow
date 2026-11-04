@@ -36,7 +36,10 @@ export type OfflineState = {
   queue: OfflineOperation[];
   profile: Row<'profiles'> | null;
   lastSynced: string | null;
-  files?: Record<string, { originalUri: string; flattenedUri?: string }>;
+  files?: Record<
+    string,
+    { originalUri: string; flattenedUri?: string; annotatedPath?: string | null }
+  >;
 };
 export function transientFailure(error: unknown): boolean {
   if (error instanceof TypeError) return true;

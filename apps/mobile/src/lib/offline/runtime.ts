@@ -155,7 +155,22 @@ export class OfflineRuntime {
   }
   photoUri(id: string, original = false) {
     const cached = this.engine.state.files?.[id];
-    return original ? cached?.originalUri : (cached?.flattenedUri ?? cached?.originalUri);
+    if (original) return cached?.originalUri;
+    const saved = Object.values(this.engine.state.mirrors)
+      .flatMap((m) => m.photos)
+      .find((p) => p.id === id);
+    const pending = this.engine.state.queue
+      .filter((q) => q.state === 'queued')
+      .flatMap((q) => (q.photos ?? []).map((p) => ({ q, p })))
+      .find(({ p }) => p.id === id && p.annotationId);
+    const expectedPath = pending
+      ? `${pending.q.projectId}/${pending.q.snagId}/${pending.p.annotationId}.jpg`
+      : (saved?.annotated_path ?? null);
+    return expectedPath
+      ? cached?.annotatedPath === expectedPath
+        ? cached.flattenedUri
+        : undefined
+      : cached?.originalUri;
   }
   async queue(
     kind: OfflineOperation['kind'],
@@ -203,7 +218,11 @@ export class OfflineRuntime {
       await this.engine.change((s) => {
         s.files ??= {};
         for (const p of durable)
-          s.files[p.id] = { originalUri: p.originalUri, flattenedUri: p.flattenedUri };
+          s.files[p.id] = {
+            originalUri: p.originalUri,
+            flattenedUri: p.flattenedUri,
+            annotatedPath: p.annotationId ? `${projectId}/${snagId}/${p.annotationId}.jpg` : null,
+          };
       });
     await this.sync();
   }
