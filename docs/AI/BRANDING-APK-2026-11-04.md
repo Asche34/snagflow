@@ -20,4 +20,7 @@ The user approved committing/pushing the branding work and launching a replaceme
 
 ## Cloud build
 
-Not yet submitted. Record source commit, actual build ID/status and link after submission; do not reuse an older APK download.
+- Source commit: b7012c91911831b29aa7e82a518b6fcd1e45f59b, committed and pushed to origin/main as authorized. The working tree was clean at submission.
+- Expo build: [94c6cc86-5873-4c97-b46c-d5addc591c79](https://expo.dev/accounts/asche34/projects/snagflow/builds/94c6cc86-5873-4c97-b46c-d5addc591c79), preview Android1.0.3/code4. Submission returned NEW on2026-11-04; native compilation and the APK artifact remain pending.
+- Expo confirms the existing remote Android keystore was used. No account-level plain-text/sensitive preview variables were present; the existing profile supplies the manual-connection placeholders and Gradle constraints.
+- Upload succeeded (3.8MB source archive) and fingerprint computation completed. No paid-priority upgrade, duplicate build or store submission was performed. Use this build page for progress and its new APK when available; the older APK is not this replacement.

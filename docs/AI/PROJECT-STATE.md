@@ -9,6 +9,7 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
 | Last delivered | Android 1.0.2 (version code 3) built successfully with photo review and revised snag filters. [Download APK](https://expo.dev/artifacts/eas/2FMMnx7o_G5-9ogtnoVXh-JRdO9KISLPTyyChwXvw0o.apk). Phone testing of these changes remains pending. The user confirmed the prior 1.0.1 checks worked. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
+| New APK build | Android1.0.3/code4 with the new white/orange app icon submitted as [94c6cc86-5873-4c97-b46c-d5addc591c79](https://expo.dev/accounts/asche34/projects/snagflow/builds/94c6cc86-5873-4c97-b46c-d5addc591c79). Last observed NEW; APK/native outcome pending. Source b7012c9 is pushed to main. See `docs/AI/BRANDING-APK-2026-11-04.md`. |
 
 ## Features complete
 
