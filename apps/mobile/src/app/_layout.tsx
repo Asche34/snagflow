@@ -6,6 +6,9 @@ import { AuthProvider, useAuth } from '../providers/auth';
 import { rememberReturnPath, safeReturnPath } from '../lib/auth-callback';
 import { ConnectionProvider, useConnection } from '../providers/connection';
 import { ProjectSwitcher } from '../components/project-switcher';
+import { OfflineProvider } from '../providers/offline';
+import { PushProvider } from '../providers/push';
+import { SyncStatus } from '../components/sync-status';
 
 function Navigation() {
   const connection = useConnection();
@@ -15,6 +18,15 @@ function Navigation() {
     const path = safeReturnPath(pathname);
     if (!session && path !== '/') rememberReturnPath(path);
   }, [pathname, session]);
+
+  // Keep the requested route mounted until the restored session/profile is known.
+  if (loading && !profile)
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#c2410c" />
+        <Text style={styles.body}>Loading your account…</Text>
+      </View>
+    );
 
   if (session && !loading && (!profile || !profile.is_active)) {
     return (
@@ -104,8 +116,10 @@ function Navigation() {
           <Stack.Screen name="projects/[id]/capture" options={{ title: 'Capture snag' }} />
           <Stack.Screen name="projects/[id]/reports" options={{ title: 'Reports' }} />
           <Stack.Screen name="notifications" options={{ title: 'Updates' }} />
+          <Stack.Screen name="sync" options={{ title: 'Sync and queued work' }} />
         </Stack.Protected>
       </Stack>
+      {session && profile?.is_active && <SyncStatus />}
       {loading && !profile && (
         <View
           style={styles.loading}
@@ -141,7 +155,11 @@ function ConnectionRoot() {
     );
   return (
     <AuthProvider key={identity}>
-      <Navigation />
+      <OfflineProvider>
+        <PushProvider>
+          <Navigation />
+        </PushProvider>
+      </OfflineProvider>
     </AuthProvider>
   );
 }

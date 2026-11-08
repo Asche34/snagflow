@@ -5,11 +5,11 @@ Update this file after every notable change. No history here (see CHANGELOG.md).
 | Field                | Value |
 | -------------------- | ----- |
 | Version              | 0.1.0 |
-| DB schema version    | migration `20261102000017_immutable_artifacts.sql` (applied and recorded locally and on hosted project mtpmqnczwdbglebrakhw) |
-| Phase (spec §15)     | **5 — mobile online implementation delivered locally; hosted/physical-device acceptance pending.** Phases 0–4 complete locally. |
-| Last delivered | Android 1.0.2 (version code 3) built successfully with photo review and revised snag filters. [Download APK](https://expo.dev/artifacts/eas/2FMMnx7o_G5-9ogtnoVXh-JRdO9KISLPTyyChwXvw0o.apk). Phone testing of these changes remains pending. The user confirmed the prior 1.0.1 checks worked. |
+| DB schema version    | migration `20261104000019_push_delivery.sql` applied/recorded locally and on hosted mtpmqnczwdbglebrakhw with explicit user approval; live push remains disabled |
+| Phase (spec §15)     | **6 — client correction delivered and hosted offline backend activated/verified.** User confirmed projects/snags stopped loading without internet. Approved18/19 are applied; business counts unchanged, authenticated snapshot succeeds and invalid/anonymous identities are denied.1.0.6/code7 fixes network-blocked local work/status presentation. Physical field acceptance remains pending. |
+| Last delivered | [Android1.0.6/code7 APK](https://expo.dev/artifacts/eas/gCgV0Qi8aJyFb9v2fV6Fp87HBndVVvYTNHhv7TZJ0Fw.apk). Hosted offline backend is now enabled; connect once and finish project download before airplane-mode testing. Manual native acceptance remains pending. Earlier Android1.0.2/code3 installed and worked on the user's phone; its installation failure is resolved. |
 | AI-docs restructure  | DONE (self-contained indexes under docs/AI/, .ai/index.json, scripts/ai/) |
-| New APK build | Android1.0.3/code4 with the new white/orange app icon submitted as [94c6cc86-5873-4c97-b46c-d5addc591c79](https://expo.dev/accounts/asche34/projects/snagflow/builds/94c6cc86-5873-4c97-b46c-d5addc591c79). Last observed NEW; APK/native outcome pending. Source b7012c9 is pushed to main. See `docs/AI/BRANDING-APK-2026-11-04.md`. |
+| New APK build | Android1.0.6/code7 signed repack [64dee654-6c06-4eb3-a089-9626d848d9a0](https://expo.dev/accounts/asche34/projects/snagflow/builds/64dee654-6c06-4eb3-a089-9626d848d9a0) FINISHED from `1da8fc3`, using verified1.0.5 native base/matching fingerprint. Manifest, certificate, full signature/digest, ZIP and122 unchanged native entries verify.101 mobile unit/API,70 DB,19 browser checks/types/lint/Android export pass. Hosted18/19 rollout and read-only access verification complete with user approval; manual phone acceptance remains pending. No main push/Vercel/live push authorized. Evidence: `docs/AI/MOBILE-OFFLINE-FEEDBACK-2026-11-04.md`. |
 
 ## Features complete
 
@@ -48,15 +48,21 @@ Current mobile release evidence: `docs/AI/MOBILE-FIELD-ADJUSTMENTS-2026-11-03.md
 
 ## Features in progress
 
+- Current field correction: `docs/AI/MOBILE-OFFLINE-FEEDBACK-2026-11-04.md`. User approved exactly18/19 with live push disabled; hosted rollout is complete. Ledger19/RPCs/API cache/permissions and authenticated-role snapshot verify; business counts are unchanged. Cached profile/reads and durable saves no longer wait on network requests; first online save completes project preparation, and a compact bottom control replaces the top block.101 mobile unit/API,70 DB and19/19 browser checks/types/lint pass. Focused review has no material issue; signed1.0.6/code7 checks pass. Native field acceptance remains pending.
+
+- Native acceptance pending: Android1.0.4/code5 login crash was diagnosed through USB logs and binary inspection as an incompatible precompiled SQLite registration call. Android1.0.5/code6 compiles SQLite against the app's runtime; native build, matching signing identity and APK-level regression pass. User will install/test manually over the existing app; login and close/reopen success remain unconfirmed. No app data was cleared.
+
+- Phase6 SQLite mirror, durable drafts/photos, outbox replay/conflicts and disabled-by-default push. Local migrations18/19 preserve existing data. Focused implementation/evidence: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`.
+
 - Phase 5 hosted Supabase / physical-device acceptance. Native online implementation is present; see `docs/AI/PHASE5-MOBILE-2026-11-02.md` for deployment approval, access requirements, evidence and acceptance matrix.
 
 ## Features remaining (order per spec §15)
 
 - Phase 5 acceptance: the user reports the Android 1.0.1 release checks worked on their phone and requested mobile UI and photo markup improvements. The broader hosted and native acceptance matrix remains open.
 - Mobile follow-up: new photos open in a full-screen review with optional markup before attachment. Project snag filters apply together and can be removed from the results. Android bundle export, 50 unit checks and 12 production-preview browser checks passed. Native touch behavior still needs a phone check.
-- Phase 6: offline sync (expo-sqlite mirror, outbox, photo queue), push notifications (Edge Function)
+- Phase6: manual1.0.6 physical offline acceptance after project download. Hosted18/19 and local release/APK checks are complete. Native push credentials, Edge delivery setup and live activation still require separate authorization.
 - Phase 7: PWA, dark mode, EAS profiles, E2E (Playwright) — **the E2E suite now exists; expand it to the full §14 golden path**
-- Edge function `push-send` (spec §12) — not yet created
+- Edge function `push-send` implemented locally; delivery gates remain disabled. No hosted function/webhook/receipt schedule or FCM/APNs configuration has been activated.
 
 ## Tests current
 
@@ -195,8 +201,8 @@ Brevo initially rejected an unvalidated sender. User changed to a personal sende
 
 ## Blockers
 
-- Phase5 hosted acceptance needs hosted project/canonical API details and explicit deployment authorization. User reports local Android16 testing works, without enumerating all acceptance cases. APK build36b6a885-d543-4bea-8809-2063b4947f6d finished. User configured/redeployed Vercel: login/health/discovery200. Hosted schema through17 and first administrator/private password verification are complete. Public signup remains enabled; invite-only Auth/redirects/SMTP and full hosted/native acceptance remain pending. See `HOSTED-VERCEL-2026-11-03.md`.
+- Phase5 broader hosted/native acceptance remains open. Hosted schema is now19 after the approved Phase6 rollout; first-administrator/private-password verification and public login/health/discovery checks were recorded previously. Public signup remains enabled; invite-only Auth/redirects/SMTP and full native acceptance remain separate. See `HOSTED-VERCEL-2026-11-03.md` and the current field-correction handoff.
 
 ## Next step recommended
 
-Finish the remaining invite-only Auth/redirect configuration with authorization, sign in privately as the first admin at https://snagflow.vercel.app and verify the APK against hosted services before Phase6. Hold further pushes until the linked Vercel deployment behavior/rollout is authorized. Local schema remains migration17. Preserve local data; do not reset an existing stack.
+Collect manual1.0.6 project-download/airplane-mode/capture/photo/restart/reconnect results now that approved hosted18/19 are applied and verified. Keep live push disabled. Edge function, FCM/APNs, live delivery, invite-only Auth and broader native acceptance remain separate. Do not push main/deploy Vercel or reset the preserved local stack.

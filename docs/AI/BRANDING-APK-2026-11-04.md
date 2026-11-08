@@ -24,3 +24,7 @@ The user approved committing/pushing the branding work and launching a replaceme
 - Expo build: [94c6cc86-5873-4c97-b46c-d5addc591c79](https://expo.dev/accounts/asche34/projects/snagflow/builds/94c6cc86-5873-4c97-b46c-d5addc591c79), preview Android1.0.3/code4. Submission returned NEW on2026-11-04; native compilation and the APK artifact remain pending.
 - Expo confirms the existing remote Android keystore was used. No account-level plain-text/sensitive preview variables were present; the existing profile supplies the manual-connection placeholders and Gradle constraints.
 - Upload succeeded (3.8MB source archive) and fingerprint computation completed. No paid-priority upgrade, duplicate build or store submission was performed. Use this build page for progress and its new APK when available; the older APK is not this replacement.
+
+## Subsequent confirmation — 2026-11-04
+
+Expo now reports this branding build FINISHED for Android 1.0.3/code 4; [its APK](https://expo.dev/artifacts/eas/_10OiHKwNtoyLvKap5hNHDlAM2nXM2GXKs0bsyzUXM8.apk) is available. Physical acceptance of that build remains separate. The user also confirms the earlier Android 1.0.2/code 3 installed and worked; the reported installation failure is resolved. Phase 6 prepares the next release as 1.0.4/code 5, tracked in `PHASE6-OFFLINE-PUSH-2026-11-04.md`.

@@ -3,6 +3,8 @@ import { AppState } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { supabase } from './supabase';
 import { retainedResource } from './online';
+import { offlineFor } from './offline/runtime';
+import { useOfflineState } from '../providers/offline';
 /** Reconcile current authorized reads, including removals that cannot safely use DELETE payloads. */
 export function useResource<T>(
   loader: () => Promise<T>,
@@ -10,6 +12,7 @@ export function useResource<T>(
   tables: string[] = ['snags'],
 ) {
   const [client] = useState(() => supabase);
+  const offlineState = useOfflineState();
   const loaderRef = useRef(loader);
   useEffect(() => {
     loaderRef.current = loader;
@@ -18,10 +21,15 @@ export function useResource<T>(
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const generation = useRef(0);
-  const refresh = useCallback(async () => {
+  const load = useCallback(async (synchronize: boolean) => {
     const current = ++generation.current;
     setLoading(true);
     try {
+      if (synchronize) {
+        const offline = offlineFor(client);
+        if (offline && Object.keys(offline.engine.state.mirrors).length) void offline.sync();
+        else await offline?.sync();
+      }
       const next = await loaderRef.current();
       if (current === generation.current) {
         setData(next);
@@ -37,7 +45,11 @@ export function useResource<T>(
     } finally {
       if (current === generation.current) setLoading(false);
     }
-  }, []);
+  }, [client]);
+  const refresh = useCallback(() => load(true), [load]);
+  useEffect(() => {
+    if (offlineState) void load(false);
+  }, [offlineState, scope, load]);
   useFocusEffect(
     useCallback(() => {
       // A changed resource identity must not expose the previous route/filter's records.

@@ -67,3 +67,9 @@ User explicitly confirmed Medium default with no required priority selection; th
 - The user reports 1.0.2 fails with only “App not installed”, both over the existing app and after uninstalling it.
 - Downloaded both released APKs for comparison. Version codes are 2 and 3, package is com.snagflow.app, minimum SDK is 24, target SDK is 36 and all four packaged ABIs match. Signing certificate SHA-256 matches across both releases.
 - Both APK v2 RSA signatures and their complete chunked content digests verified. The 1.0.2 ZIP archive integrity check passed. Its exact size is 156357559 bytes. The cause on the phone remains unconfirmed, pending download and device details.
+
+## User confirmation — 2026-11-04
+
+The user confirms Android1.0.2/code3 installed and worked on their phone. The previously reported installation failure is resolved. This supersedes the pending installation outcome above; it does not establish that every hosted/native acceptance case was exercised. Preserve optional priority with Medium default and the delivered navigation/photo review/filter behavior in Phase6.
+
+The subsequent branding release1.0.3/code4 also finished on Expo (build94c6cc86-5873-4c97-b46c-d5addc591c79); its physical acceptance is separate. Phase6 work is tracked in `PHASE6-OFFLINE-PUSH-2026-11-04.md`.

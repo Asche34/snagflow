@@ -2,7 +2,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
 
 export type Database = {
-  
+
   "graphql_public": {
           Tables: {
             [_ in never]: never
@@ -185,6 +185,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"offline_mutation_receipts": {
+                  Row: {
+                    "created_at": string,"id": string,"project_id": string,"request": NonNullable<Json>,"result": NonNullable<Json>,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id": string,"project_id": string,"request": NonNullable<Json>,"result": NonNullable<Json>,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"project_id"?: string,"request"?: NonNullable<Json>,"result"?: NonNullable<Json>,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "offline_mutation_receipts_project_id_fkey"
+      columns: ["project_id"]
+isOneToOne: false
+      referencedRelation: "projects"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "offline_mutation_receipts_user_id_fkey"
+      columns: ["user_id"]
+isOneToOne: false
+      referencedRelation: "profiles"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"org_settings": {
                   Row: {
                     "company_name": string,"created_at": string,"date_format": string,"default_report_theme": string,"id": number,"logo_path": string | null,"terminology": string,"updated_at": string
@@ -197,7 +223,7 @@ isOneToOne: false
                     "company_name"?: string,"created_at"?: string,"date_format"?: string,"default_report_theme"?: string,"id"?: number,"logo_path"?: string | null,"terminology"?: string,"updated_at"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"profiles": {
                   Row: {
@@ -211,7 +237,7 @@ isOneToOne: false
                     "avatar_url"?: string | null,"created_at"?: string,"email"?: string,"full_name"?: string,"id"?: string,"is_active"?: boolean,"is_admin"?: boolean
                   }
                   Relationships: [
-                    
+
                   ]
                 },"project_members": {
                   Row: {
@@ -259,16 +285,50 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"push_tokens": {
+                },"push_deliveries": {
                   Row: {
-                    "created_at": string,"last_seen_at": string,"platform": string,"token": string,"user_id": string
+                    "attempts": number,"next_attempt_at": string,"notification_id": string,"status": string,"ticket": string | null,"token": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"last_seen_at"?: string,"platform": string,"token": string,"user_id": string
+                    "attempts"?: number,"next_attempt_at"?: string,"notification_id": string,"status": string,"ticket"?: string | null,"token": string,"updated_at"?: string
                   }
                   Update: {
-                    "created_at"?: string,"last_seen_at"?: string,"platform"?: string,"token"?: string,"user_id"?: string
+                    "attempts"?: number,"next_attempt_at"?: string,"notification_id"?: string,"status"?: string,"ticket"?: string | null,"token"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "push_deliveries_notification_id_fkey"
+      columns: ["notification_id"]
+isOneToOne: false
+      referencedRelation: "notifications"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"push_delivery_config": {
+                  Row: {
+                    "enabled": boolean,"singleton": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "enabled"?: boolean,"singleton"?: boolean
+                  }
+                  Update: {
+                    "enabled"?: boolean,"singleton"?: boolean
+                  }
+                  Relationships: [
+
+                  ]
+                },"push_tokens": {
+                  Row: {
+                    "created_at": string,"deployment_key": string | null,"expires_at": string,"installation_id": string | null,"last_seen_at": string,"platform": string,"token": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"deployment_key"?: string | null,"expires_at"?: string,"installation_id"?: string | null,"last_seen_at"?: string,"platform": string,"token": string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"deployment_key"?: string | null,"expires_at"?: string,"installation_id"?: string | null,"last_seen_at"?: string,"platform"?: string,"token"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -328,6 +388,26 @@ isOneToOne: false
       columns: ["project_id"]
 isOneToOne: false
       referencedRelation: "projects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"snag_field_clocks": {
+                  Row: {
+                    "fields": NonNullable<Json>,"snag_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "fields"?: NonNullable<Json>,"snag_id": string
+                  }
+                  Update: {
+                    "fields"?: NonNullable<Json>,"snag_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "snag_field_clocks_snag_id_fkey"
+      columns: ["snag_id"]
+isOneToOne: true
+      referencedRelation: "snags"
       referencedColumns: ["id"]
     }
                   ]
@@ -419,6 +499,9 @@ isOneToOne: false
 "add_project_member":
 { Args: { "p_email": string,"p_project_id": string,"p_role": Database["public"]['Enums']["project_role"] }; Returns: string
                            },
+"apply_offline_mutation":
+{ Args: { "p_expected_updated_at"?: string,"p_id": string,"p_kind": string,"p_payload": Json,"p_project_id": string,"p_snag_id": string }; Returns: Json
+                           },
 "assign_snag":
 { Args: { "p_assignee_id": string,"p_snag_id": string }; Returns: Json
                            },
@@ -428,8 +511,14 @@ isOneToOne: false
 "cancel_project_invite":
 { Args: { "p_id": string }; Returns: undefined
                            },
+"claim_push_delivery":
+{ Args: { "p_notification_id": string,"p_token": string }; Returns: boolean
+                           },
 "claim_report_generation":
 { Args: { "p_project_id": string }; Returns: undefined
+                           },
+"finish_push_delivery":
+{ Args: { "p_notification_id": string,"p_status": string,"p_ticket"?: string,"p_token": string }; Returns: undefined
                            },
 "get_my_project_invite":
 { Args: { "p_token": string }; Returns: {
@@ -445,6 +534,9 @@ isOneToOne: false
 "is_project_member":
 { Args: { "pid": string }; Returns: boolean
                            },
+"mobile_sync_snapshot":
+{ Args: { "p_project_id": string,"p_since"?: string }; Returns: Json
+                           },
 "notify_managers":
 { Args: { "p_payload": Json,"p_project_id": string,"p_snag_id": string,"p_type": string }; Returns: undefined
                            },
@@ -455,6 +547,15 @@ isOneToOne: false
                            },
 "project_role":
 { Args: { "pid": string }; Returns: Database["public"]['Enums']["project_role"]
+                           },
+"push_authorized_notification":
+{ Args: { "p_id": string }; Returns: Json
+                           },
+"register_push_token":
+{ Args: { "p_deployment_key": string,"p_installation_id": string,"p_platform": string,"p_token": string }; Returns: undefined
+                           },
+"remove_push_delivery_token":
+{ Args: { "p_notification_id": string,"p_token": string }; Returns: undefined
                            },
 "save_photo_annotation":
 { Args: { "p_annotated_path": string,"p_annotation_json": Json,"p_expected_updated_at": string,"p_photo_id": string }; Returns: {
@@ -524,6 +625,9 @@ isOneToOne: false
                            },
 "transition_snag":
 { Args: { "p_comment"?: string,"p_snag_id": string,"p_to_status": Database["public"]['Enums']["snag_status"] }; Returns: Json
+                           },
+"unregister_push_token":
+{ Args: { "p_token": string }; Returns: undefined
                            }
           }
           Enums: {
@@ -546,7 +650,7 @@ isOneToOne: false
                     "allowed_mime_types"?: (string)[] | null,"avif_autodetection"?: boolean | null,"created_at"?: string | null,"file_size_limit"?: number | null,"id"?: string,"lifecycle_configuration"?: Json | null,"lifecycle_configuration_generation"?: string | null,"name"?: string,"owner"?: string | null,"owner_id"?: string | null,"public"?: boolean | null,"type"?: Database["storage"]['Enums']["buckettype"],"updated_at"?: string | null,"versioning_status"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"buckets_analytics": {
                   Row: {
@@ -560,7 +664,7 @@ isOneToOne: false
                     "created_at"?: string,"deleted_at"?: string | null,"format"?: string,"id"?: string,"name"?: string,"type"?: Database["storage"]['Enums']["buckettype"],"updated_at"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"buckets_vectors": {
                   Row: {
@@ -574,7 +678,7 @@ isOneToOne: false
                     "created_at"?: string,"id"?: string,"type"?: Database["storage"]['Enums']["buckettype"],"updated_at"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"iceberg_namespaces": {
                   Row: {
@@ -634,7 +738,7 @@ isOneToOne: false
                     "executed_at"?: string | null,"hash"?: string,"id"?: number,"name"?: string
                   }
                   Relationships: [
-                    
+
                   ]
                 },"objects": {
                   Row: {
@@ -900,7 +1004,7 @@ export type CompositeTypes<
 export const Constants = {
   "graphql_public": {
           Enums: {
-            
+
           }
         },"public": {
           Enums: {

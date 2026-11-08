@@ -16,7 +16,7 @@ type ConnectionContextValue = {
   busy: boolean;
   error: string | null;
   connect: (url: string) => Promise<void>;
-  resetSession: () => Promise<void>;
+  resetSession: () => Promise<boolean>;
 };
 const Context = createContext<ConnectionContextValue | null>(null);
 export function ConnectionProvider({ children }: { children: ReactNode }) {
@@ -85,7 +85,7 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
     }
   };
   const resetSession = async () => {
-    if (working.current || !connection) return;
+    if (working.current || !connection) return false;
     working.current = true;
     setBusy(true);
     setError(null);
@@ -94,8 +94,10 @@ export function ConnectionProvider({ children }: { children: ReactNode }) {
       clearAuthCallbackState();
       resets.current++;
       setIdentity(`${key}.local.${resets.current}`);
+      return true;
     } catch {
       setError('Could not clear this device session. Unlock the device and retry.');
+      return false;
     } finally {
       working.current = false;
       setBusy(false);

@@ -163,6 +163,16 @@ Login App URL/Connect, public deployment discovery, validation/probe, remembered
 Impl: `packages/shared/src/mobile-connection.ts`, `apps/mobile/src/lib/connection.ts`, `apps/mobile/src/lib/supabase.ts`, `apps/mobile/src/providers/connection.tsx`, `apps/mobile/src/app/login.tsx`, `apps/web/src/app/api/mobile-config/route.ts`, `apps/web/src/lib/mobile-config.ts`.
 Tests: connection/shared public-response tests, `apps/mobile/tests/connection-mutation.test.ts`, `apps/mobile/tests/report-switch.test.ts`, `e2e/mobile-tests/app-url.spec.ts`. Handoff: `docs/AI/MOBILE-APP-URL-LAN-2026-11-02.md`.
 
-## PLANNED (spec §15 — do not build before prior phases)
+### FEAT-OFFLINE-SYNC (implemented locally; native/hosted acceptance pending)
+Native SQLite mirror, atomic outbox and durable capture/edit/comment/workflow/photo drafts, document-directory original/thumbnail/markup files, pinned-account replay, stable identities, server receipts, field merge and workflow attention/retry/discard. Full bounded authorized snapshot reconciliation includes tombstones/removals.
+Impl: `apps/mobile/src/lib/offline/`, `apps/mobile/src/lib/offline-session.ts`, `apps/mobile/src/providers/offline.tsx`, `apps/mobile/src/app/sync.tsx`; adapters in auth/data/mutations/photos and capture/detail screens. Secure local identity survives expired-token offline refresh failure; server replay always requires a fresh session. DB: migration18 (`apply_offline_mutation`, `mobile_sync_snapshot`). Tests: mobile offline*.test.ts, `e2e/mobile-tests/offline.spec.ts`, `supabase/tests/offline.test.ts`, `supabase/tests/offline-late-commit.mjs`.
+Handoff: `docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md`; DB contract: `PHASE6-OFFLINE-DB-2026-11-04.md`.
 
-- FEAT-MOBILE hosted/device acceptance — Phase 5 · FEAT-OFFLINE-SYNC — Phase 6 · FEAT-PWA/PUSH-FN/E2E — Phase 7
+Field feedback correction: `docs/AI/MOBILE-OFFLINE-FEEDBACK-2026-11-04.md`; compact bottom status in `apps/mobile/src/components/sync-status.tsx`. Pending-request cached reads/saves, first-project preparation and follow-up flush are verified locally. Hosted18/19 applied with explicit user approval; ledger, data preservation and read-only access probes pass. Manual native offline acceptance remains pending; live push is disabled.
+
+### FEAT-PUSH (implemented locally; disabled pending authorized activation)
+Explicit native opt-in/permissions, token rotation/lease/logout/deployment lifecycle and validated cold/warm tap navigation. Edge delivery reads persisted notifications and current access, claims work, handles receipts and removes invalid tokens without deleting renewed registrations. Migration19; `apps/mobile/src/lib/push*.ts`, `apps/mobile/src/providers/push.tsx`, `apps/mobile/src/components/push-settings.tsx`, `supabase/functions/push-send/`. Tests: mobile push*.test.ts, `supabase/tests/push.test.ts`. Native credentials/hosted webhook and delivery gates remain unconfigured/off; activation instructions in function README.
+
+## PLANNED (spec §15)
+
+- FEAT-MOBILE broader hosted/device acceptance — Phase5; offline/push physical acceptance and authorized hosted activation — Phase6; FEAT-PWA/E2E polish — Phase7.

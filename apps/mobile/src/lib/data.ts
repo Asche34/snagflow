@@ -1,10 +1,18 @@
 import type { Database, ProjectRole, SnagStatus, SnagPriority } from '@snagflow/shared';
 import { supabase } from './supabase';
 import { AccessUnavailableError, readPages, searchIntent } from './online';
+import { offlineFor } from './offline/runtime';
 export type Row<T extends keyof Database['public']['Tables']> =
   Database['public']['Tables'][T]['Row'];
 export type ProjectContext = Awaited<ReturnType<typeof projectContext>>;
 export async function listActiveProjects(client = supabase) {
+  const offline = offlineFor(client);
+  if (
+    offline &&
+    offline.capability !== 'unsupported' &&
+    Object.keys(offline.engine.state.mirrors).length
+  )
+    return offline.projects;
   return readPages(async (from, to) => {
     const result = await client
       .from('projects')
@@ -18,6 +26,9 @@ export async function listActiveProjects(client = supabase) {
   });
 }
 export async function projectContext(id: string, userId: string, client = supabase) {
+  const offline = offlineFor(client);
+  if (offline && offline.capability !== 'unsupported' && offline.engine.state.mirrors[id])
+    return offline.context(id);
   const [project, membership, locations, categories, members] = await Promise.all([
     client.from('projects').select('*').eq('id', id).single(),
     client
@@ -87,6 +98,13 @@ export async function listSnags(
   page = 0,
   client = supabase,
 ) {
+  const offline = offlineFor(client);
+  if (
+    offline &&
+    offline.capability !== 'unsupported' &&
+    Object.keys(offline.engine.state.mirrors).length
+  )
+    return offline.snags(projectId, filters, page);
   let q = client.from('snags').select('*', { count: 'exact' }).is('deleted_at', null);
   if (projectId) q = q.eq('project_id', projectId);
   if (filters.projectIds) q = q.in('project_id', filters.projectIds);
@@ -111,6 +129,13 @@ export async function listSnags(
   return { rows: result.data, count: result.count ?? 0 };
 }
 export async function snagDetail(id: string, userId: string, client = supabase) {
+  const offline = offlineFor(client);
+  if (
+    offline &&
+    offline.capability !== 'unsupported' &&
+    Object.keys(offline.engine.state.mirrors).length
+  )
+    return offline.detail(id);
   const snag = await client.from('snags').select('*').eq('id', id).is('deleted_at', null).single();
   if (snag.error) throw snag.error;
   if (!snag.data) throw new AccessUnavailableError();

@@ -6,6 +6,7 @@ import { createChunkedStorage, type SessionStorage } from './session-storage';
 import { MobileConnectionSchema, type MobileConnection } from '@snagflow/shared';
 import { CryptoDigestAlgorithm, digestStringAsync } from 'expo-crypto';
 import { connectionStorageKey, revocableStorage, guardedFetch } from './connection';
+import { revokeLocalSession } from './offline-session';
 
 export let supabaseSetupError: string | null =
   'Enter your SnagFlow app URL and tap Connect before signing in.';
@@ -56,6 +57,24 @@ export function getApiBaseUrl(): string {
 export function isCurrentClient(client: typeof supabase): boolean {
   return client === supabase && activeStorageKey !== null;
 }
+export function getDeploymentKey(): string | null {
+  return activeStorageKey;
+}
+export function getActiveConnection(): MobileConnection | null {
+  return activeConnection;
+}
+/** Reads only the originating auth namespace; native token bytes stay in SecureStore. */
+export async function readRetainedSession(client: typeof supabase): Promise<unknown> {
+  const key = activeStorageKey;
+  if (!key || !isCurrentClient(client)) return null;
+  const raw = await storage.getItem(key);
+  if (key !== activeStorageKey || !isCurrentClient(client) || !raw) return null;
+  try {
+    return JSON.parse(raw) as unknown;
+  } catch {
+    return null;
+  }
+}
 let pendingInstallation: Promise<unknown> = Promise.resolve();
 export function installConnection(value: MobileConnection, resetSession = false): Promise<string> {
   const result = pendingInstallation.then(() => performInstallation(value, resetSession));
@@ -73,6 +92,12 @@ async function performInstallation(
   if (activeStorageKey === key && !resetSession) return key;
   const previous = supabase;
   const previousKey = activeStorageKey;
+  revokeLocalSession(previous);
+  const { revokeOffline } = await import('./offline/runtime');
+  revokeOffline();
+  const { deactivatePushRegistration } = await import('./push-registration');
+  // A fresh process has no previous connection; preserve its OS launch tap for validated navigation.
+  if (previousKey !== null) await deactivatePushRegistration(previous);
   activeStorageKey = null;
   activeConnection = null;
   supabaseSetupError = 'Reconnect to your SnagFlow app before signing in.';

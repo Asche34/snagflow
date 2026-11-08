@@ -9,14 +9,35 @@ import { listActiveProjects, listSnags } from '../lib/data';
 import { readPages } from '../lib/online';
 import { Button, Choices, ErrorText, Loading, Screen, styles } from '../components/ui';
 import { SnagList } from '../components/snag-list';
+import { useOffline } from '../providers/offline';
+import { PushSettings } from '../components/push-settings';
 export default function Home() {
   const { client: supabase, session, profile, signOut } = useAuth();
   const connection = useConnection();
+  const offline = useOffline();
   const [mode, setMode] = useState<'mine' | 'review'>('mine');
   const [page, setPage] = useState(0);
   const userId = session?.user.id ?? '';
   const resource = useResource(
     async () => {
+      if (offline && Object.keys(offline.engine.state.mirrors).length) {
+        const managed = offline.projects
+          .filter((p) =>
+            isReviewer({ isAdmin: !!profile?.is_admin, projectRole: offline.context(p.id).role }),
+          )
+          .map((p) => p.id);
+        return {
+          projects: offline.projects,
+          snags: offline.snags(
+            null,
+            mode === 'mine'
+              ? { mine: userId, projectIds: offline.projects.map((p) => p.id) }
+              : { review: true, projectIds: managed },
+            page,
+          ),
+          canReview: !!profile?.is_admin || managed.length > 0,
+        };
+      }
       const [projects, memberships] = await Promise.all([
         listActiveProjects(supabase),
         readPages(async (from, to) => {
@@ -84,7 +105,12 @@ export default function Home() {
           onPress={() => void connection.resetSession()}
         />
       </View>
-      <Text style={styles.text}>Online mode · pull to refresh. Changes require a connection.</Text>
+      <Text style={styles.text}>
+        {offline
+          ? 'Pull to sync. Previously opened projects and saved drafts are available offline.'
+          : 'Online mode. Pull to refresh; changes require a connection.'}
+      </Text>
+      <PushSettings />
       <ErrorText error={resource.error} />
       <ErrorText error={connection.error} />
       {resource.error && <Button label="Retry" onPress={() => void resource.refresh()} />}

@@ -1,0 +1,14 @@
+name: Offline field update
+
+# Manual internal APK packaging; no GitHub trigger, OTA, hosting or live push.
+# Native fingerprint matches the verified 1.0.5 base before version-only changes.
+jobs:
+  package_apk:
+    type: repack
+    environment: preview
+    params:
+      build_id: 3db4ce92-98c6-4c25-a47c-71bd81f79937
+      profile: preview
+      js_bundle_only: false
+      embed_bundle_assets: true
+      message: Android 1.0.6 offline response and compact field status

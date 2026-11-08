@@ -9,12 +9,13 @@ export function SnagList({ rows }: { rows: Row<'snags'>[] }) {
         rows.map((snag) => (
           <View key={snag.id} style={styles.card}>
             <Text style={styles.muted}>
-              #{snag.number} · {human(snag.status)} · {snag.priority}
+              {snag.number ? `#${snag.number}` : 'Pending sync'} · {human(snag.status)} ·{' '}
+              {snag.priority}
             </Text>
             <Text style={styles.title}>{snag.title}</Text>
             {snag.due_date && <Text style={styles.muted}>Due {snag.due_date}</Text>}
             <Button
-              label={`Open snag #${snag.number}`}
+              label={snag.number ? `Open snag #${snag.number}` : 'Open pending snag'}
               onPress={() => router.push({ pathname: '/snags/[id]', params: { id: snag.id } })}
               secondary
             />

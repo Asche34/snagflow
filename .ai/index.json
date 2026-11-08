@@ -313,6 +313,42 @@
       ],
       "test": "packages/shared/tests/report-outputs.test.mjs",
       "doc": "apps/web/public/branding/README.md"
+    },
+    "FEAT-OFFLINE-SYNC": {
+      "module": "MOD-MOBILE",
+      "status": "implemented locally; hosted/native acceptance pending",
+      "impl": [
+        "apps/mobile/src/lib/offline",
+        "apps/mobile/src/providers/offline.tsx",
+        "apps/mobile/src/app/sync.tsx",
+        "supabase/migrations/20261104000018_offline_sync.sql",
+        "apps/mobile/src/lib/offline-session.ts"
+      ],
+      "test": [
+        "apps/mobile/tests/offline.test.ts",
+        "apps/mobile/tests/offline-mirror.test.ts",
+        "apps/mobile/tests/offline-runtime.test.ts",
+        "supabase/tests/offline.test.ts",
+        "e2e/mobile-tests/offline.spec.ts",
+        "apps/mobile/tests/offline-session.test.ts"
+      ],
+      "doc": "docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md"
+    },
+    "FEAT-PUSH": {
+      "module": "MOD-MOBILE",
+      "status": "implemented locally; disabled pending authorized activation",
+      "impl": [
+        "apps/mobile/src/providers/push.tsx",
+        "apps/mobile/src/lib/push-core.ts",
+        "supabase/functions/push-send",
+        "supabase/migrations/20261104000019_push_delivery.sql"
+      ],
+      "test": [
+        "apps/mobile/tests/push-core.test.ts",
+        "apps/mobile/tests/push-delivery.test.ts",
+        "supabase/tests/push.test.ts"
+      ],
+      "doc": "docs/AI/PHASE6-OFFLINE-PUSH-2026-11-04.md"
     }
   },
   "modules": {
@@ -326,7 +362,7 @@
     },
     "MOD-MOBILE": {
       "path": "apps/mobile",
-      "role": "Online Expo field app: auth, project/snags, camera/markup, assigned work/review, reports; device/hosted acceptance pending"
+      "role": "Expo field app with durable offline capture/sync, markup/workflow/reports and opt-in push; native/hosted acceptance separate"
     },
     "MOD-DATABASE": {
       "path": "supabase",
@@ -499,6 +535,12 @@
         "file": "apps/mobile/src/app/notifications.tsx",
         "auth": "own user RLS",
         "note": "Phase 5 implemented locally; hosted/device acceptance pending"
+      },
+      {
+        "path": "/sync",
+        "file": "apps/mobile/src/app/sync.tsx",
+        "auth": "active authenticated account; isolated deployment/account queue",
+        "note": "Phase6 local implementation"
       }
     ],
     "e2e": [
@@ -571,7 +613,9 @@
       "supabase/migrations/20261030000014_project_metadata.sql",
       "supabase/migrations/20261031000015_realtime_notifications.sql",
       "supabase/migrations/20261031000016_markup_reports.sql",
-      "supabase/migrations/20261102000017_immutable_artifacts.sql"
+      "supabase/migrations/20261102000017_immutable_artifacts.sql",
+      "supabase/migrations/20261104000018_offline_sync.sql",
+      "supabase/migrations/20261104000019_push_delivery.sql"
     ],
     "tests_discovered": [
       "packages/shared/tests/annotations.test.ts",
@@ -588,7 +632,9 @@
       "supabase/tests/lifecycle.test.ts",
       "supabase/tests/metadata.test.ts",
       "supabase/tests/notifications.test.ts",
+      "supabase/tests/offline.test.ts",
       "supabase/tests/projects.test.ts",
+      "supabase/tests/push.test.ts",
       "supabase/tests/rls_isolation.test.ts",
       "supabase/tests/rls_write.test.ts",
       "supabase/tests/team.test.ts",
@@ -598,12 +644,21 @@
       "apps/mobile/tests/connection.test.ts",
       "apps/mobile/tests/markup.test.ts",
       "apps/mobile/tests/mobile-live.test.ts",
+      "apps/mobile/tests/offline-mirror.test.ts",
+      "apps/mobile/tests/offline-runtime.test.ts",
+      "apps/mobile/tests/offline-session.test.ts",
+      "apps/mobile/tests/offline.test.ts",
       "apps/mobile/tests/online.test.ts",
       "apps/mobile/tests/photos.test.ts",
+      "apps/mobile/tests/push-coldstart.test.ts",
+      "apps/mobile/tests/push-core.test.ts",
+      "apps/mobile/tests/push-delivery.test.ts",
+      "apps/mobile/tests/push-toggle.test.ts",
       "apps/mobile/tests/report-switch.test.ts",
       "apps/mobile/tests/reports.test.ts",
       "e2e/mobile-tests/app-url.spec.ts",
       "e2e/mobile-tests/mobile.spec.ts",
+      "e2e/mobile-tests/offline.spec.ts",
       "e2e/tests/auth.spec.ts",
       "e2e/tests/fieldwork.spec.ts",
       "e2e/tests/filters.spec.ts",
@@ -635,6 +690,7 @@
       "apps/mobile/src/app/projects/[id]/reports.tsx",
       "apps/mobile/src/app/projects/[id].tsx",
       "apps/mobile/src/app/snags/[id].tsx",
+      "apps/mobile/src/app/sync.tsx",
       "apps/mobile/src/app/_layout.tsx"
     ]
   }
