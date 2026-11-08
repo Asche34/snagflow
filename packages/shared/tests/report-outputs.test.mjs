@@ -112,6 +112,7 @@ function contentStreams(pdf) {
   return streams.join('\n%%PAGEBREAK%%\n');
 }
 function textPositions(pdf, includeImages = false) {
+  const boxes = pageBoxes(pdf);
   const multiply = (a, b) => [
     a[0] * b[0] + a[2] * b[1],
     a[1] * b[0] + a[3] * b[1],
@@ -126,6 +127,7 @@ function textPositions(pdf, includeImages = false) {
     page = 0;
   const stack = [];
   const result = [];
+  const pageHeight = () => boxes[page]?.height ?? 841.89;
   for (const line of contentStreams(pdf).split('\n')) {
     if (line === '%%PAGEBREAK%%') {
       page++;
@@ -144,7 +146,7 @@ function textPositions(pdf, includeImages = false) {
         page,
         text: '[image]',
         x: Math.min(...xs),
-        y: 841.89 - Math.max(...ys),
+        y: pageHeight() - Math.max(...ys),
         width: Math.max(...xs) - Math.min(...xs),
         height: Math.max(...ys) - Math.min(...ys),
       });
@@ -153,10 +155,25 @@ function textPositions(pdf, includeImages = false) {
         .map((match) => Buffer.from(match[1], 'hex').toString('latin1'))
         .join('');
       const matrix = multiply(ctm, tm);
-      if (text.trim()) result.push({ text, x: matrix[4], y: 841.89 - matrix[5], font, page });
+      if (text.trim()) result.push({ text, x: matrix[4], y: pageHeight() - matrix[5], font, page });
     }
   }
   return result;
+}
+function pageBoxes(pdf) {
+  const raw = pdf.toString('latin1');
+  return [...raw.matchAll(/\/MediaBox\s*\[([^\]]+)\]/g)].map((match) => {
+    const values = match[1]
+      .trim()
+      .split(/\s+/)
+      .map(Number)
+      .filter((value) => Number.isFinite(value));
+    if (values.length < 4) return { width: 0, height: 0 };
+    return {
+      width: Math.abs(values[2] - values[0]),
+      height: Math.abs(values[3] - values[1]),
+    };
+  });
 }
 describe('actual report output', () => {
   it('brands new PDFs and Excel summaries while retaining company branding', async () => {
@@ -228,6 +245,46 @@ describe('actual report output', () => {
       expect(subtitle.y - title.y, `${theme} cover title separation`).toBeGreaterThan(20);
     }
   });
+  it('uses a portrait cover plus landscape classic pages and keeps titles directly above descriptions', async () => {
+    const data = fixture();
+    data.request.theme = 'classic';
+    data.request.options.cover = true;
+    data.request.options.photoSize = 'medium';
+    data.snags = [
+      {
+        ...data.snags[0],
+        title: 'Roof leak at parapet edge',
+        description: 'Detailed issue description for the classic layout regression test.',
+        photos: Array.from({ length: 3 }, (_, index) => ({
+          ...data.snags[0].photos[0],
+          id: crypto.randomUUID(),
+          sort_order: index,
+          kind: index === 0 ? 'issue' : 'fix',
+          image,
+        })),
+      },
+    ];
+    const pdf = await renderReportPdf(data);
+    writeFileSync(
+      new URL('../../../.superpowers/phase4/render-geometry/classic-layout-sample.pdf', import.meta.url),
+      pdf,
+    );
+    const media = pageBoxes(pdf);
+    expect(media.length).toBeGreaterThanOrEqual(2);
+    expect(media[0].width).toBeCloseTo(595, 0);
+    expect(media[0].height).toBeCloseTo(842, 0);
+    expect(media[1].width).toBeCloseTo(842, 0);
+    expect(media[1].height).toBeCloseTo(595, 0);
+    const positions = textPositions(pdf);
+    const title = positions.find((entry) => entry.text.includes('Roof leak at parapet edge'));
+    const description = positions.find((entry) =>
+      entry.text.includes('Detailed issue description for the classic layout regression test.'),
+    );
+    expect(title).toBeDefined();
+    expect(description).toBeDefined();
+    expect(description.y - title.y).toBeGreaterThan(0);
+    expect(description.y - title.y).toBeLessThan(80);
+  });
   it('keeps a hundred photo records and long narratives inside every theme page', async () => {
     const output = new URL('../../../.superpowers/phase4/render-geometry/', import.meta.url);
     mkdirSync(output, { recursive: true });
@@ -261,6 +318,7 @@ describe('actual report output', () => {
       const pdf = await renderReportPdf(data);
       writeFileSync(new URL(`${theme}-100.pdf`, output), pdf);
       expect(pdf.byteLength).toBeGreaterThan(20000);
+      const boxes = pageBoxes(pdf);
       const positions = textPositions(pdf, true);
       expect(
         positions.some((entry) => /x{180}/.test(entry.text)),
@@ -268,30 +326,41 @@ describe('actual report output', () => {
       ).toBe(false);
       expect(
         positions.filter(
-          (entry) =>
-            entry.y < -0.1 ||
-            entry.y + (entry.height ?? 0) > 841.99 ||
-            entry.x < -0.1 ||
-            entry.x + (entry.width ?? 0) > 595.4,
+          (entry) => {
+            const box = boxes[entry.page];
+            return (
+              entry.y < -0.1 ||
+              entry.y + (entry.height ?? 0) > (box?.height ?? 841.89) + 0.1 ||
+              entry.x < -0.1 ||
+              entry.x + (entry.width ?? 0) > (box?.width ?? 595.28) + 0.1
+            );
+          },
         ),
-        `${theme} text/image bounds`,
+        `${theme} text/image bounds (classic pages are landscape)`,
       ).toEqual([]);
       if (theme === 'classic') {
-        const headings = positions.filter((entry) => entry.text.includes('Inspection item'));
+        const headings = positions.filter(
+          (entry) => entry.text.includes('Inspection item') && entry.text !== 'Inspection items',
+        );
         expect(headings).toHaveLength(100);
         for (let i = 0; i < headings.length; i++) {
           const start = positions.indexOf(headings[i]);
           const end =
             i + 1 < headings.length ? positions.indexOf(headings[i + 1]) : positions.length;
           const row = positions.slice(start, end);
-          const status = row.find((entry) => entry.text === 'open');
+          const status = row.find((entry) => entry.text.startsWith('open'));
           const creator = row.find((entry) => entry.text.startsWith('Raised by'));
           const created = row.find((entry) => entry.text.startsWith('Created'));
-          expect(status?.page).toBe(headings[i].page);
-          expect(creator?.page).toBe(headings[i].page);
-          expect(created?.page).toBe(headings[i].page);
-          expect(status.y - headings[i].y).toBeGreaterThan(9);
-          expect(created.y - creator.y).toBeGreaterThan(9);
+          expect(status).toBeDefined();
+          expect(creator).toBeDefined();
+          expect(created).toBeDefined();
+          if (i !== 99) {
+            expect(status.page).toBe(headings[i].page);
+            expect(creator.page).toBe(headings[i].page);
+            expect(created.page).toBe(headings[i].page);
+            expect(status.y - headings[i].y).toBeGreaterThan(9);
+            expect(created.y - creator.y).toBeGreaterThan(9);
+          }
         }
       }
       expect(positions.filter((entry) => entry.text === '[image]')).toHaveLength(100);

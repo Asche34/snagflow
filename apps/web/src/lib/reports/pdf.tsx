@@ -47,6 +47,27 @@ const styles = StyleSheet.create({
   heading: { fontFamily: 'Helvetica-Bold', fontSize: 12, lineHeight: 1.3, marginBottom: 5 },
   row: { flexDirection: 'row', gap: 12, flexShrink: 0 },
   meta: { fontSize: 9, lineHeight: 1.35, color: '#40555e', marginBottom: 5 },
+  classicTitle: {
+    fontFamily: 'Helvetica-Bold',
+    fontSize: 15,
+    lineHeight: 1.3,
+    marginBottom: 10,
+    color: '#172b35',
+  },
+  classicDescription: {
+    fontSize: 10,
+    lineHeight: 1.45,
+    color: '#2b3f46',
+    marginBottom: 10,
+  },
+  classicCard: {
+    borderWidth: 1,
+    borderColor: '#dfe7ea',
+    backgroundColor: '#f9fbfb',
+    padding: 10,
+    marginBottom: 14,
+    borderRadius: 6,
+  },
   footer: {
     position: 'absolute',
     bottom: 22,
@@ -152,14 +173,93 @@ function Evidence({ photo, data }: { photo: ReportPhoto; data: ReportData }) {
     </View>
   ) : null;
 }
+function getClassicPhotoColumns(photoCount: number, photoSize: string) {
+  const maxColumns = photoSize === 'small' ? 5 : photoSize === 'large' ? 3 : 4;
+  return Math.min(photoCount, maxColumns);
+}
+function ClassicSnag({ snag, data }: { snag: ReportSnag; data: ReportData }) {
+  const options = data.request.options;
+  const photos = (snag.photos ?? []).filter((photo) => photo && photo.image && options.photoSize !== 'one_per_page');
+  const columns = getClassicPhotoColumns(photos.length, options.photoSize);
+  const [photoWidth, photoHeight] = reportPhotoDimensions(data.request.theme, options.photoSize);
+  const photoRows = Array.from({ length: Math.ceil(photos.length / columns) }, (_, row) =>
+    photos.slice(row * columns, (row + 1) * columns),
+  );
+  const longDescription = (snag.description?.length ?? 0) > 1000;
+  const detailLines = [
+    `${snag.status.replaceAll('_', ' ')} · ${snag.priority} priority · ${snag.assignee}`,
+    `${snag.location} · ${snag.category} · Due: ${reportDate(snag.due_date, data)}`,
+  ];
+  return (
+    <View style={{ ...styles.classicCard, marginBottom: 14 }}>
+      <View wrap={longDescription}>
+        <Text style={styles.classicTitle} minPresenceAhead={100}>
+          #{snag.number} · {snag.title}
+        </Text>
+        {snag.description ? <Text style={styles.classicDescription}>{snag.description}</Text> : null}
+        {detailLines.map((line, index) => (
+          <Text key={`${snag.id}-detail-${index}`} style={styles.meta}>
+            {line}
+          </Text>
+        ))}
+        <Text style={styles.muted}>
+          Raised by {snag.creator}
+          {snag.closedBy ? ` · Closed by ${snag.closedBy}` : ''} · Rejections: {snag.rejection_count}
+        </Text>
+        {options.timestamps ? (
+          <Text style={styles.muted}>
+            Created {reportDate(snag.created_at, data, true)} · Updated{' '}
+            {reportDate(snag.updated_at, data, true)}
+            {snag.closed_at ? ` · Closed ${reportDate(snag.closed_at, data, true)}` : ''}
+          </Text>
+        ) : null}
+      </View>
+      {options.comments
+        ? snag.comments.map((comment) => (
+            <View key={comment.id} style={{ marginTop: 8 }}>
+              <Text style={styles.label} minPresenceAhead={20}>
+                {comment.author}
+                {options.timestamps ? ` · ${reportDate(comment.created_at, data, true)}` : ''}
+              </Text>
+              <Text>{comment.body}</Text>
+            </View>
+          ))
+        : null}
+      {photoRows.map((row, rowIndex) => (
+        <View
+          key={`${snag.id}-photos-${rowIndex}`}
+          wrap={false}
+          style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}
+        >
+          {row.map((photo) => (
+            <View key={photo.id} style={{ width: photoWidth, flexShrink: 0 }}>
+              <Image
+                src={imageSource(photo.image!)}
+                style={{
+                  width: '100%',
+                  height: photoHeight,
+                  objectFit: 'contain',
+                  backgroundColor: '#eef3f3',
+                  borderRadius: 4,
+                  borderWidth: 1,
+                  borderColor: '#dfe7ea',
+                }}
+              />
+              <Text style={{ ...styles.muted, marginTop: 3 }}>
+                {photo.kind === 'fix' ? 'Fix photo' : 'Issue photo'}
+                {options.timestamps ? ` · ${reportDate(photo.taken_at, data, true)}` : ''}
+              </Text>
+            </View>
+          ))}
+        </View>
+      ))}
+    </View>
+  );
+}
 export async function renderReportPdf(data: ReportData) {
   const options = data.request.options;
   const compact = data.request.theme === 'compact';
   const classic = data.request.theme === 'classic';
-  const evidenceWidth =
-    options.photoSize === 'one_per_page'
-      ? 140
-      : reportPhotoDimensions(data.request.theme, options.photoSize)[0];
   let previousGroup = '';
   return renderToBuffer(
     <Document
@@ -168,7 +268,7 @@ export async function renderReportPdf(data: ReportData) {
       subject={data.org.company_name}
     >
       {options.cover ? (
-        <Page size="A4" style={styles.page}>
+        <Page size="A4" orientation="portrait" style={styles.page}>
           {data.logo ? (
             <Image
               src={{ data: data.logo, format: 'png' }}
@@ -208,31 +308,31 @@ export async function renderReportPdf(data: ReportData) {
           <Footer data={data} />
         </Page>
       ) : null}
-      <Page size="A4" style={{ ...styles.page, fontSize: compact ? 8 : 10 }}>
+      <Page
+        size="A4"
+        orientation={classic ? 'landscape' : 'portrait'}
+        style={{ ...styles.page, fontSize: compact ? 8 : 10 }}
+      >
         <Text style={styles.subtitle}>
           {data.title} · {data.project.code}
         </Text>
         {!data.snags.length ? <Text>No items match the selected filters.</Text> : null}
-        {classic ? (
-          <View
-            wrap={false}
-            style={{
-              ...styles.row,
-              backgroundColor: '#eef3f3',
-              padding: 8,
-              borderWidth: 1,
-              borderColor: '#dce3e5',
-            }}
-          >
-            <Text style={{ flex: 1, fontFamily: 'Helvetica-Bold' }}>Item / details</Text>
-            <Text style={{ width: evidenceWidth, fontFamily: 'Helvetica-Bold' }}>
-              Photo evidence
-            </Text>
-          </View>
-        ) : null}
+        {classic ? <Text style={styles.group}>Inspection items</Text> : null}
         {data.snags.map((snag) => {
           const newGroup = previousGroup !== snag.group;
           previousGroup = snag.group;
+          if (classic) {
+            return (
+              <Fragment key={snag.id}>
+                {newGroup ? (
+                  <Text style={styles.group} minPresenceAhead={180}>
+                    {snag.group}
+                  </Text>
+                ) : null}
+                <ClassicSnag snag={snag} data={data} />
+              </Fragment>
+            );
+          }
           // A bounded summary/thumbnail row stays together. Long narratives and full
           // comment threads flow as normal text; additional images keep their captions.
           const rowFits =
@@ -294,7 +394,12 @@ export async function renderReportPdf(data: ReportData) {
         ? data.snags.flatMap((snag) =>
             snag.photos.map((photo) =>
               photo.image ? (
-                <Page key={photo.id} size="A4" style={styles.page}>
+                <Page
+                  key={photo.id}
+                  size="A4"
+                  orientation={classic ? 'landscape' : 'portrait'}
+                  style={styles.page}
+                >
                   <Text style={styles.heading}>
                     #{snag.number} · {snag.title}
                   </Text>
