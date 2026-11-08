@@ -11,6 +11,7 @@ import {
   StyleSheet,
   renderToBuffer,
 } from '@react-pdf/renderer';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { SNAG_PRIORITIES, SNAG_STATUSES, reportPhotoDimensions } from '@snagflow/shared';
 import { reportDate, type ReportData, type ReportSnag, type ReportPhoto } from './data';
 import { Fragment } from 'react';
@@ -187,14 +188,14 @@ function ClassicSnag({ snag, data }: { snag: ReportSnag; data: ReportData }) {
   );
   const longDescription = (snag.description?.length ?? 0) > 1000;
   const detailLines = [
-    `${snag.status.replaceAll('_', ' ')} · ${snag.priority} priority · ${snag.assignee}`,
-    `${snag.location} · ${snag.category} · Due: ${reportDate(snag.due_date, data)}`,
+    `Status: ${snag.status.replaceAll('_', ' ')} · Priority: ${snag.priority}`,
+    `Location: ${snag.location} · Category: ${snag.category}`,
   ];
   return (
     <View style={{ ...styles.classicCard, marginBottom: 14 }}>
       <View wrap={longDescription}>
         <Text style={styles.classicTitle} minPresenceAhead={100}>
-          #{snag.number} · {snag.title}
+          {snag.title}
         </Text>
         {snag.description ? <Text style={styles.classicDescription}>{snag.description}</Text> : null}
         {detailLines.map((line, index) => (
@@ -202,29 +203,7 @@ function ClassicSnag({ snag, data }: { snag: ReportSnag; data: ReportData }) {
             {line}
           </Text>
         ))}
-        <Text style={styles.muted}>
-          Raised by {snag.creator}
-          {snag.closedBy ? ` · Closed by ${snag.closedBy}` : ''} · Rejections: {snag.rejection_count}
-        </Text>
-        {options.timestamps ? (
-          <Text style={styles.muted}>
-            Created {reportDate(snag.created_at, data, true)} · Updated{' '}
-            {reportDate(snag.updated_at, data, true)}
-            {snag.closed_at ? ` · Closed ${reportDate(snag.closed_at, data, true)}` : ''}
-          </Text>
-        ) : null}
       </View>
-      {options.comments
-        ? snag.comments.map((comment) => (
-            <View key={comment.id} style={{ marginTop: 8 }}>
-              <Text style={styles.label} minPresenceAhead={20}>
-                {comment.author}
-                {options.timestamps ? ` · ${reportDate(comment.created_at, data, true)}` : ''}
-              </Text>
-              <Text>{comment.body}</Text>
-            </View>
-          ))
-        : null}
       {photoRows.map((row, rowIndex) => (
         <View
           key={`${snag.id}-photos-${rowIndex}`}
@@ -245,10 +224,6 @@ function ClassicSnag({ snag, data }: { snag: ReportSnag; data: ReportData }) {
                   borderColor: '#dfe7ea',
                 }}
               />
-              <Text style={{ ...styles.muted, marginTop: 3 }}>
-                {photo.kind === 'fix' ? 'Fix photo' : 'Issue photo'}
-                {options.timestamps ? ` · ${reportDate(photo.taken_at, data, true)}` : ''}
-              </Text>
             </View>
           ))}
         </View>
@@ -261,7 +236,7 @@ export async function renderReportPdf(data: ReportData) {
   const compact = data.request.theme === 'compact';
   const classic = data.request.theme === 'classic';
   let previousGroup = '';
-  return renderToBuffer(
+  const rendered = await renderToBuffer(
     <Document
       title={`${data.title} — ${data.project.name}`}
       author={data.preparedBy}
@@ -308,30 +283,16 @@ export async function renderReportPdf(data: ReportData) {
           <Footer data={data} />
         </Page>
       ) : null}
-      <Page
-        size="A4"
-        orientation={classic ? 'landscape' : 'portrait'}
-        style={{ ...styles.page, fontSize: compact ? 8 : 10 }}
-      >
+      <Page size="A4" orientation="portrait" style={{ ...styles.page, fontSize: compact ? 8 : 10 }}>
         <Text style={styles.subtitle}>
           {data.title} · {data.project.code}
         </Text>
         {!data.snags.length ? <Text>No items match the selected filters.</Text> : null}
-        {classic ? <Text style={styles.group}>Inspection items</Text> : null}
         {data.snags.map((snag) => {
           const newGroup = previousGroup !== snag.group;
           previousGroup = snag.group;
           if (classic) {
-            return (
-              <Fragment key={snag.id}>
-                {newGroup ? (
-                  <Text style={styles.group} minPresenceAhead={180}>
-                    {snag.group}
-                  </Text>
-                ) : null}
-                <ClassicSnag snag={snag} data={data} />
-              </Fragment>
-            );
+            return <ClassicSnag key={snag.id} snag={snag} data={data} />;
           }
           // A bounded summary/thumbnail row stays together. Long narratives and full
           // comment threads flow as normal text; additional images keep their captions.
@@ -397,17 +358,19 @@ export async function renderReportPdf(data: ReportData) {
                 <Page
                   key={photo.id}
                   size="A4"
-                  orientation={classic ? 'landscape' : 'portrait'}
+                  orientation="portrait"
                   style={styles.page}
                 >
                   <Text style={styles.heading}>
-                    #{snag.number} · {snag.title}
+                    {classic ? snag.title : `#${snag.number} · ${snag.title}`}
                   </Text>
-                  <Text style={styles.meta}>
-                    {snag.group} · {photo.kind} photo
-                    {options.annotated && photo.annotated_path ? ' · annotated' : ''}
-                  </Text>
-                  {options.timestamps ? (
+                  {classic ? null : (
+                    <Text style={styles.meta}>
+                      {snag.group} · {photo.kind} photo
+                      {options.annotated && photo.annotated_path ? ' · annotated' : ''}
+                    </Text>
+                  )}
+                  {!classic && options.timestamps ? (
                     <Text style={styles.meta}>{reportDate(photo.taken_at, data, true)}</Text>
                   ) : null}
                   <Image
@@ -422,4 +385,20 @@ export async function renderReportPdf(data: ReportData) {
         : null}
     </Document>,
   );
+  const numberedPdf = await PDFDocument.load(rendered);
+  const numberFont = await numberedPdf.embedFont(StandardFonts.Helvetica);
+  const pages = numberedPdf.getPages();
+  pages.forEach((page, index) => {
+    const label = `Page ${index + 1} of ${pages.length}`;
+    const fontSize = 8;
+    const textWidth = numberFont.widthOfTextAtSize(label, fontSize);
+    page.drawText(label, {
+      x: (page.getWidth() - textWidth) / 2,
+      y: 24,
+      size: fontSize,
+      font: numberFont,
+      color: rgb(88 / 255, 107 / 255, 115 / 255),
+    });
+  });
+  return Buffer.from(await numberedPdf.save({ useObjectStreams: false }));
 }

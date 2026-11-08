@@ -150,7 +150,7 @@ function textPositions(pdf, includeImages = false) {
         width: Math.max(...xs) - Math.min(...xs),
         height: Math.max(...ys) - Math.min(...ys),
       });
-    } else if (line.endsWith(' TJ')) {
+    } else if (line.endsWith(' TJ') || line.endsWith(' Tj')) {
       const text = [...line.matchAll(/<([0-9a-f]+)>/gi)]
         .map((match) => Buffer.from(match[1], 'hex').toString('latin1'))
         .join('');
@@ -197,7 +197,9 @@ describe('actual report output', () => {
       const pdf = await renderReportPdf(data);
       writeFileSync(new URL(`branded-${cover ? 'cover' : 'no-cover'}.pdf`, output), pdf);
       const positions = textPositions(pdf, true);
-      const pages = new Set(positions.map((entry) => entry.page));
+      const pages = new Set(
+        positions.filter((entry) => !entry.text.startsWith('Page ')).map((entry) => entry.page),
+      );
       for (const page of pages) {
         expect(positions.some((entry) => entry.page === page && entry.text === 'SnagFlow')).toBe(
           true,
@@ -245,11 +247,23 @@ describe('actual report output', () => {
       expect(subtitle.y - title.y, `${theme} cover title separation`).toBeGreaterThan(20);
     }
   });
-  it('uses a portrait cover plus landscape classic pages and keeps titles directly above descriptions', async () => {
+  it('keeps Classic pages portrait, numbers pages, and limits each snag to requested fields', async () => {
     const data = fixture();
     data.request.theme = 'classic';
     data.request.options.cover = true;
     data.request.options.photoSize = 'medium';
+    data.snags[0].assignee = 'Not included';
+    data.snags[0].creator = 'Not included';
+    data.snags[0].comments = [
+      {
+        id: crypto.randomUUID(),
+        snag_id: uuid,
+        author_id: uuid,
+        author: 'Not included',
+        created_at: data.generatedAt,
+        body: 'This optional comment must not appear in the Classic snag card.',
+      },
+    ];
     data.snags = [
       {
         ...data.snags[0],
@@ -271,12 +285,16 @@ describe('actual report output', () => {
     );
     const media = pageBoxes(pdf);
     expect(media.length).toBeGreaterThanOrEqual(2);
-    expect(media[0].width).toBeCloseTo(595, 0);
-    expect(media[0].height).toBeCloseTo(842, 0);
-    expect(media[1].width).toBeCloseTo(842, 0);
-    expect(media[1].height).toBeCloseTo(595, 0);
-    const positions = textPositions(pdf);
-    const title = positions.find((entry) => entry.text.includes('Roof leak at parapet edge'));
+    expect(media.every((box) => box.height > box.width)).toBe(true);
+    expect(media.every((box) => Math.abs(box.width - 595) < 1)).toBe(true);
+    expect(media.every((box) => Math.abs(box.height - 842) < 1)).toBe(true);
+    const positions = textPositions(pdf, true);
+    const pageLabels = positions.map((entry) => entry.text).filter((text) => /^Page \d+ of \d+$/.test(text));
+    expect(pageLabels).toEqual(Array.from({ length: media.length }, (_, index) => `Page ${index + 1} of ${media.length}`));
+    for (let page = 1; page <= media.length; page++) {
+      expect(pageLabels).toContain(`Page ${page} of ${media.length}`);
+    }
+    const title = positions.find((entry) => entry.text === 'Roof leak at parapet edge');
     const description = positions.find((entry) =>
       entry.text.includes('Detailed issue description for the classic layout regression test.'),
     );
@@ -284,6 +302,46 @@ describe('actual report output', () => {
     expect(description).toBeDefined();
     expect(description.y - title.y).toBeGreaterThan(0);
     expect(description.y - title.y).toBeLessThan(80);
+    for (const field of ['Status: open', 'Priority: high', 'Location: No location', 'Category: No category']) {
+      expect(positions.some((entry) => entry.text.includes(field))).toBe(true);
+    }
+    for (const excluded of [
+      'Unassigned',
+      'Raised by',
+      'Rejections',
+      'Created ',
+      'Due:',
+      'This optional comment must not appear',
+    ]) {
+      expect(positions.some((entry) => entry.text.includes(excluded))).toBe(false);
+    }
+    const photos = positions.filter((entry) => entry.text === '[image]');
+    expect(photos).toHaveLength(3);
+    expect(new Set(photos.map((entry) => entry.y)).size).toBe(1);
+    expect(photos.map((entry) => entry.x)).toEqual([...photos.map((entry) => entry.x)].sort((a, b) => a - b));
+  });
+  it('keeps one-photo-per-page PDFs portrait and numbers every page in each theme', async () => {
+    for (const theme of ['classic', 'compact', 'photo_first']) {
+      const data = fixture();
+      data.request.theme = theme;
+      data.request.options.cover = true;
+      data.request.options.photoSize = 'one_per_page';
+      data.snags[0].photos = Array.from({ length: 2 }, (_, index) => ({
+        ...data.snags[0].photos[0],
+        id: crypto.randomUUID(),
+        sort_order: index,
+      }));
+      const pdf = await renderReportPdf(data);
+      const media = pageBoxes(pdf);
+      const positions = textPositions(pdf);
+      expect(media).toHaveLength(4);
+      expect(media.every((box) => box.height > box.width)).toBe(true);
+      const pageLabels = positions.map((entry) => entry.text).filter((text) => /^Page \d+ of \d+$/.test(text));
+      expect(pageLabels).toEqual(Array.from({ length: media.length }, (_, index) => `Page ${index + 1} of ${media.length}`));
+      for (let page = 1; page <= media.length; page++) {
+        expect(pageLabels, `${theme} page numbering`).toContain(`Page ${page} of ${media.length}`);
+      }
+    }
   });
   it('keeps a hundred photo records and long narratives inside every theme page', async () => {
     const output = new URL('../../../.superpowers/phase4/render-geometry/', import.meta.url);
@@ -320,6 +378,7 @@ describe('actual report output', () => {
       expect(pdf.byteLength).toBeGreaterThan(20000);
       const boxes = pageBoxes(pdf);
       const positions = textPositions(pdf, true);
+      expect(boxes.every((box) => box.height > box.width), `${theme} portrait pages`).toBe(true);
       expect(
         positions.some((entry) => /x{180}/.test(entry.text)),
         `${theme} unbroken-token wrapping`,
@@ -336,7 +395,7 @@ describe('actual report output', () => {
             );
           },
         ),
-        `${theme} text/image bounds (classic pages are landscape)`,
+          `${theme} text/image bounds`,
       ).toEqual([]);
       if (theme === 'classic') {
         const headings = positions.filter(
@@ -348,18 +407,14 @@ describe('actual report output', () => {
           const end =
             i + 1 < headings.length ? positions.indexOf(headings[i + 1]) : positions.length;
           const row = positions.slice(start, end);
-          const status = row.find((entry) => entry.text.startsWith('open'));
-          const creator = row.find((entry) => entry.text.startsWith('Raised by'));
-          const created = row.find((entry) => entry.text.startsWith('Created'));
+          const status = row.find((entry) => entry.text.startsWith('Status: open'));
           expect(status).toBeDefined();
-          expect(creator).toBeDefined();
-          expect(created).toBeDefined();
+          expect(row.some((entry) => entry.text.includes('Priority: high'))).toBe(true);
+          expect(row.some((entry) => entry.text.includes('Location: No location'))).toBe(true);
+          expect(row.some((entry) => entry.text.includes('Category: No category'))).toBe(true);
           if (i !== 99) {
             expect(status.page).toBe(headings[i].page);
-            expect(creator.page).toBe(headings[i].page);
-            expect(created.page).toBe(headings[i].page);
             expect(status.y - headings[i].y).toBeGreaterThan(9);
-            expect(created.y - creator.y).toBeGreaterThan(9);
           }
         }
       }
